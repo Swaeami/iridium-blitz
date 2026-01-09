@@ -1,7 +1,9 @@
-## Iridium 1.0.14 - OBFS + Masquerade Fix
+## Iridium 1.0.15 - OBFS/Masquerade Independence & Restart Button
 
 ### Fixed
-- Corrected misleading message that said OBFS and Masquerade can't work together
-- They CAN and SHOULD be used together for maximum protection:
-  - OBFS: Obfuscates QUIC packets (hides from DPI)
-  - Masquerade: Fake response for invalid connections (hides from scanners)
+- OBFS and Masquerade can now be enabled/disabled independently
+- Removed blocking logic that prevented using both together
+- Removed unnecessary alert messages from Hysteria Settings
+
+### Added
+- Restart Hysteria2 button now always visible in dashboard (not just when offline)

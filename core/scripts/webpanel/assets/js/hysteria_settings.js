@@ -166,10 +166,7 @@ $(document).ready(function () {
         enableBtn.hide();
         disableBtn.hide();
 
-        if (isMasqueradeEnabled) {
-            msgElement.text("Cannot be managed while Masquerade is active.");
-            container.addClass("border-info alert-info");
-        } else if (statusMessage === "OBFS is active.") {
+        if (statusMessage === "OBFS is active.") {
             msgElement.text(statusMessage);
             disableBtn.show();
             container.addClass("border-success alert-success");
@@ -193,10 +190,7 @@ $(document).ready(function () {
         enableBtn.hide();
         disableBtn.hide();
 
-        if (isObfsEnabled) {
-            msgElement.text("Cannot be managed while OBFS is active.");
-            container.addClass("border-info alert-info");
-        } else if (statusMessage === "Enabled") {
+        if (statusMessage === "Enabled") {
             msgElement.text(statusMessage);
             disableBtn.show();
             container.addClass("border-success alert-success");

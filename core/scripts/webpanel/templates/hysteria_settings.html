@@ -84,10 +84,6 @@
                                     <span id="obfs_status_message">Loading OBFS status...</span>
                                 </div>
                             </div>
-                            <div class="alert alert-warning" role="alert">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <strong>Warning:</strong> <small>Changing this setting requires users to update their client configurations.</small>
-                            </div>
                             <button id="obfs_enable_btn" type='button' class='btn btn-success' style="display: none;">
                                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
                                 Enable OBFS
@@ -103,10 +99,6 @@
                                 <div id="masquerade_status_container" class="p-3 border rounded">
                                     <span id="masquerade_status_message">Loading Masquerade status...</span>
                                 </div>
-                            </div>
-                             <div class="alert alert-info" role="alert">
-                               <i class="fas fa-info-circle"></i>
-                                <strong>Note:</strong> <small>Masquerade and OBFS can work together for maximum protection.</small>
                             </div>
                             <button id="masquerade_enable_btn" type='button' class='btn btn-success' style="display: none;">
                                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
@@ -151,5 +143,5 @@
 
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ url_for('assets', path='js/hysteria_settings.js') }}?v=1.0.14"></script>
+<script src="{{ url_for('assets', path='js/hysteria_settings.js') }}?v=1.0.15"></script>
 {% endblock %}
