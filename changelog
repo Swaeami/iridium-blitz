@@ -1,5 +1,11 @@
-## Iridium 1.0.16 - Backend OBFS/Masquerade Fix
+## Iridium 1.0.17 - Connection Labels & Subscription Name Fix
 
 ### Fixed
-- Removed backend restriction that blocked masquerade when OBFS is active
-- Now both OBFS and Masquerade can be enabled simultaneously
+- Connection labels (IPV4_LABEL, IPV6_LABEL) now properly appear in subscription URIs
+- Fixed hardcoded "IPv4"/"IPv6" in show_user_uri.py
+
+### Changed
+- SUB_NAME is now fully customizable (no forced username prefix or emoji)
+- SUB_NAME supports `{username}` placeholder if you want to include username
+- Example: Set SUB_NAME to "MyVPN - {username}" for "MyVPN - john" format
+- Or just "IridiumVPN" for a clean name without username

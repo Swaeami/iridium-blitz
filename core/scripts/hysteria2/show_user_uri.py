@@ -50,6 +50,13 @@ def get_sub_name() -> str:
     env_vars = load_hysteria2_env()
     return env_vars.get('SUB_NAME', 'Hysteria2')
 
+def get_connection_labels() -> Tuple[str, str]:
+    """Get custom connection labels or defaults"""
+    env_vars = load_hysteria2_env()
+    ipv4_label = env_vars.get('IPV4_LABEL', 'IPv4')
+    ipv6_label = env_vars.get('IPV6_LABEL', 'IPv6')
+    return ipv4_label, ipv6_label
+
 def get_singbox_domain_and_port() -> Tuple[str, str]:
     env_vars = load_env_file(SINGBOX_ENV)
     domain = env_vars.get('HYSTERIA_DOMAIN', '')
@@ -159,20 +166,21 @@ def show_uri(args: argparse.Namespace) -> None:
     local_insecure = config.get("tls", {}).get("insecure", True)
     
     ip4, ip6, local_sni = load_hysteria2_ips()
+    ipv4_label, ipv6_label = get_connection_labels()
     nodes = load_nodes()
     terminal_width = get_terminal_width()
 
     if args.all or args.ip_version == 4:
         if ip4 and ip4 != "None":
             uri = generate_uri(args.username, auth_password, ip4, local_port, 
-                                 local_obfs_password, local_sha256, local_sni, 4, local_insecure, "IPv4")
-            display_uri_and_qr(uri, "IPv4", args, terminal_width)
+                                 local_obfs_password, local_sha256, local_sni, 4, local_insecure, ipv4_label)
+            display_uri_and_qr(uri, ipv4_label, args, terminal_width)
             
     if args.all or args.ip_version == 6:
         if ip6 and ip6 != "None":
             uri = generate_uri(args.username, auth_password, ip6, local_port, 
-                                 local_obfs_password, local_sha256, local_sni, 6, local_insecure, "IPv6")
-            display_uri_and_qr(uri, "IPv6", args, terminal_width)
+                                 local_obfs_password, local_sha256, local_sni, 6, local_insecure, ipv6_label)
+            display_uri_and_qr(uri, ipv6_label, args, terminal_width)
 
     for node in nodes:
         node_name = node.get("name")

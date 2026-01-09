@@ -418,7 +418,9 @@ class SubscriptionManager:
             f"expire={user_info.expiration_timestamp}\n"
         )
         sub_name = get_subscription_name()
-        profile_lines = f"//profile-title: {username}-{sub_name} ⚡\n//profile-update-interval: 1\n"
+        # Use SUB_NAME exactly as configured (supports {username} placeholder)
+        title = sub_name.replace('{username}', username) if '{username}' in sub_name else sub_name
+        profile_lines = f"//profile-title: {title}\n//profile-update-interval: 1\n"
         return profile_lines + subscription_info + "\n".join(all_processed_uris)
 
 
