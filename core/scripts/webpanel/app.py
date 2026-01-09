@@ -24,11 +24,11 @@ def create_app() -> FastAPI:
     '''
 
     app = FastAPI(
-        title='Blitz API',
-        description='Webpanel for Hysteria2',
-        version='0.2.0',
+        title='IridiumGo API',
+        description='Modern Management Panel for Hysteria2',
+        version='1.0.0',
         contact={
-            'github': 'https://github.com/ReturnFI/Blitz'
+            'github': 'https://github.com/Swaeami/iridium-blitz'
         },
         debug=CONFIGS.DEBUG,
         root_path=f'/{CONFIGS.ROOT_PATH}',

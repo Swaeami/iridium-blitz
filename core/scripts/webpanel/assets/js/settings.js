@@ -7,6 +7,7 @@ $(document).ready(function () {
         getAllNodes: contentSection.dataset.getAllNodesUrl,
         addNode: contentSection.dataset.addNodeUrl,
         deleteNode: contentSection.dataset.deleteNodeUrl,
+        editNode: contentSection.dataset.editNodeUrl,
         getAllExtraConfigs: contentSection.dataset.getAllExtraConfigsUrl,
         addExtraConfig: contentSection.dataset.addExtraConfigUrl,
         deleteExtraConfig: contentSection.dataset.deleteExtraConfigUrl,
@@ -32,13 +33,16 @@ $(document).ready(function () {
         statusWarp: contentSection.dataset.statusWarpUrl,
         installWarp: contentSection.dataset.installWarpUrl,
         uninstallWarp: contentSection.dataset.uninstallWarpUrl,
-        configureWarp: contentSection.dataset.configureWarpUrl
+        configureWarp: contentSection.dataset.configureWarpUrl,
+        getLabels: contentSection.dataset.getLabelsUrl,
+        editLabels: contentSection.dataset.editLabelsUrl
     };
 
     initUI();
     fetchDecoyStatus();
     fetchNodes();
     fetchExtraConfigs();
+    fetchConnectionLabels();
 
     function escapeHtml(text) {
         var map = {
@@ -282,6 +286,7 @@ $(document).ready(function () {
             $("#nodes_table").show();
             $("#no_nodes_message").hide();
             nodes.forEach(node => {
+                const nodeData = JSON.stringify(node).replace(/"/g, '&quot;');
                 const row = `<tr>
                                 <td>${escapeHtml(node.name)}</td>
                                 <td>${escapeHtml(node.ip)}</td>
@@ -291,6 +296,9 @@ $(document).ready(function () {
                                 <td>${escapeHtml(node.insecure ? 'True' : 'False')}</td>
                                 <td>${escapeHtml(node.pinSHA256 || 'N/A')}</td>
                                 <td>
+                                    <button class="btn btn-xs btn-primary edit-node-btn mr-1" data-node="${nodeData}">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
                                     <button class="btn btn-xs btn-danger delete-node-btn" data-name="${escapeHtml(node.name)}">
                                         <i class="fas fa-trash"></i> Delete
                                     </button>
@@ -348,6 +356,129 @@ $(document).ready(function () {
                 null,
                 false,
                 fetchNodes
+            );
+        });
+    }
+
+    function openEditNodeModal(nodeData) {
+        const node = JSON.parse(nodeData);
+        $("#edit_node_original_name").val(node.name);
+        $("#edit_node_name").val(node.name);
+        $("#edit_node_ip").val(node.ip);
+        $("#edit_node_port").val(node.port || '');
+        $("#edit_node_sni").val(node.sni || '');
+        $("#edit_node_obfs").val(node.obfs || '');
+        $("#edit_node_pin").val(node.pinSHA256 || '');
+        $("#edit_node_insecure").prop('checked', node.insecure || false);
+        
+        // Clear validation states
+        $("#edit_node_form .form-control").removeClass('is-invalid');
+        
+        // Bootstrap 5 modal
+        var modal = new bootstrap.Modal(document.getElementById('editNodeModal'));
+        modal.show();
+    }
+
+    function saveEditNode() {
+        const originalName = $("#edit_node_original_name").val();
+        const newName = $("#edit_node_name").val().trim();
+        const ip = $("#edit_node_ip").val().trim();
+        const port = $("#edit_node_port").val().trim();
+        const sni = $("#edit_node_sni").val().trim();
+        const obfs = $("#edit_node_obfs").val().trim();
+        const pinSHA256 = $("#edit_node_pin").val().trim();
+        const insecure = $("#edit_node_insecure").is(':checked');
+
+        // Validation
+        let isValid = true;
+        if (!newName) {
+            $("#edit_node_name").addClass('is-invalid');
+            isValid = false;
+        }
+        if (!ip || !isValidIPorDomain(ip)) {
+            $("#edit_node_ip").addClass('is-invalid');
+            isValid = false;
+        }
+        if (port && !isValidPort(port)) {
+            $("#edit_node_port").addClass('is-invalid');
+            isValid = false;
+        }
+        if (sni && !isValidDomain(sni)) {
+            $("#edit_node_sni").addClass('is-invalid');
+            isValid = false;
+        }
+        if (pinSHA256 && !isValidSha256Pin(pinSHA256)) {
+            $("#edit_node_pin").addClass('is-invalid');
+            isValid = false;
+        }
+
+        if (!isValid) return;
+
+        const data = { name: originalName };
+        if (newName !== originalName) data.new_name = newName;
+        data.ip = ip;
+        if (port) data.port = parseInt(port);
+        data.sni = sni || null;
+        data.obfs = obfs || null;
+        data.pinSHA256 = pinSHA256 || null;
+        data.insecure = insecure;
+
+        confirmAction(`update the node '${originalName}'`, function () {
+            sendRequest(
+                API_URLS.editNode,
+                "POST",
+                data,
+                `Node '${newName}' updated successfully!`,
+                "#save_edit_node_btn",
+                false,
+                function() {
+                    // Bootstrap 5 modal hide
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('editNodeModal'));
+                    if (modal) modal.hide();
+                    fetchNodes();
+                }
+            );
+        });
+    }
+
+    function fetchConnectionLabels() {
+        $.ajax({
+            url: API_URLS.getLabels,
+            type: "GET",
+            success: function (data) {
+                $("#ipv4_label").val(data.ipv4_label || 'IPv4');
+                $("#ipv6_label").val(data.ipv6_label || 'IPv6');
+            },
+            error: function(xhr, status, error) {
+                console.error("Failed to fetch connection labels:", error);
+                $("#ipv4_label").val('IPv4');
+                $("#ipv6_label").val('IPv6');
+            }
+        });
+    }
+
+    function saveConnectionLabels() {
+        const ipv4Label = $("#ipv4_label").val().trim();
+        const ipv6Label = $("#ipv6_label").val().trim();
+
+        if (!ipv4Label && !ipv6Label) {
+            Swal.fire("Error!", "At least one label must be provided.", "error");
+            return;
+        }
+
+        const data = {};
+        if (ipv4Label) data.ipv4_label = ipv4Label;
+        if (ipv6Label) data.ipv6_label = ipv6Label;
+
+        confirmAction("update connection labels", function () {
+            sendRequest(
+                API_URLS.editLabels,
+                "POST",
+                data,
+                "Connection labels updated successfully!",
+                "#labels_save",
+                false,
+                fetchConnectionLabels
             );
         });
     }
@@ -1013,6 +1144,12 @@ $(document).ready(function () {
         const nodeName = $(this).data("name");
         deleteNode(nodeName);
     });
+    $("#nodes_table").on("click", ".edit-node-btn", function() {
+        const nodeData = $(this).attr("data-node");
+        openEditNodeModal(nodeData);
+    });
+    $("#save_edit_node_btn").on("click", saveEditNode);
+    $("#labels_save").on("click", saveConnectionLabels);
     $("#add_extra_config_btn").on("click", addExtraConfig);
     $("#extra_configs_table").on("click", ".delete-extra-config-btn", function() {
         const configName = $(this).data("name");

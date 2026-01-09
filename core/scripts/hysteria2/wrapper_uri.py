@@ -33,6 +33,13 @@ def load_env_file(env_file: str) -> Dict[str, str]:
                     env_vars[key] = value.strip()
     return env_vars
 
+
+def get_connection_labels(env_vars: Dict[str, str]) -> tuple:
+    """Get custom connection labels or defaults"""
+    ipv4_label = env_vars.get('IPV4_LABEL', 'IPv4')
+    ipv6_label = env_vars.get('IPV6_LABEL', 'IPv6')
+    return ipv4_label, ipv6_label
+
 def generate_uri(username: str, auth_password: str, ip: str, port: str, 
                  uri_params: Dict[str, str], ip_version: int, fragment_tag: str) -> str:
     ip_part = f"[{ip}]" if ip_version == 6 and ':' in ip else ip
@@ -74,6 +81,7 @@ def process_users(target_usernames: List[str]) -> List[Dict[str, Any]]:
     
     ip4 = hy2_env.get('IP4')
     ip6 = hy2_env.get('IP6')
+    ipv4_label, ipv6_label = get_connection_labels(hy2_env)
     ns_domain, ns_port, ns_subpath = ns_env.get('HYSTERIA_DOMAIN'), ns_env.get('HYSTERIA_PORT'), ns_env.get('SUBPATH')
 
     results = []
@@ -87,9 +95,9 @@ def process_users(target_usernames: List[str]) -> List[Dict[str, Any]]:
         user_output = {"username": username, "ipv4": None, "ipv6": None, "nodes": [], "normal_sub": None}
 
         if ip4 and ip4 != "None":
-            user_output["ipv4"] = generate_uri(username, auth_password, ip4, default_port, base_uri_params, 4, "IPv4")
+            user_output["ipv4"] = generate_uri(username, auth_password, ip4, default_port, base_uri_params, 4, ipv4_label)
         if ip6 and ip6 != "None":
-            user_output["ipv6"] = generate_uri(username, auth_password, ip6, default_port, base_uri_params, 6, "IPv6")
+            user_output["ipv6"] = generate_uri(username, auth_password, ip6, default_port, base_uri_params, 6, ipv6_label)
 
         for node in nodes:
             node_name = node.get("name")

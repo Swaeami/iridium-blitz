@@ -488,6 +488,41 @@ def get_ip_address() -> tuple[str | None, str | None]:
     return env_vars.get('IP4'), env_vars.get('IP6')
 
 
+def get_connection_labels() -> tuple[str, str]:
+    '''
+    Retrieves the connection labels from the .configs.env file.
+    Returns default values ("IPv4", "IPv6") if not set.
+    '''
+    env_vars = dotenv_values(CONFIG_ENV_FILE)
+    ipv4_label = env_vars.get('IPV4_LABEL', 'IPv4')
+    ipv6_label = env_vars.get('IPV6_LABEL', 'IPv6')
+    return ipv4_label, ipv6_label
+
+
+def edit_connection_labels(ipv4_label: str | None, ipv6_label: str | None):
+    '''
+    Edits the connection labels in the .configs.env file.
+    '''
+    if not ipv4_label and not ipv6_label:
+        raise InvalidInputError('Error: At least one label must be provided.')
+    
+    # Read existing env file
+    env_vars = {}
+    if os.path.exists(CONFIG_ENV_FILE):
+        env_vars = dict(dotenv_values(CONFIG_ENV_FILE))
+    
+    # Update labels
+    if ipv4_label:
+        env_vars['IPV4_LABEL'] = ipv4_label
+    if ipv6_label:
+        env_vars['IPV6_LABEL'] = ipv6_label
+    
+    # Write back to file
+    with open(CONFIG_ENV_FILE, 'w') as f:
+        for key, value in env_vars.items():
+            f.write(f'{key}={value}\n')
+
+
 def add_ip_address():
     '''
     Adds IP addresses from the environment to the .configs.env file.
@@ -533,6 +568,31 @@ def delete_node(name: str):
     Deletes an external node by name.
     """
     return run_cmd(['python3', Command.NODE_MANAGER.value, 'delete', '--name', name])
+
+
+def edit_node(name: str, new_name: Optional[str] = None, ip: Optional[str] = None, 
+              port: Optional[int] = None, sni: Optional[str] = None, 
+              pinSHA256: Optional[str] = None, obfs: Optional[str] = None, 
+              insecure: Optional[bool] = None):
+    """
+    Edits an existing external node.
+    """
+    command = ['python3', Command.NODE_MANAGER.value, 'edit', '--name', name]
+    if new_name:
+        command.extend(['--new-name', new_name])
+    if ip:
+        command.extend(['--ip', ip])
+    if port:
+        command.extend(['--port', str(port)])
+    if sni is not None:
+        command.extend(['--sni', sni])
+    if pinSHA256 is not None:
+        command.extend(['--pinSHA256', pinSHA256])
+    if obfs is not None:
+        command.extend(['--obfs', obfs])
+    if insecure is not None:
+        command.extend(['--insecure', 'true' if insecure else 'false'])
+    return run_cmd(command)
 
 def list_nodes():
     """

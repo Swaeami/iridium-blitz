@@ -1,13 +1,18 @@
-name: Create Release on Version Change
+name: 🚀 Iridium Release
 
 on:
   push:
     paths:
       - 'VERSION'
+    branches:
+      - main
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -32,7 +37,7 @@ jobs:
       id: package_amd64
       run: |
         (cd core/scripts/auth && GOOS=linux GOARCH=amd64 go build -o user_auth .)
-        zip_name="Blitz-amd64.zip"
+        zip_name="Iridium-amd64.zip"
         zip -r "$zip_name" . \
           -x ".git/*" \
              ".github/*" \
@@ -43,16 +48,16 @@ jobs:
              "SECURITY.md" \
              "changelog" \
              "core/scripts/auth/go.*" \
-             "core/scripts/auth/user_auth.go"
+             "core/scripts/auth/user_auth.go" \
+             "*.zip"
         rm core/scripts/auth/user_auth
         echo "zip_name=$zip_name" >> $GITHUB_OUTPUT
-
 
     - name: Build and Package for linux-arm64
       id: package_arm64
       run: |
         (cd core/scripts/auth && GOOS=linux GOARCH=arm64 go build -o user_auth .)
-        zip_name="Blitz-arm64.zip"
+        zip_name="Iridium-arm64.zip"
         zip -r "$zip_name" . \
           -x ".git/*" \
              ".github/*" \
@@ -63,7 +68,8 @@ jobs:
              "SECURITY.md" \
              "changelog" \
              "core/scripts/auth/go.*" \
-             "core/scripts/auth/user_auth.go"
+             "core/scripts/auth/user_auth.go" \
+             "*.zip"
         rm core/scripts/auth/user_auth
         echo "zip_name=$zip_name" >> $GITHUB_OUTPUT
 

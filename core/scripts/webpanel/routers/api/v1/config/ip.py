@@ -9,8 +9,11 @@ from ..schema.config.ip import (
     StatusResponse,
     AddNodeBody,
     DeleteNodeBody,
+    EditNodeBody,
     NodeListResponse,
-    NodesTrafficPayload
+    NodesTrafficPayload,
+    ConnectionLabelsBody,
+    ConnectionLabelsResponse
 )
 import cli_api
 
@@ -119,6 +122,60 @@ async def delete_node(body: DeleteNodeBody):
     try:
         cli_api.delete_node(body.name)
         return DetailResponse(detail=f"Node '{body.name}' deleted successfully.")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post('/nodes/edit', response_model=DetailResponse, summary='Edit External Node')
+async def edit_node(body: EditNodeBody):
+    """
+    Edits an existing external node's configuration.
+
+    Args:
+        body: Request body containing the node name and fields to update.
+    """
+    try:
+        cli_api.edit_node(
+            name=body.name,
+            new_name=body.new_name,
+            ip=body.ip,
+            port=body.port,
+            sni=body.sni,
+            pinSHA256=body.pinSHA256,
+            obfs=body.obfs,
+            insecure=body.insecure
+        )
+        return DetailResponse(detail=f"Node '{body.name}' updated successfully.")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get('/labels', response_model=ConnectionLabelsResponse, summary='Get Connection Labels')
+async def get_connection_labels():
+    """
+    Retrieves the custom connection labels for IPv4 and IPv6.
+
+    Returns:
+        ConnectionLabelsResponse: Current labels for IPv4 and IPv6 connections.
+    """
+    try:
+        ipv4_label, ipv6_label = cli_api.get_connection_labels()
+        return ConnectionLabelsResponse(ipv4_label=ipv4_label, ipv6_label=ipv6_label)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f'Error: {str(e)}')
+
+
+@router.post('/labels', response_model=DetailResponse, summary='Edit Connection Labels')
+async def edit_connection_labels(body: ConnectionLabelsBody):
+    """
+    Edits the custom connection labels for IPv4 and IPv6.
+
+    Args:
+        body: Request body containing the new labels.
+    """
+    try:
+        cli_api.edit_connection_labels(body.ipv4_label, body.ipv6_label)
+        return DetailResponse(detail='Connection labels updated successfully.')
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

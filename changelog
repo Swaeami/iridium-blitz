@@ -1,36 +1,29 @@
-# 🔖 ** release(2.5.1): Telegram UX improvements, web panel access & outbound enhancements 🚀 **
+# 🚀 **Iridium 1.0.0 - Initial Release** 
 
-*Released: 2026-01-02*
+*Released: 2026-01-09*
 
 ## ✨ New Features
 
-* 🤖 **Telegram Bot**: Added settings menu 
-* 🌐 **Web Panel URL**:
+* 🎨 **Complete UI Redesign**: Modern dark theme with glassmorphism effects
+* 🏷️ **Connection Labels**: Customize IPv4/IPv6 connection names (no more hardcoded labels)
+* ✏️ **Edit Nodes**: Edit external nodes after adding (name, IP, port, SNI, OBFS, etc.)
+* 🌈 **New Branding**: Renamed from Blitz to IridiumGo
 
-  * Added service status check before retrieving web panel URL
-  * New handlers to retrieve and display web panel URL
-* 🖥️ **CLI**: Added option to display *only* the web panel URL
-* 🔀 **Outbounds**: Introduced new `select` outbound type(SingBox)
-* 👥 **Users**: Added option to display up to **1000 users** in selection dropdown
-* ⏳ **Expiration**: Added validation for expiration days and improved UI
+## 🎯 UI/UX Improvements
 
-### 🐛 Fixes
+* New animated login page with particle effects
+* Modern dashboard with gradient stat cards
+* Improved dark mode with better contrast
+* Updated navigation and sidebar design
+* Bootstrap 5 migration for better responsiveness
 
-* 🛡️ Prevent enabling **Masquerade** when **OBFS** is active
-* ⚙️ Conditionally generate **sing-box OBFS** configuration(SingBox)
+## 🔧 Technical Changes
 
-### ♻️ Refactors & Improvements
+* Added `/api/v1/config/ip/labels` endpoints for connection label management
+* Added `/api/v1/config/ip/nodes/edit` endpoint for node editing
+* Extended `node.py` CLI with `edit` command
+* Updated all GitHub references to fork repository
 
-* 🧭 Introduced settings submenu structure in Telegram bot
-* 🔗 Removed username from URI fragments
-* 💾 Streamlined upgrade backup process and removed geo data download
+## 📦 Based On
 
-### 🔧 Dependencies
-
-* ⬆️ **FastAPI** bumped to `0.128.0`
-* ⬆️ **psutil** bumped to `7.2.1`
-* ⬆️ **pillow** bumped to `12.1.0`
-
-### ❤️ Credits
-
-Special thanks to **@MiliAxe** and **@SeyedHashtag** for their valuable contributions 🙌
+Forked from [Blitz Panel](https://github.com/ReturnFI/Blitz) v2.5.1

@@ -45,6 +45,9 @@
     data-install-warp-url="{{ url_for('install_warp') }}"
     data-uninstall-warp-url="{{ url_for('uninstall_warp') }}"
     data-configure-warp-url="{{ url_for('configure_warp') }}"
+    data-get-labels-url="{{ url_for('get_connection_labels') }}"
+    data-edit-labels-url="{{ url_for('edit_connection_labels') }}"
+    data-edit-node-url="{{ url_for('edit_node') }}"
 >
     <div class='container-fluid'>
         <div class='row'>
@@ -54,42 +57,42 @@
                         <ul class='nav nav-pills' id='custom-tabs-three-tab' role='tablist'
                             style="margin-left: 20px; margin-top: 10px;">
                             <li class='nav-item'>
-                                <a class='nav-link active' id='subs-tab' data-toggle='pill' href='#subs' role='tab'
+                                <a class='nav-link active' id='subs-tab' data-bs-toggle='pill' href='#subs' role='tab'
                                     aria-controls='subs' aria-selected='false'><i class="fas fa-link"></i>
                                     Subscriptions</a>
                             </li>
                             <li class='nav-item'>
-                                <a class='nav-link' id='telegram-tab' data-toggle='pill' href='#telegram' role='tab'
+                                <a class='nav-link' id='telegram-tab' data-bs-toggle='pill' href='#telegram' role='tab'
                                     aria-controls='telegram' aria-selected='true'><i class="fab fa-telegram"></i>
                                     Telegram Bot</a>
                             </li>
                             <li class='nav-item'>
-                                <a class='nav-link' id='ip-tab' data-toggle='pill' href='#change_ip' role='tab'
+                                <a class='nav-link' id='ip-tab' data-bs-toggle='pill' href='#change_ip' role='tab'
                                     aria-controls='change_ip' aria-selected='false'><i class="fas fa-network-wired"></i>
                                     IP Management</a>
                             </li>
                             <li class='nav-item'>
-                                <a class='nav-link' id='extra-config-tab' data-toggle='pill' href='#extra-config' role='tab'
+                                <a class='nav-link' id='extra-config-tab' data-bs-toggle='pill' href='#extra-config' role='tab'
                                     aria-controls='extra-config' aria-selected='false'><i class="fas fa-plus-circle"></i>
                                     Extra Configs</a>
                             </li>
                             <li class='nav-item'>
-                                <a class='nav-link' id='backup-tab' data-toggle='pill' href='#backup' role='tab'
+                                <a class='nav-link' id='backup-tab' data-bs-toggle='pill' href='#backup' role='tab'
                                     aria-controls='backup' aria-selected='false'><i class="fas fa-download"></i>
                                     Backup</a>
                             </li>
                             <li class='nav-item'>
-                                <a class='nav-link' id='ip-limit-tab' data-toggle='pill' href='#ip-limit' role='tab'
+                                <a class='nav-link' id='ip-limit-tab' data-bs-toggle='pill' href='#ip-limit' role='tab'
                                     aria-controls='ip-limit' aria-selected='false'><i class="fas fa-user-slash"></i>
                                     IP Limit</a>
                             </li>
                              <li class='nav-item'>
-                                <a class='nav-link' id='decoy-tab' data-toggle='pill' href='#decoy' role='tab'
+                                <a class='nav-link' id='decoy-tab' data-bs-toggle='pill' href='#decoy' role='tab'
                                     aria-controls='decoy' aria-selected='false'><i class="fas fa-mask"></i>
                                     Decoy Site</a>
                             </li>
                             <li class='nav-item'>
-                                <a class='nav-link' id='warp-tab-link' data-toggle='pill' href='#warp-content' role='tab'
+                                <a class='nav-link' id='warp-tab-link' data-bs-toggle='pill' href='#warp-content' role='tab'
                                     aria-controls='warp-content' aria-selected='false'><i class="fas fa-cloud"></i> WARP</a>
                             </li>
                         </ul>
@@ -101,11 +104,11 @@
                             <div class='tab-pane fade show active' id='subs' role='tabpanel' aria-labelledby='subs-tab'>
                                 <ul class='nav nav-tabs' id='subs-tabs' role='tablist'>
                                     <li class='nav-item'>
-                                        <a class='nav-link active' id='normal-tab' data-toggle='tab' href='#normal' role='tab'
+                                        <a class='nav-link active' id='normal-tab' data-bs-toggle='tab' href='#normal' role='tab'
                                             aria-controls='normal' aria-selected='true'><strong>Service Control</strong></a>
                                     </li>
                                     <li class='nav-item normal-sub-config-tab-li' style="display: none;">
-                                        <a class='nav-link' id='normal-sub-config-link-tab' data-toggle='tab' href='#normal-sub-config-content' role='tab'
+                                        <a class='nav-link' id='normal-sub-config-link-tab' data-bs-toggle='tab' href='#normal-sub-config-content' role='tab'
                                             aria-controls='normal-sub-config-content' aria-selected='false'><strong>Configure Link</strong></a>
                                     </li>
                                 </ul>
@@ -219,6 +222,31 @@
                                     </div>
                                 </div>
                             
+                                <div class="card card-outline card-info mt-4">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Connection Labels</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted">Customize the display names for your connections in user URIs.</p>
+                                        <form id="labels_form">
+                                            <div class="form-row">
+                                                <div class="form-group col-md-6">
+                                                    <label for="ipv4_label">IPv4 Connection Label:</label>
+                                                    <input type="text" class="form-control" id="ipv4_label" placeholder="e.g., Main Server">
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label for="ipv6_label">IPv6 Connection Label:</label>
+                                                    <input type="text" class="form-control" id="ipv6_label" placeholder="e.g., Backup Server">
+                                                </div>
+                                            </div>
+                                            <button id="labels_save" type="button" class="btn btn-info">
+                                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                                                Save Labels
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            
                                 <div class="card card-outline card-secondary mt-4">
                                     <div class="card-header">
                                         <h3 class="card-title">External Nodes</h3>
@@ -235,7 +263,7 @@
                                                         <th>OBFS</th>
                                                         <th>Insecure</th>
                                                         <th>Pin SHA256</th>
-                                                        <th>Action</th>
+                                                        <th>Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody></tbody>
@@ -243,6 +271,73 @@
                                         </div>
                                         <div id="no_nodes_message" class="alert alert-info" style="display: none;">
                                             No external nodes have been configured.
+                                        </div>
+                                        
+                                        <!-- Edit Node Modal -->
+                                        <div class="modal fade" id="editNodeModal" tabindex="-1" role="dialog" aria-labelledby="editNodeModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="editNodeModalLabel"><i class="fas fa-edit"></i> Edit Node</h5>
+                                                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form id="edit_node_form">
+                                                            <input type="hidden" id="edit_node_original_name">
+                                                            <div class="form-row">
+                                                                <div class="form-group col-md-6">
+                                                                    <label for="edit_node_name">Node Name</label>
+                                                                    <input type="text" class="form-control" id="edit_node_name" placeholder="e.g., Node-US">
+                                                                    <div class="invalid-feedback">Please enter a unique name.</div>
+                                                                </div>
+                                                                <div class="form-group col-md-6">
+                                                                    <label for="edit_node_ip">IP Address / Domain</label>
+                                                                    <input type="text" class="form-control" id="edit_node_ip" placeholder="e.g., node.example.com">
+                                                                    <div class="invalid-feedback">Please enter a valid IP or domain.</div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-row">
+                                                                <div class="form-group col-md-3">
+                                                                    <label for="edit_node_port">Port</label>
+                                                                    <input type="number" class="form-control" id="edit_node_port" placeholder="e.g., 443">
+                                                                    <div class="invalid-feedback">Please enter a valid port (1-65535).</div>
+                                                                </div>
+                                                                <div class="form-group col-md-3">
+                                                                    <label for="edit_node_obfs">OBFS</label>
+                                                                    <input type="text" class="form-control" id="edit_node_obfs" placeholder="obfs-password">
+                                                                </div>
+                                                                <div class="form-group col-md-6">
+                                                                    <label for="edit_node_sni">SNI</label>
+                                                                    <input type="text" class="form-control" id="edit_node_sni" placeholder="e.g., yourdomain.com">
+                                                                    <div class="invalid-feedback">Please enter a valid domain name.</div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label for="edit_node_pin">Pin SHA256</label>
+                                                                <input type="text" class="form-control" id="edit_node_pin" placeholder="5D:23:0E:E9:10:AB:96:E0:43...">
+                                                                <div class="invalid-feedback">Invalid SHA256 pin format.</div>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" id="edit_node_insecure">
+                                                                    <label class="form-check-label" for="edit_node_insecure">
+                                                                        Insecure
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="button" id="save_edit_node_btn" class="btn btn-primary">
+                                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                                                            Save Changes
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                             
                                         <hr>
@@ -389,12 +484,12 @@
                             <div class='tab-pane fade' id='ip-limit' role='tabpanel' aria-labelledby='ip-limit-tab'>
                                 <ul class='nav nav-tabs' id='ip-limit-tabs' role='tablist'>
                                     <li class='nav-item'>
-                                        <a class='nav-link active' id='ip-limit-service-tab' data-toggle='tab' href='#ip-limit-service'
+                                        <a class='nav-link active' id='ip-limit-service-tab' data-bs-toggle='tab' href='#ip-limit-service'
                                             role='tab' aria-controls='ip-limit-service'
                                             aria-selected='true'><strong>Service Control</strong></a>
                                     </li>
                                     <li class='nav-item ip-limit-config-tab-li' style="display: none;">
-                                        <a class='nav-link' id='ip-limit-config-tab' data-toggle='tab' href='#ip-limit-config-content' role='tab'
+                                        <a class='nav-link' id='ip-limit-config-tab' data-bs-toggle='tab' href='#ip-limit-config-content' role='tab'
                                             aria-controls='ip-limit-config-content' aria-selected='false'><strong>Configuration</strong></a>
                                     </li>
                                 </ul>

@@ -4,11 +4,15 @@
 
 {% block content %}
 <div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Dashboard</h1>
-            </div>
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Dashboard</h1>
+            <p class="text-muted mb-0">Overview of your Hysteria2 server</p>
+        </div>
+        <div id="server-status-badge">
+            <span class="badge bg-danger px-3 py-2">
+                <span class="status-dot offline me-1"></span> Server Offline
+            </span>
         </div>
     </div>
 </div>
@@ -19,193 +23,247 @@
          data-restart-hysteria-url="{{ url_for('restart_service') }}"
          data-version-url="{{ url_for('get_version_info') }}" 
          data-check-version-url="{{ url_for('check_version_info') }}">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="info-box shadow-sm">
-                    <span class="info-box-icon bg-info"><i class="fas fa-microchip"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">CPU Usage</span>
-                        <span class="info-box-number" id="cpu-usage">--</span>
+    
+    <!-- Stats Grid -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-content">
+                    <h3>Total Users</h3>
+                    <div class="stat-value" id="total-users-stat">0</div>
+                    <div class="stat-meta">
+                        <span class="text-success" id="active-users-stat">0 active</span>
+                        <span class="mx-1">•</span>
+                        <span class="text-danger" id="blocked-users-stat">0 blocked</span>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="info-box shadow-sm">
-                    <span class="info-box-icon bg-warning"><i class="fas fa-memory"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">RAM Usage</span>
-                        <span class="info-box-number" id="ram-usage">-- / --</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="info-box shadow-sm">
-                    <span class="info-box-icon bg-success"><i class="fas fa-users"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Online Users</span>
-                        <span class="info-box-number" id="online-users">--</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="info-box shadow-sm">
-                    <span class="info-box-icon bg-secondary"><i class="fas fa-clock"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Uptime</span>
-                        <span class="info-box-number" id="uptime">--</span>
-                    </div>
+                <div class="stat-icon blue">
+                    <i class="fas fa-users"></i>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="info-box shadow-sm">
-                    <span class="info-box-icon bg-primary"><i class="fas fa-exchange-alt"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Network Speed</span>
-                        <div style="font-size: 16px; line-height: 1.3; font-weight: bold;">
-                            <span class="d-block" id="download-speed">🔽 --</span>
-                            <span class="d-block" id="upload-speed">🔼 --</span>
-                        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-content">
+                    <h3>Online Now</h3>
+                    <div class="stat-value" id="online-users">0</div>
+                    <div class="stat-meta" id="server-status-text">
+                        <span class="status-dot offline"></span> Server offline
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="info-box shadow-sm">
-                    <span class="info-box-icon bg-dark"><i class="fas fa-project-diagram"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Connections</span>
-                        <div style="font-size: 16px; line-height: 1.3; font-weight: bold;">
-                            <span class="d-block" id="tcp-connections">TCP: --</span>
-                            <span class="d-block" id="udp-connections">UDP: --</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="info-box shadow-sm" id="ip-info-box">
-                    <span class="info-box-icon bg-purple"><i class="fas fa-network-wired"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Server IPs
-                            <a href="#" id="toggle-ip-visibility" class="text-muted ml-2"><i class="fas fa-eye"></i></a>
-                        </span>
-                        <div id="ip-addresses" style="filter: blur(5px); font-size: 16px; line-height: 1.3; font-weight: bold;">
-                            <span class="d-block" id="server-ipv4">IPv4: --</span>
-                            <span class="d-block" id="server-ipv6">IPv6: --</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="info-box shadow-sm">
-                    <span class="info-box-icon bg-indigo"><i class="fas fa-info-circle"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Version Info</span>
-                        <div style="font-size: 16px; line-height: 1.3; font-weight: bold;">
-                            <a href="https://github.com/ReturnFI/Blitz/releases" target="_blank" rel="noopener noreferrer" class="text-reset d-block">
-                                Panel: <strong id="panel-version-display">...</strong>
-                            </a>
-                            <a id="core-version-row" href="https://github.com/apernet/hysteria/releases" target="_blank" rel="noopener noreferrer" class="text-reset d-block" style="display: none;">
-                                Core: <strong id="core-version-display">...</strong>
-                            </a>
-                        </div>
-                    </div>
+                <div class="stat-icon green">
+                    <i class="fas fa-signal"></i>
                 </div>
             </div>
         </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-content">
+                    <h3>Total Traffic</h3>
+                    <div class="stat-value" id="total-traffic-stat">0 B</div>
+                    <div class="stat-meta">Today: <span id="today-traffic-stat">0 B</span></div>
+                </div>
+                <div class="stat-icon purple">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-content">
+                    <h3>External Nodes</h3>
+                    <div class="stat-value" id="nodes-count-stat">0</div>
+                    <div class="stat-meta"><span class="text-success" id="active-nodes-stat">0 active</span></div>
+                </div>
+                <div class="stat-icon orange">
+                    <i class="fas fa-globe"></i>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="card card-outline card-danger">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-power-off mr-2"></i>Traffic Since Last Reboot</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
-                            <p class="text-lg text-success"><i class="fas fa-arrow-up mr-2"></i>Uploaded</p>
-                            <p class="text-lg" id="reboot-uploaded-traffic">--</p>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
-                            <p class="text-lg text-primary"><i class="fas fa-arrow-down mr-2"></i>Downloaded</p>
-                            <p class="text-lg" id="reboot-downloaded-traffic">--</p>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <p class="text-lg text-info"><i class="fas fa-chart-line mr-2"></i>Combined</p>
-                            <p class="text-lg" id="reboot-total-traffic">--</p>
-                        </div>
-                    </div>
+    <!-- Info Boxes -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="info-box">
+                <span class="info-box-icon bg-info"><i class="fas fa-microchip"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">CPU Usage</span>
+                    <span class="info-box-number" id="cpu-usage">--</span>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="card card-outline card-info">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-history mr-2"></i>User Traffic (All Time)</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
-                            <p class="text-lg text-success"><i class="fas fa-arrow-up mr-2"></i>Uploaded</p>
-                            <p class="text-lg" id="user-uploaded-traffic">--</p>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
-                            <p class="text-lg text-primary"><i class="fas fa-arrow-down mr-2"></i>Downloaded</p>
-                            <p class="text-lg" id="user-downloaded-traffic">--</p>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <p class="text-lg text-info"><i class="fas fa-chart-line mr-2"></i>Combined</p>
-                            <p class="text-lg" id="user-total-traffic">--</p>
-                        </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="info-box">
+                <span class="info-box-icon bg-warning"><i class="fas fa-memory"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">RAM Usage</span>
+                    <span class="info-box-number" id="ram-usage">-- / --</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="info-box">
+                <span class="info-box-icon bg-success"><i class="fas fa-clock"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Uptime</span>
+                    <span class="info-box-number" id="uptime">--</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="info-box">
+                <span class="info-box-icon bg-primary"><i class="fas fa-exchange-alt"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Network Speed</span>
+                    <div style="font-size: 0.875rem; line-height: 1.4; font-weight: 600;">
+                        <span class="d-block" id="download-speed">🔽 --</span>
+                        <span class="d-block" id="upload-speed">🔼 --</span>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="row">
-            <div class="col-lg-3 col-6">
-                <div class="small-box" id="hysteria2-status-box">
-                    <div class="inner">
-                        <h3 id="hysteria2-status">--</h3>
-                        <p>Hysteria2 Core</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <a href="#" id="restart-hysteria2-btn" class="small-box-footer" style="display: none;">
-                        Restart Service <i class="fas fa-sync-alt ml-1"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box" id="telegrambot-status-box">
-                    <div class="inner">
-                        <h3 id="telegrambot-status">--</h3>
-                        <p>Telegram Bot</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fab fa-telegram"></i>
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="info-box">
+                <span class="info-box-icon bg-dark"><i class="fas fa-project-diagram"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Connections</span>
+                    <div style="font-size: 0.875rem; line-height: 1.4; font-weight: 600;">
+                        <span class="d-block" id="tcp-connections">TCP: --</span>
+                        <span class="d-block" id="udp-connections">UDP: --</span>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box" id="iplimit-status-box">
-                    <div class="inner">
-                        <h3 id="iplimit-status">--</h3>
-                        <p>IP Limit Service</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-ban"></i>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="info-box" id="ip-info-box">
+                <span class="info-box-icon bg-purple"><i class="fas fa-network-wired"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Server IPs
+                        <a href="#" id="toggle-ip-visibility" class="text-muted ms-2"><i class="fas fa-eye"></i></a>
+                    </span>
+                    <div id="ip-addresses" style="filter: blur(5px); font-size: 0.875rem; line-height: 1.4; font-weight: 600;">
+                        <span class="d-block" id="server-ipv4">IPv4: --</span>
+                        <span class="d-block" id="server-ipv6">IPv6: --</span>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box" id="normalsub-status-box">
-                    <div class="inner">
-                        <h3 id="normalsub-status">--</h3>
-                        <p>Subscription Service</p>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="info-box">
+                <span class="info-box-icon bg-indigo"><i class="fas fa-info-circle"></i></span>
+                <div class="info-box-content">
+                    <span class="info-box-text">Version Info</span>
+                    <div style="font-size: 0.875rem; line-height: 1.4; font-weight: 600;">
+                        <a href="https://github.com/Swaeami/iridium-blitz/releases" target="_blank" rel="noopener noreferrer" class="text-reset d-block">
+                            Panel: <strong id="panel-version-display">...</strong>
+                        </a>
+                        <a id="core-version-row" href="https://github.com/apernet/hysteria/releases" target="_blank" rel="noopener noreferrer" class="text-reset d-block" style="display: none;">
+                            Core: <strong id="core-version-display">...</strong>
+                        </a>
                     </div>
-                    <div class="icon">
-                        <i class="fas fa-rss"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Traffic Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-power-off text-danger me-2"></i>
+                    <h3 class="card-title">Traffic Since Last Reboot</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3" style="border-color: var(--iridium-border) !important;">
+                        <p class="mb-0"><i class="fas fa-arrow-up text-success me-2"></i>Uploaded</p>
+                        <p class="mb-0 fw-bold" id="reboot-uploaded-traffic">--</p>
                     </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3" style="border-color: var(--iridium-border) !important;">
+                        <p class="mb-0"><i class="fas fa-arrow-down text-primary me-2"></i>Downloaded</p>
+                        <p class="mb-0 fw-bold" id="reboot-downloaded-traffic">--</p>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <p class="mb-0"><i class="fas fa-chart-line text-info me-2"></i>Combined</p>
+                        <p class="mb-0 fw-bold" id="reboot-total-traffic">--</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-history text-info me-2"></i>
+                    <h3 class="card-title">User Traffic (All Time)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3" style="border-color: var(--iridium-border) !important;">
+                        <p class="mb-0"><i class="fas fa-arrow-up text-success me-2"></i>Uploaded</p>
+                        <p class="mb-0 fw-bold" id="user-uploaded-traffic">--</p>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3" style="border-color: var(--iridium-border) !important;">
+                        <p class="mb-0"><i class="fas fa-arrow-down text-primary me-2"></i>Downloaded</p>
+                        <p class="mb-0 fw-bold" id="user-downloaded-traffic">--</p>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <p class="mb-0"><i class="fas fa-chart-line text-info me-2"></i>Combined</p>
+                        <p class="mb-0 fw-bold" id="user-total-traffic">--</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Status -->
+    <div class="row g-4">
+        <div class="col-lg-3 col-6">
+            <div class="small-box" id="hysteria2-status-box">
+                <div class="inner">
+                    <h3 id="hysteria2-status">--</h3>
+                    <p>Hysteria2 Core</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <a href="#" id="restart-hysteria2-btn" class="small-box-footer" style="display: none;">
+                    Restart Service <i class="fas fa-sync-alt ms-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box" id="telegrambot-status-box">
+                <div class="inner">
+                    <h3 id="telegrambot-status">--</h3>
+                    <p>Telegram Bot</p>
+                </div>
+                <div class="icon">
+                    <i class="fab fa-telegram"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box" id="iplimit-status-box">
+                <div class="inner">
+                    <h3 id="iplimit-status">--</h3>
+                    <p>IP Limit Service</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-ban"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box" id="normalsub-status-box">
+                <div class="inner">
+                    <h3 id="normalsub-status">--</h3>
+                    <p>Subscription Service</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-rss"></i>
                 </div>
             </div>
         </div>

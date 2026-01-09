@@ -416,7 +416,7 @@ edit_ips() {
 }
 
 hysteria_upgrade(){
-    bash <(curl https://raw.githubusercontent.com/ReturnFI/Blitz/main/upgrade.sh)
+    bash <(curl https://raw.githubusercontent.com/Swaeami/iridium-blitz/main/upgrade.sh)
 }
 
 warp_configure_handler() {

@@ -59,7 +59,7 @@
 
                     <!-- Mobile Filter Dropdown -->
                     <div class="dropdown d-md-none mr-2 mb-2">
-                        <button class="btn btn-sm btn-default dropdown-toggle" type="button" id="filterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button class="btn btn-sm btn-default dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-filter"></i>
                         </button>
                         <div class="dropdown-menu" aria-labelledby="filterDropdown">
@@ -106,7 +106,7 @@
                             </button>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-sm btn-primary ml-2" data-toggle="modal" data-target="#addUserModal">
+                    <button type="button" class="btn btn-sm btn-primary ml-2" data-bs-toggle="modal" data-bs-target="#addUserModal">
                         <i class="fas fa-plus"></i>
                     </button>
                     <button type="button" class="btn btn-sm btn-info ml-2" id="showSelectedLinks">
@@ -220,17 +220,17 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
             <div class="modal-body">
                 <ul class="nav nav-tabs" id="addUserTab" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" id="single-user-tab" data-toggle="tab" href="#single-user" role="tab" aria-controls="single-user" aria-selected="true">Add User</a>
+                        <a class="nav-link active" id="single-user-tab" data-bs-toggle="tab" href="#single-user" role="tab" aria-controls="single-user" aria-selected="true">Add User</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="bulk-users-tab" data-toggle="tab" href="#bulk-users" role="tab" aria-controls="bulk-users" aria-selected="false">Bulk Add</a>
+                        <a class="nav-link" id="bulk-users-tab" data-bs-toggle="tab" href="#bulk-users" role="tab" aria-controls="bulk-users" aria-selected="false">Bulk Add</a>
                     </li>
                 </ul>
                 <div class="tab-content" id="addUserTabContent">
@@ -357,7 +357,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
@@ -375,7 +375,7 @@
                     <div class="form-group">
                         <label for="editPassword">Password
                             <i class="fas fa-info-circle text-muted ml-1" 
-                               data-toggle="tooltip" 
+                               data-bs-toggle="tooltip" 
                                data-placement="top" 
                                title="Changing the password disconnects the user and invalidates all existing configuration and subscription links. New links must be shared with the user to restore access.">
                             </i>
@@ -444,7 +444,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="qrcodeModalLabel">QR Codes</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
@@ -461,7 +461,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="showLinksModalLabel">Extract User Links</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -489,7 +489,7 @@
                 <textarea id="linksTextarea" class="form-control" rows="10" readonly placeholder="Extracted links will appear here..."></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-success" id="copyExtractedLinksButton">Copy</button>
             </div>
         </div>

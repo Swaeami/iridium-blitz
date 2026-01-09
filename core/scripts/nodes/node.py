@@ -125,6 +125,87 @@ def delete_node(name: str):
     write_nodes(nodes)
     print(f"Successfully deleted node '{name}'.")
 
+
+def edit_node(name: str, new_name: str | None = None, ip: str | None = None, sni: str | None = None, 
+              pinSHA256: str | None = None, port: int | None = None, obfs: str | None = None, 
+              insecure: bool | None = None):
+    """Edit an existing node's configuration."""
+    
+    # Validate inputs if provided
+    if ip and not is_valid_ip_or_domain(ip):
+        print(f"Error: '{ip}' is not a valid IP address or domain name.", file=sys.stderr)
+        sys.exit(1)
+
+    if sni and not is_valid_sni(sni):
+        print(f"Error: '{sni}' is not a valid domain name for SNI.", file=sys.stderr)
+        sys.exit(1)
+
+    if pinSHA256 and not is_valid_sha256_pin(pinSHA256):
+        print(f"Error: '{pinSHA256}' is not a valid SHA256 pin format.", file=sys.stderr)
+        sys.exit(1)
+
+    if port and not is_valid_port(port):
+        print(f"Error: Port '{port}' must be between 1 and 65535.", file=sys.stderr)
+        sys.exit(1)
+
+    nodes = read_nodes()
+    
+    # Find the node to edit
+    node_index = None
+    for i, node in enumerate(nodes):
+        if node['name'] == name:
+            node_index = i
+            break
+    
+    if node_index is None:
+        print(f"Error: No node with the name '{name}' found.", file=sys.stderr)
+        sys.exit(1)
+    
+    # Check if new_name conflicts with another existing node
+    if new_name and new_name != name:
+        if any(node['name'] == new_name for node in nodes):
+            print(f"Error: A node with the name '{new_name}' already exists.", file=sys.stderr)
+            sys.exit(1)
+    
+    # Check if new IP conflicts with another existing node
+    if ip:
+        for i, node in enumerate(nodes):
+            if i != node_index and node['ip'] == ip:
+                print(f"Error: A node with the IP/domain '{ip}' already exists.", file=sys.stderr)
+                sys.exit(1)
+    
+    # Update node fields
+    if new_name:
+        nodes[node_index]['name'] = new_name
+    if ip:
+        nodes[node_index]['ip'] = ip
+    if sni is not None:
+        if sni:
+            nodes[node_index]['sni'] = sni.strip()
+        elif 'sni' in nodes[node_index]:
+            del nodes[node_index]['sni']
+    if pinSHA256 is not None:
+        if pinSHA256:
+            nodes[node_index]['pinSHA256'] = pinSHA256.strip().upper()
+        elif 'pinSHA256' in nodes[node_index]:
+            del nodes[node_index]['pinSHA256']
+    if port is not None:
+        if port:
+            nodes[node_index]['port'] = port
+        elif 'port' in nodes[node_index]:
+            del nodes[node_index]['port']
+    if obfs is not None:
+        if obfs:
+            nodes[node_index]['obfs'] = obfs.strip()
+        elif 'obfs' in nodes[node_index]:
+            del nodes[node_index]['obfs']
+    if insecure is not None:
+        nodes[node_index]['insecure'] = insecure
+
+    write_nodes(nodes)
+    display_name = new_name if new_name else name
+    print(f"Successfully updated node '{display_name}'.")
+
 def list_nodes():
     nodes = read_nodes()
     if not nodes:
@@ -146,8 +227,8 @@ def list_nodes():
 def generate_cert():
     try:
         script_dir = Path(__file__).parent.resolve()
-        key_filepath = script_dir / "blitz.key"
-        cert_filepath = script_dir / "blitz.crt"
+        key_filepath = script_dir / "iridium.key"
+        cert_filepath = script_dir / "iridium.crt"
         
         if cert_filepath.exists():
             try:
@@ -175,7 +256,7 @@ def generate_cert():
             '-keyout', str(key_filepath),
             '-out', str(cert_filepath),
             '-sha256', '-days', '3650', '-nodes',
-            '-subj', '/CN=Blitz'
+            '-subj', '/CN=Iridium'
         ]
         
         result = subprocess.run(openssl_command, capture_output=True, text=True, check=False)
@@ -207,17 +288,32 @@ def main():
     add_parser.add_argument('--obfs', type=str, help='Optional: The obfuscation key.')
     add_parser.add_argument('--insecure', action='store_true', help='Optional: Skip certificate verification.')
 
+    edit_parser = subparsers.add_parser('edit', help='Edit an existing node.')
+    edit_parser.add_argument('--name', type=str, required=True, help='The name of the node to edit.')
+    edit_parser.add_argument('--new-name', type=str, help='Optional: New name for the node.')
+    edit_parser.add_argument('--ip', type=str, help='Optional: New IP address or domain.')
+    edit_parser.add_argument('--port', type=int, help='Optional: New port.')
+    edit_parser.add_argument('--sni', type=str, help='Optional: New SNI (use empty string to remove).')
+    edit_parser.add_argument('--pinSHA256', type=str, help='Optional: New SHA256 pin (use empty string to remove).')
+    edit_parser.add_argument('--obfs', type=str, help='Optional: New obfuscation key (use empty string to remove).')
+    edit_parser.add_argument('--insecure', type=str, choices=['true', 'false'], help='Optional: Skip certificate verification.')
+
     delete_parser = subparsers.add_parser('delete', help='Delete a node by name.')
     delete_parser.add_argument('--name', type=str, required=True, help='The name of the node to delete.')
 
     subparsers.add_parser('list', help='List all configured nodes.')
     
-    subparsers.add_parser('generate-cert', help="Generate blitz.crt and blitz.key.")
+    subparsers.add_parser('generate-cert', help="Generate iridium.crt and iridium.key.")
     
     args = parser.parse_args()
 
     if args.command == 'add':
         add_node(args.name, args.ip, args.sni, args.pinSHA256, args.port, args.obfs, args.insecure)
+    elif args.command == 'edit':
+        insecure_val = None
+        if args.insecure is not None:
+            insecure_val = args.insecure.lower() == 'true'
+        edit_node(args.name, args.new_name, args.ip, args.sni, args.pinSHA256, args.port, args.obfs, insecure_val)
     elif args.command == 'delete':
         delete_node(args.name)
     elif args.command == 'list':
