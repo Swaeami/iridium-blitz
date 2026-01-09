@@ -676,6 +676,12 @@ a:hover {
   font-size: 0.8rem;
 }
 
+/* Fix margin for buttons in forms */
+form .btn-success,
+form .btn-primary {
+  margin-top: 0.5rem;
+}
+
 .btn-xs {
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
@@ -1148,26 +1154,47 @@ a:hover {
   color: rgba(99, 102, 241, 0.12);
 }
 
-/* Active service - purple gradient glow */
+/* Active service - solid purple gradient with white text */
 .small-box.bg-success { 
-  border-color: rgba(99, 102, 241, 0.3);
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.05) 100%);
+  background: var(--ir-gradient) !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
 }
 .small-box.bg-success .inner h3 { 
-  background: var(--ir-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: white !important;
+  -webkit-text-fill-color: white;
+  background: none;
 }
-.small-box.bg-success .icon { color: rgba(99, 102, 241, 0.2); }
+.small-box.bg-success .inner p { 
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.small-box.bg-success .icon { 
+  color: rgba(255, 255, 255, 0.25) !important; 
+}
+.small-box.bg-success:hover {
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+  transform: translateY(-3px);
+}
 
-/* Inactive service - muted gray */
+/* Inactive service - solid red gradient with white text */
 .small-box.bg-danger { 
-  border-color: rgba(100, 116, 139, 0.2);
-  background: rgba(100, 116, 139, 0.03);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%) !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
-.small-box.bg-danger .inner h3 { color: var(--ir-text-muted); }
-.small-box.bg-danger .icon { color: rgba(100, 116, 139, 0.15); }
+.small-box.bg-danger .inner h3 { 
+  color: white !important; 
+}
+.small-box.bg-danger .inner p { 
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.small-box.bg-danger .icon { 
+  color: rgba(255, 255, 255, 0.2) !important; 
+}
+.small-box.bg-danger:hover {
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  transform: translateY(-3px);
+}
 
 .small-box-footer {
   display: block;
@@ -1302,6 +1329,133 @@ a:hover {
   font-weight: 600;
   margin-top: 0.65rem;
   color: #1a1a1a;
+}
+
+/* ================================================== */
+/*               FILE UPLOAD COMPONENT                */
+/* ================================================== */
+
+.file-upload-wrapper {
+  position: relative;
+  border: 2px dashed var(--ir-border);
+  border-radius: var(--radius);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: all var(--transition);
+  background: var(--ir-bg-elevated);
+  cursor: pointer;
+}
+
+.file-upload-wrapper:hover,
+.file-upload-wrapper.dragover {
+  border-color: var(--ir-primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.file-upload-wrapper.has-file {
+  border-style: solid;
+  border-color: var(--ir-success);
+  background: var(--ir-success-bg);
+}
+
+.file-upload-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.file-upload-content {
+  pointer-events: none;
+}
+
+.file-upload-icon {
+  font-size: 2.5rem;
+  color: var(--ir-text-muted);
+  margin-bottom: 0.75rem;
+  transition: all var(--transition);
+}
+
+.file-upload-wrapper:hover .file-upload-icon {
+  color: var(--ir-primary);
+  transform: translateY(-3px);
+}
+
+.file-upload-text {
+  margin-bottom: 0.5rem;
+}
+
+.file-upload-title {
+  display: block;
+  font-weight: 600;
+  color: var(--ir-text);
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.file-upload-subtitle {
+  display: block;
+  color: var(--ir-text-muted);
+  font-size: 0.85rem;
+}
+
+.file-upload-browse {
+  color: var(--ir-primary);
+  font-weight: 500;
+}
+
+.file-upload-hint {
+  font-size: 0.75rem;
+  color: var(--ir-text-muted);
+}
+
+.file-selected-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: var(--radius-sm);
+  color: var(--ir-success);
+}
+
+.file-selected-info i:first-child {
+  font-size: 1.25rem;
+}
+
+.file-name {
+  font-weight: 500;
+  color: var(--ir-text);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-remove-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--ir-danger);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  position: relative;
+  z-index: 20;
+}
+
+.file-remove-btn:hover {
+  background: var(--ir-danger);
+  color: white;
 }
 
 /* ================================================== */

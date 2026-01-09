@@ -284,9 +284,7 @@
                                                 <div class="modal-content">
                                                     <div class="modal-header">
                                                         <h5 class="modal-title" id="editNodeModalLabel"><i class="fas fa-edit"></i> Edit Node</h5>
-                                                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <form id="edit_node_form">
@@ -456,13 +454,32 @@
                                             </div>
                                             <div class="card-body">
                                                 <p>Upload a previously downloaded .zip backup file to restore your panel settings and Hysteria configuration.</p>
-                                                <div class="form-group">
-                                                     <label for="backup_file">Select Backup File (.zip):</label>
-                                                     <input type="file" class="form-control-file" id="backup_file" accept=".zip">
+                                                
+                                                <!-- Beautiful File Uploader -->
+                                                <div class="file-upload-wrapper" id="fileUploadWrapper">
+                                                    <input type="file" class="file-upload-input" id="backup_file" accept=".zip">
+                                                    <div class="file-upload-content">
+                                                        <div class="file-upload-icon">
+                                                            <i class="fas fa-cloud-upload-alt"></i>
+                                                        </div>
+                                                        <div class="file-upload-text">
+                                                            <span class="file-upload-title">Drop your backup file here</span>
+                                                            <span class="file-upload-subtitle">or <span class="file-upload-browse">browse</span> to select</span>
+                                                        </div>
+                                                        <span class="file-upload-hint">.zip files only</span>
+                                                    </div>
+                                                    <div class="file-selected-info" style="display: none;">
+                                                        <i class="fas fa-file-archive"></i>
+                                                        <span class="file-name"></span>
+                                                        <button type="button" class="file-remove-btn" title="Remove file">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <button id="upload_backup" type='button' class='btn btn-success btn-block'>
+                                                
+                                                <button id="upload_backup" type='button' class='btn btn-success btn-block mt-3'>
                                                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
-                                                    Upload and Restore
+                                                    <i class="fas fa-upload me-2"></i> Upload and Restore
                                                 </button>
                                                 <div class="progress mt-3" style="display: none;">
                                                   <div id="backup_progress_bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
@@ -478,7 +495,9 @@
                                             </div>
                                             <div class="card-body d-flex flex-column justify-content-center">
                                                 <p>Download a .zip file containing a full backup of your panel settings and Hysteria configuration.</p>
-                                                <button id="download_backup" type='button' class='btn btn-primary btn-block mt-auto'>Download Backup</button>
+                                                <button id="download_backup" type='button' class='btn btn-primary btn-block mt-auto'>
+                                                    <i class="fas fa-download me-2"></i> Download Backup
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

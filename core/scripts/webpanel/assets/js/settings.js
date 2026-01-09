@@ -248,6 +248,80 @@ $(document).ready(function () {
         return isValid;
     }
 
+    function initFileUploader() {
+        const wrapper = document.getElementById('fileUploadWrapper');
+        const input = document.getElementById('backup_file');
+        const content = wrapper?.querySelector('.file-upload-content');
+        const selectedInfo = wrapper?.querySelector('.file-selected-info');
+        const fileName = wrapper?.querySelector('.file-name');
+        const removeBtn = wrapper?.querySelector('.file-remove-btn');
+        
+        if (!wrapper || !input) return;
+        
+        // Drag and drop handlers
+        ['dragenter', 'dragover'].forEach(eventName => {
+            wrapper.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                wrapper.classList.add('dragover');
+            });
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            wrapper.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                wrapper.classList.remove('dragover');
+            });
+        });
+        
+        wrapper.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                input.files = files;
+                updateFileDisplay(files[0]);
+            }
+        });
+        
+        // File input change handler
+        input.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                updateFileDisplay(this.files[0]);
+            }
+        });
+        
+        // Remove file button
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                input.value = '';
+                resetFileDisplay();
+            });
+        }
+        
+        function updateFileDisplay(file) {
+            if (!file.name.toLowerCase().endsWith('.zip')) {
+                toast('error', 'Only .zip files are allowed');
+                input.value = '';
+                return;
+            }
+            
+            wrapper.classList.add('has-file');
+            if (content) content.style.display = 'none';
+            if (selectedInfo) {
+                selectedInfo.style.display = 'flex';
+                if (fileName) fileName.textContent = file.name;
+            }
+        }
+        
+        function resetFileDisplay() {
+            wrapper.classList.remove('has-file');
+            if (content) content.style.display = 'block';
+            if (selectedInfo) selectedInfo.style.display = 'none';
+        }
+    }
+
     function initUI() {
         $.ajax({
             url: API_URLS.serverServicesStatus,
@@ -1146,6 +1220,9 @@ $(document).ready(function () {
     $("#ip_change").on("click", saveIP);
     $("#download_backup").on("click", downloadBackup);
     $("#upload_backup").on("click", uploadBackup);
+    
+    // File upload UI handlers
+    initFileUploader();
     $("#ip_limit_start").on("click", startIPLimit);
     $("#ip_limit_stop").on("click", stopIPLimit);
     $("#ip_limit_clean").on("click", cleanIPLimit);

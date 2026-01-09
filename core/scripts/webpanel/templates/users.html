@@ -8,7 +8,7 @@
         margin-bottom: 0.5rem;
         display: flex;
         justify-content: space-between;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid var(--ir-border);
         padding-bottom: 0.5rem;
     }
     .user-details-content p:last-child {
@@ -23,6 +23,148 @@
     }
     .form-check-label i {
         width: 16px;
+    }
+    
+    /* Users page toolbar styling */
+    .users-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .users-toolbar .btn-group-filters {
+        display: flex;
+        gap: 0.25rem;
+    }
+    
+    .users-toolbar .btn-filter {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        background: var(--ir-bg-elevated);
+        border: 1px solid var(--ir-border);
+        color: var(--ir-text-secondary);
+        border-radius: var(--radius-sm);
+        transition: all 0.2s;
+    }
+    
+    .users-toolbar .btn-filter:hover {
+        background: rgba(99, 102, 241, 0.1);
+        border-color: var(--ir-primary);
+        color: var(--ir-text);
+    }
+    
+    .users-toolbar .btn-filter.active {
+        background: var(--ir-gradient);
+        border-color: transparent;
+        color: white;
+    }
+    
+    .users-toolbar .search-box {
+        display: flex;
+        align-items: center;
+        background: var(--ir-bg-elevated);
+        border: 1px solid var(--ir-border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+    
+    .users-toolbar .search-box:focus-within {
+        border-color: var(--ir-primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .users-toolbar .search-box input {
+        border: none;
+        background: transparent;
+        padding: 0.4rem 0.75rem;
+        width: 160px;
+        color: var(--ir-text);
+        font-size: 0.85rem;
+    }
+    
+    .users-toolbar .search-box input::placeholder {
+        color: var(--ir-text-muted);
+    }
+    
+    .users-toolbar .search-box input:focus {
+        outline: none;
+        box-shadow: none;
+    }
+    
+    .users-toolbar .search-box .btn-search {
+        background: transparent;
+        border: none;
+        padding: 0.4rem 0.65rem;
+        color: var(--ir-text-muted);
+        cursor: pointer;
+    }
+    
+    .users-toolbar .search-box .btn-search:hover {
+        color: var(--ir-primary);
+    }
+    
+    .users-toolbar .btn-action {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+    }
+    
+    .users-toolbar .btn-action.btn-add {
+        background: var(--ir-gradient);
+        border: none;
+        color: white;
+    }
+    
+    .users-toolbar .btn-action.btn-add:hover {
+        background: var(--ir-gradient-hover);
+        transform: translateY(-1px);
+    }
+    
+    .users-toolbar .btn-action.btn-links {
+        background: var(--ir-bg-elevated);
+        border: 1px solid var(--ir-border);
+        color: var(--ir-text-secondary);
+    }
+    
+    .users-toolbar .btn-action.btn-links:hover {
+        background: rgba(99, 102, 241, 0.1);
+        border-color: var(--ir-primary);
+        color: var(--ir-primary);
+    }
+    
+    .users-toolbar .btn-action.btn-delete {
+        background: var(--ir-bg-elevated);
+        border: 1px solid var(--ir-border);
+        color: var(--ir-text-secondary);
+    }
+    
+    .users-toolbar .btn-action.btn-delete:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: var(--ir-danger);
+        color: var(--ir-danger);
+    }
+    
+    .users-toolbar .divider {
+        width: 1px;
+        height: 28px;
+        background: var(--ir-border);
+        margin: 0 0.25rem;
+    }
+    
+    @media (max-width: 991.98px) {
+        .users-toolbar {
+            justify-content: flex-end;
+        }
+        .users-toolbar .btn-group-filters {
+            display: none;
+        }
     }
 </style>
 {% endblock %}
@@ -53,66 +195,48 @@
     data-search-url="{{ url_for('search_users') }}">
     <div class="container-fluid">
         <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">User List {% if total_users is defined %}(<span id="user-total-count">{{ total_users }}</span>){% endif %}</h3>
-                <div class="card-tools d-flex align-items-center flex-wrap">
-
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h3 class="card-title mb-0">User List {% if total_users is defined %}(<span id="user-total-count">{{ total_users }}</span>){% endif %}</h3>
+                <div class="users-toolbar">
                     <!-- Mobile Filter Dropdown -->
-                    <div class="dropdown d-md-none mr-2 mb-2">
-                        <button class="btn btn-sm btn-default dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-filter"></i>
+                    <div class="dropdown d-lg-none">
+                        <button class="btn-filter dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-filter me-1"></i> Filter
                         </button>
-                        <div class="dropdown-menu" aria-labelledby="filterDropdown">
-                            <a class="dropdown-item filter-button" href="#" data-filter="all"><i class="fas fa-list fa-fw mr-2"></i> All</a>
-                            <a class="dropdown-item filter-button" href="#" data-filter="on-hold"><i class="fas fa-pause-circle fa-fw mr-2 text-warning"></i> Hold</a>
-                            <a class="dropdown-item filter-button" href="#" data-filter="online"><i class="fas fa-wifi fa-fw mr-2 text-info"></i> Online</a>
-                            <a class="dropdown-item filter-button" href="#" data-filter="enable"><i class="fas fa-check fa-fw mr-2 text-success"></i> Enable</a>
-                            <a class="dropdown-item filter-button" href="#" data-filter="disable"><i class="fas fa-ban fa-fw mr-2 text-danger"></i> Disable</a>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown">
+                            <a class="dropdown-item filter-button" href="#" data-filter="all"><i class="fas fa-list fa-fw me-2"></i> All</a>
+                            <a class="dropdown-item filter-button" href="#" data-filter="on-hold"><i class="fas fa-pause-circle fa-fw me-2"></i> Hold</a>
+                            <a class="dropdown-item filter-button" href="#" data-filter="online"><i class="fas fa-wifi fa-fw me-2"></i> Online</a>
+                            <a class="dropdown-item filter-button" href="#" data-filter="enable"><i class="fas fa-check fa-fw me-2"></i> Enable</a>
+                            <a class="dropdown-item filter-button" href="#" data-filter="disable"><i class="fas fa-ban fa-fw me-2"></i> Disable</a>
                         </div>
                     </div>
 
                     <!-- Desktop Filter Buttons -->
-                    <div class="mr-2 mb-2 d-none d-md-block">
-                        <button type="button" class="btn btn-sm btn-default filter-button" data-filter="all">
-                            <i class="fas fa-list"></i> All
-                        </button>
-                    </div>
-                    <div class="mr-2 mb-2 d-none d-md-block">
-                        <button type="button" class="btn btn-sm btn-warning filter-button" data-filter="on-hold">
-                            <i class="fas fa-pause-circle"></i> Hold
-                        </button>
-                    </div>
-                    <div class="mr-2 mb-2 d-none d-md-block">
-                        <button type="button" class="btn btn-sm btn-info filter-button" data-filter="online">
-                            <i class="fas fa-wifi"></i> Online
-                        </button>
-                    </div>
-                    <div class="mr-2 mb-2 d-none d-md-block">
-                        <button type="button" class="btn btn-sm btn-success filter-button" data-filter="enable">
-                            <i class="fas fa-check"></i> Enable
-                        </button>
-                    </div>
-                    <div class="mr-2 mb-2 d-none d-md-block">
-                        <button type="button" class="btn btn-sm btn-danger filter-button" data-filter="disable">
-                            <i class="fas fa-ban"></i> Disable
-                        </button>
+                    <div class="btn-group-filters d-none d-lg-flex">
+                        <button type="button" class="btn-filter active filter-button" data-filter="all">All</button>
+                        <button type="button" class="btn-filter filter-button" data-filter="on-hold">Hold</button>
+                        <button type="button" class="btn-filter filter-button" data-filter="online">Online</button>
+                        <button type="button" class="btn-filter filter-button" data-filter="enable">Enable</button>
+                        <button type="button" class="btn-filter filter-button" data-filter="disable">Disable</button>
                     </div>
 
-                    <div class="input-group input-group-sm" style="width: 200px;">
-                        <input type="text" id="searchInput" class="form-control float-right" placeholder="Search">
-                        <div class="input-group-append">
-                            <button type="button" class="btn btn-default" id="searchButton">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search users...">
+                        <button type="button" class="btn-search" id="searchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
-                    <button type="button" class="btn btn-sm btn-primary ml-2" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    
+                    <div class="divider d-none d-md-block"></div>
+                    
+                    <button type="button" class="btn-action btn-add" data-bs-toggle="modal" data-bs-target="#addUserModal" title="Add User">
                         <i class="fas fa-plus"></i>
                     </button>
-                    <button type="button" class="btn btn-sm btn-info ml-2" id="showSelectedLinks">
+                    <button type="button" class="btn-action btn-links" id="showSelectedLinks" title="Extract Links">
                         <i class="fas fa-link"></i>
                     </button>
-                    <button type="button" class="btn btn-sm btn-danger ml-2" id="deleteSelected">
+                    <button type="button" class="btn-action btn-delete" id="deleteSelected" title="Delete Selected">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -220,9 +344,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <ul class="nav nav-tabs" id="addUserTab" role="tablist">
@@ -357,9 +479,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="editUserForm">
@@ -444,9 +564,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="qrcodeModalLabel">QR Codes</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
                 <div id="qrcodesContainer" class="mx-auto"></div>
@@ -461,9 +579,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="showLinksModalLabel">Extract User Links</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>Select the link types you want to extract for the selected users:</p>

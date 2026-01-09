@@ -1,3 +1,33 @@
+# 🎨 **Iridium 1.0.5 - UI Polish & Fixes**
+
+*Released: 2026-01-09*
+
+## 🐛 Bug Fixes
+
+* **Server Status Badge**: Fixed badge always showing "Server Offline" - now updates correctly based on Hysteria2 service status
+* **QR Modal Close Button**: Fixed close button displaying as rectangle instead of X icon
+* **Modal Close Buttons**: Updated all modals to use Bootstrap 5 `btn-close` class
+
+## 🎨 Design Changes
+
+* **Service Status Cards**: 
+  - Active services now use solid purple gradient with white text (matches buttons)
+  - Inactive services use solid red gradient with white text
+  - Added enhanced hover effects with shadow and transform
+* **Users Page Toolbar**: Complete redesign
+  - Unified filter buttons with consistent styling
+  - Sleek search box with focus effects
+  - Clean action buttons (add, links, delete)
+  - Proper spacing and alignment
+  - Active filter state indication
+* **Beautiful File Uploader**: Added modern drag & drop file uploader in Backup section
+  - Drag and drop support
+  - Visual feedback on file selection
+  - File preview with remove option
+  - Animated upload icon
+
+---
+
 # ✨ **Iridium 1.0.4 - UI Refinements & Subscription Name**
 
 *Released: 2026-01-09*

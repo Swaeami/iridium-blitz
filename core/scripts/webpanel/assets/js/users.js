@@ -193,6 +193,11 @@ $(function () {
     $(".filter-button").on("click", function (e) {
         e.preventDefault();
         const filter = $(this).data("filter");
+        
+        // Update active state on filter buttons
+        $(".btn-group-filters .btn-filter").removeClass("active");
+        $(".btn-group-filters .btn-filter[data-filter='" + filter + "']").addClass("active");
+        
         $("#selectAll").prop("checked", false);
         $("#userTable tbody tr.user-main-row").each(function () {
             let showRow;

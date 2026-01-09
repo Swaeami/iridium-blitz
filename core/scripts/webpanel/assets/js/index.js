@@ -56,10 +56,27 @@ function updateServiceBox(serviceName, status) {
 
     if (serviceName === 'hysteria2') {
         const restartBtn = document.getElementById('restart-hysteria2-btn');
+        const serverStatusBadge = document.getElementById('server-status-badge');
+        const serverStatusText = document.getElementById('server-status-text');
+        
         if (status === true) {
             restartBtn.style.display = 'none';
+            // Update server status badge
+            if (serverStatusBadge) {
+                serverStatusBadge.innerHTML = '<span class="badge bg-success px-3 py-2"><span class="status-dot online me-1"></span> Server Online</span>';
+            }
+            if (serverStatusText) {
+                serverStatusText.innerHTML = '<span class="status-dot online"></span> Server online';
+            }
         } else {
             restartBtn.style.display = 'block';
+            // Update server status badge
+            if (serverStatusBadge) {
+                serverStatusBadge.innerHTML = '<span class="badge bg-danger px-3 py-2"><span class="status-dot offline me-1"></span> Server Offline</span>';
+            }
+            if (serverStatusText) {
+                serverStatusText.innerHTML = '<span class="status-dot offline"></span> Server offline';
+            }
         }
     }
 }
