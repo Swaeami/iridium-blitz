@@ -1,5 +1,5 @@
-## Iridium 1.0.22 - Bugfix
+## Iridium 1.0.23 - Bugfix
 
 ### Fixes
-- Added `--max-ips` option to CLI `add-user` command
-- Fixed Telegram bot user creation with per-user IP limits
+- Fixed cli_api.py add_user command building with positional arguments
+- Telegram bot user creation now works correctly with all optional parameters
