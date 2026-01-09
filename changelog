@@ -1,11 +1,10 @@
-## Iridium 1.0.17 - Connection Labels & Subscription Name Fix
-
-### Fixed
-- Connection labels (IPV4_LABEL, IPV6_LABEL) now properly appear in subscription URIs
-- Fixed hardcoded "IPv4"/"IPv6" in show_user_uri.py
+## Iridium 1.0.18 - External Nodes Table UI Improvements
 
 ### Changed
-- SUB_NAME is now fully customizable (no forced username prefix or emoji)
-- SUB_NAME supports `{username}` placeholder if you want to include username
-- Example: Set SUB_NAME to "MyVPN - {username}" for "MyVPN - john" format
-- Or just "IridiumVPN" for a clean name without username
+- Simplified External Nodes table: removed OBFS, Insecure, PIN SHA256 columns
+- Added compact badges (OBFS, Insecure, Pinned) in the Name column
+- Added horizontal scroll for tables on smaller screens
+- Improved table responsiveness
+
+### Fixed
+- Table no longer overflows on narrow screens

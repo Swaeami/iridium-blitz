@@ -174,7 +174,7 @@
                         </div>
                         <div class="card-body">
                             <!-- Nodes Table -->
-                            <div class="table-responsive">
+                            <div class="table-responsive nodes-table-wrapper">
                                 <table class="table table-hover" id="nodes_table">
                                     <thead>
                                         <tr>
@@ -182,10 +182,7 @@
                                             <th>IP/Domain</th>
                                             <th>Port</th>
                                             <th>SNI</th>
-                                            <th>OBFS</th>
-                                            <th>Insecure</th>
-                                            <th>Pin SHA256</th>
-                                            <th style="width: 100px;">Actions</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -729,5 +726,5 @@
 
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ url_for('assets', path='js/settings.js') }}?v=1.0.17"></script>
+<script src="{{ url_for('assets', path='js/settings.js') }}?v=1.0.18"></script>
 {% endblock %}

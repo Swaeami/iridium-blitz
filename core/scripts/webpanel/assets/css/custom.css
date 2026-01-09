@@ -957,8 +957,49 @@ form .btn-primary {
 
 .table-responsive {
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   background: var(--ir-bg-card);
+}
+
+/* Nodes table specific styles */
+.nodes-table-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.nodes-table-wrapper table {
+  min-width: auto;
+}
+
+.nodes-table-wrapper th,
+.nodes-table-wrapper td {
+  white-space: nowrap;
+}
+
+.node-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.node-badges .badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 2px 6px;
+}
+
+.node-actions {
+  white-space: nowrap;
+}
+
+.node-actions .btn {
+  padding: 4px 8px;
+  margin-right: 4px;
+}
+
+.node-actions .btn:last-child {
+  margin-right: 0;
 }
 
 /* Striped tables */

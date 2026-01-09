@@ -371,20 +371,27 @@ $(document).ready(function () {
             $("#no_nodes_message").hide();
             nodes.forEach(node => {
                 const nodeData = JSON.stringify(node).replace(/"/g, '&quot;');
+                // Build status badges for additional info
+                const badges = [];
+                if (node.obfs) badges.push('<span class="badge bg-info">OBFS</span>');
+                if (node.insecure) badges.push('<span class="badge bg-warning">Insecure</span>');
+                if (node.pinSHA256) badges.push('<span class="badge bg-secondary">Pinned</span>');
+                const badgesHtml = badges.length > 0 ? `<div class="node-badges mt-1">${badges.join(' ')}</div>` : '';
+                
                 const row = `<tr>
-                                <td>${escapeHtml(node.name)}</td>
-                                <td>${escapeHtml(node.ip)}</td>
-                                <td>${escapeHtml(node.port || 'N/A')}</td>
-                                <td>${escapeHtml(node.sni || 'N/A')}</td>
-                                <td>${escapeHtml(node.obfs || 'N/A')}</td>
-                                <td>${escapeHtml(node.insecure ? 'True' : 'False')}</td>
-                                <td>${escapeHtml(node.pinSHA256 || 'N/A')}</td>
                                 <td>
-                                    <button class="btn btn-xs btn-primary edit-node-btn mr-1" data-node="${nodeData}">
-                                        <i class="fas fa-edit"></i> Edit
+                                    <strong>${escapeHtml(node.name)}</strong>
+                                    ${badgesHtml}
+                                </td>
+                                <td>${escapeHtml(node.ip)}</td>
+                                <td>${escapeHtml(node.port || '443')}</td>
+                                <td>${escapeHtml(node.sni || '-')}</td>
+                                <td class="node-actions">
+                                    <button class="btn btn-sm btn-primary edit-node-btn" data-node="${nodeData}" title="Edit">
+                                        <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="btn btn-xs btn-danger delete-node-btn" data-name="${escapeHtml(node.name)}">
-                                        <i class="fas fa-trash"></i> Delete
+                                    <button class="btn btn-sm btn-danger delete-node-btn" data-name="${escapeHtml(node.name)}" title="Delete">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>`;
