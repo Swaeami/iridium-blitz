@@ -1,22 +1,16 @@
-## Iridium 1.0.22 - Complete CLI Redesign
+## Iridium 1.0.21 - Telegram Bot & CLI Improvements
 
-### CLI UX Improvements
-- **Instant menu selection** - no more pressing Enter after each choice
-- **Single-key navigation** - press 1-9 or a-z to navigate instantly
-- **Confirmation dialogs** for dangerous actions (delete, restart, uninstall)
-- **All submenus redesigned** with consistent styling
+### Telegram Bot Updates
+- Added max_ips field when creating users
+- Added max_ips editing in user management
+- Added toggle for unlimited IP status
+- Improved user info display with all fields (max_ips, unlimited_ip, note, status)
+- Better formatted messages with emojis
 
-### IP/ISP Display Fix
-- Fixed IP and ISP not displaying in main menu
-- Added caching (5 min) to speed up menu loading
-- Multiple fallback services for IP detection (ip.sb, ifconfig.me, ipinfo.io)
-
-### Menu Navigation
-- Use letters (a, b, c...) for options beyond 9 in Advanced Settings
-- Press 'q' to go back from any menu
-- Press '0' to go back (same as before)
-
-### Visual Updates
-- Cleaner status display in all submenus
-- Colored indicators for service status
-- Modern section headers
+### CLI Visual Improvements (WIP)
+- New Iridium ASCII art header
+- Modern color scheme with brand colors
+- New UI helper functions (print_success, print_error, etc.)
+- Progress spinner for long operations
+- Better prompts with default values
+- Countdown timers instead of "Press Enter"
