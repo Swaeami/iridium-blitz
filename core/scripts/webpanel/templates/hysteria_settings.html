@@ -106,7 +106,7 @@
                             </div>
                              <div class="alert alert-info" role="alert">
                                <i class="fas fa-info-circle"></i>
-                                <strong>Note:</strong> <small>Masquerade cannot be active at the same time as OBFS.</small>
+                                <strong>Note:</strong> <small>Masquerade and OBFS can work together for maximum protection.</small>
                             </div>
                             <button id="masquerade_enable_btn" type='button' class='btn btn-success' style="display: none;">
                                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
@@ -151,5 +151,5 @@
 
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ url_for('assets', path='js/hysteria_settings.js') }}?v=1.0.13"></script>
+<script src="{{ url_for('assets', path='js/hysteria_settings.js') }}?v=1.0.14"></script>
 {% endblock %}

@@ -1,6 +1,7 @@
-## Iridium 1.0.13 - Subscription Name Fix
+## Iridium 1.0.14 - OBFS + Masquerade Fix
 
 ### Fixed
-- Subscription profile-title now uses custom SUB_NAME from settings
-- Previously hardcoded "Blitz" is now replaced with the configured subscription name
-- Default subscription name changed from "Hysteria2" to "Iridium"
+- Corrected misleading message that said OBFS and Masquerade can't work together
+- They CAN and SHOULD be used together for maximum protection:
+  - OBFS: Obfuscates QUIC packets (hides from DPI)
+  - Masquerade: Fake response for invalid connections (hides from scanners)
