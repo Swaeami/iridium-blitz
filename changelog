@@ -1,12 +1,5 @@
-## Iridium 1.0.10 - Dashboard UI Polish
+## Iridium 1.0.11 - Layout Fix
 
 ### Fixed
-- Fixed traffic card dividers (was using wrong CSS variable)
-- Increased card body and header padding for better spacing
-- Improved info-box spacing and icon borders
-- Unified styling for all dashboard elements
-
-### Changed
-- Info-box icons now larger (56px) with rounded borders
-- Card content padding increased from 1.25rem to 1.5rem
-- Better gap between info-box items in rows
+- Reverted dashboard layout changes that broke spacing
+- Added small gap between info-box label and value (0.2rem → 0.4rem)

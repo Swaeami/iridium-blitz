@@ -445,7 +445,7 @@ a:hover {
 }
 
 .card-header {
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   background: rgba(255, 255, 255, 0.02);
   border-bottom: 1px solid var(--ir-border);
   display: flex;
@@ -461,7 +461,7 @@ a:hover {
 }
 
 .card-body {
-  padding: 1.5rem;
+  padding: 1.25rem;
   background: var(--ir-bg-card);
   color: var(--ir-text);
 }
@@ -1375,16 +1375,11 @@ form .btn-primary {
   background: var(--ir-bg-card);
   border: 1px solid var(--ir-border);
   border-radius: var(--radius);
-  padding: 1.25rem;
+  padding: 1.1rem;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1rem;
   transition: all var(--transition);
-}
-
-/* Info boxes inside cards */
-.card-body .row.g-3 {
-  gap: 1rem !important;
 }
 
 .info-box:hover {
@@ -1392,15 +1387,14 @@ form .btn-primary {
 }
 
 .info-box-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.35rem;
   flex-shrink: 0;
-  border: 1px solid var(--ir-border);
 }
 
 .info-box-icon.bg-info { background: var(--ir-info-bg); color: var(--ir-info); }
@@ -1422,7 +1416,7 @@ form .btn-primary {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.4rem;
 }
 
 .info-box-number {
