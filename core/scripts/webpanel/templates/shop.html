@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}Shop Management - Iridium{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: var(--ir-bg-card);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid var(--ir-border);
+    }
+    .stat-card .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--ir-primary);
+    }
+    .stat-card .stat-label {
+        color: var(--ir-text-muted);
+        font-size: 0.875rem;
+    }
+    .service-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .service-status .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+    .service-status .status-dot.running { background: var(--ir-success); }
+    .service-status .status-dot.stopped { background: var(--ir-danger); }
+    .tariff-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+    .tariff-badge.traffic { background: rgba(var(--ir-info-rgb), 0.2); color: var(--ir-info); }
+    .tariff-badge.time { background: rgba(var(--ir-success-rgb), 0.2); color: var(--ir-success); }
+    .promo-type {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+    .promo-type.discount { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+    .promo-type.free_period { background: rgba(var(--ir-success-rgb), 0.2); color: var(--ir-success); }
+    .promo-type.extra_traffic { background: rgba(var(--ir-info-rgb), 0.2); color: var(--ir-info); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-content" 
+     data-clientbot-status-url="{{ url_for('get_clientbot_status') }}"
+     data-clientbot-start-url="{{ url_for('start_clientbot') }}"
+     data-clientbot-stop-url="{{ url_for('stop_clientbot') }}"
+     data-clientbot-restart-url="{{ url_for('restart_clientbot') }}"
+     data-clientbot-config-url="{{ url_for('update_clientbot_config') }}"
+     data-tariffs-url="{{ url_for('get_tariffs') }}"
+     data-promos-url="{{ url_for('get_promos') }}"
+     data-customers-url="{{ url_for('get_customers') }}"
+     data-payments-stats-url="{{ url_for('get_payment_stats') }}">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">🏪 Магазин</h2>
+            <p class="text-muted mb-0">Управление клиентским ботом, тарифами и промокодами</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-customers">0</div>
+                <div class="stat-label">👥 Клиентов</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-revenue">0₽</div>
+                <div class="stat-label">💰 Доход (30 дн.)</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-payments">0</div>
+                <div class="stat-label">💳 Платежей (30 дн.)</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-tariffs">0</div>
+                <div class="stat-label">📋 Активных тарифов</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs settings-tabs mb-4" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-clientbot">🤖 Клиент-бот</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-tariffs">📋 Тарифы</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-promos">🎁 Промокоды</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-customers">👥 Клиенты</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Client Bot Tab -->
+        <div class="tab-pane fade show active" id="tab-clientbot">
+            <div class="row g-4">
+                <!-- Bot Status -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">📱 Статус бота</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="service-status">
+                                    <span class="status-dot" id="clientbot-status-dot"></span>
+                                    <span id="clientbot-status-text">Загрузка...</span>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-success btn-sm" id="btn-start-clientbot" disabled>
+                                        <i class="fas fa-play"></i> Запустить
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" id="btn-stop-clientbot" disabled>
+                                        <i class="fas fa-stop"></i> Остановить
+                                    </button>
+                                    <button class="btn btn-warning btn-sm" id="btn-restart-clientbot" disabled>
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bot Config -->
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">⚙️ Настройки бота</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="clientbot-config-form">
+                                <div class="mb-3">
+                                    <label class="form-label">Bot Token</label>
+                                    <input type="text" class="form-control" id="bot_token" placeholder="123456:ABC-DEF..." required>
+                                </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">YooKassa Shop ID</label>
+                                        <input type="text" class="form-control" id="yookassa_shop_id" placeholder="Опционально">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">YooKassa Secret Key</label>
+                                        <input type="password" class="form-control" id="yookassa_secret_key" placeholder="Опционально">
+                                    </div>
+                                </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Support Username</label>
+                                        <input type="text" class="form-control" id="support_username" placeholder="@username">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Trial Days</label>
+                                        <input type="number" class="form-control" id="trial_days" value="3" min="1">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Trial Traffic GB</label>
+                                        <input type="number" class="form-control" id="trial_traffic_gb" value="999999">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Сохранить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tariffs Tab -->
+        <div class="tab-pane fade" id="tab-tariffs">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">📋 Тарифы</h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTariffModal">
+                        <i class="fas fa-plus"></i> Добавить
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="tariffs-table">
+                            <thead>
+                                <tr>
+                                    <th>Название</th>
+                                    <th>Тип</th>
+                                    <th>Объём / Срок</th>
+                                    <th>Цена ₽</th>
+                                    <th>Цена ⭐</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Promos Tab -->
+        <div class="tab-pane fade" id="tab-promos">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">🎁 Промокоды</h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPromoModal">
+                        <i class="fas fa-plus"></i> Создать
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="promos-table">
+                            <thead>
+                                <tr>
+                                    <th>Код</th>
+                                    <th>Тип</th>
+                                    <th>Значение</th>
+                                    <th>Использований</th>
+                                    <th>Истекает</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customers Tab -->
+        <div class="tab-pane fade" id="tab-customers">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">👥 Клиенты</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="customers-table">
+                            <thead>
+                                <tr>
+                                    <th>Telegram</th>
+                                    <th>VPN Username</th>
+                                    <th>Trial</th>
+                                    <th>Регистрация</th>
+                                    <th>Активность</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Tariff Modal -->
+<div class="modal fade" id="addTariffModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">➕ Новый тариф</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="add-tariff-form">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Название</label>
+                        <input type="text" class="form-control" name="name" required placeholder="100 GB">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Тип</label>
+                        <select class="form-select" name="tariff_type" id="tariff-type-select" required>
+                            <option value="traffic">📦 По трафику (безлимит времени)</option>
+                            <option value="time">📅 По времени (безлимит трафика)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="traffic-gb-group">
+                        <label class="form-label">Трафик (GB)</label>
+                        <input type="number" class="form-control" name="traffic_gb" min="1" placeholder="100">
+                    </div>
+                    <div class="mb-3 d-none" id="days-group">
+                        <label class="form-label">Срок (дни)</label>
+                        <input type="number" class="form-control" name="days" min="1" placeholder="30">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Цена (₽)</label>
+                            <input type="number" class="form-control" name="price" required min="0" step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Цена (⭐ Stars)</label>
+                            <input type="number" class="form-control" name="price_stars" min="1" placeholder="Опционально">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Promo Modal -->
+<div class="modal fade" id="addPromoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🎁 Новый промокод</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="add-promo-form">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Код (оставьте пустым для авто-генерации)</label>
+                        <input type="text" class="form-control" name="code" placeholder="SALE50" style="text-transform: uppercase">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Тип промокода</label>
+                        <select class="form-select" name="promo_type" id="promo-type-select" required>
+                            <option value="discount">💸 Скидка (%)</option>
+                            <option value="free_period">📅 Бесплатные дни</option>
+                            <option value="extra_traffic">📦 Доп. трафик (GB)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" id="promo-value-label">Значение (%)</label>
+                        <input type="number" class="form-control" name="value" required min="1" placeholder="50">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Макс. использований</label>
+                            <input type="number" class="form-control" name="max_uses" required min="1" value="100">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Срок действия (дни, 0 = бессрочно)</label>
+                            <input type="number" class="form-control" name="expire_days" min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Описание (опционально)</label>
+                        <input type="text" class="form-control" name="description" placeholder="Новогодняя скидка">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/shop.js') }}?v=1.0.0"></script>
+{% endblock %}
+

@@ -1086,6 +1086,136 @@ ip_limit_handler() {
     done
 }
 
+client_bot_handler() {
+    while true; do
+        clear
+        echo -e "${IRIDIUM}${BOLD}  🏪 Client Bot (Sales)${NC}\n"
+        print_section "Service"
+        echo -e "${cyan}1.${NC} Start Client Bot"
+        echo -e "${red}2.${NC} Stop Client Bot"
+        echo -e "${yellow}3.${NC} Restart Client Bot"
+        echo -e "${cyan}4.${NC} Check Status"
+        print_section "Management"
+        echo -e "${green}5.${NC} Add Tariff"
+        echo -e "${cyan}6.${NC} List Tariffs"
+        echo -e "${green}7.${NC} Add Promo Code"
+        echo -e "${cyan}8.${NC} List Promo Codes"
+        echo -e "${cyan}9.${NC} Shop Statistics"
+        print_line
+        echo "0. Back"
+        print_line
+        read -p "Choose an option: " option
+
+        case $option in
+            1)
+                if systemctl is-active --quiet hysteria-client-bot.service; then
+                    echo "Client bot is already running."
+                else
+                    read -e -p "Enter Bot Token: " token
+                    if [ -z "$token" ]; then
+                        echo "Token cannot be empty."
+                        continue
+                    fi
+                    read -e -p "YooKassa Shop ID (optional): " yookassa_id
+                    read -e -p "YooKassa Secret Key (optional): " yookassa_secret
+                    read -e -p "Support Username (optional, e.g. @admin): " support
+                    read -e -p "Trial Days (default: 3): " trial_days
+                    trial_days=${trial_days:-3}
+                    read -e -p "Trial Traffic GB (default: 999999): " trial_traffic
+                    trial_traffic=${trial_traffic:-999999}
+                    
+                    python3 $CLI_PATH client-bot start -t "$token" \
+                        --yookassa-shop-id "$yookassa_id" \
+                        --yookassa-secret "$yookassa_secret" \
+                        --support "$support" \
+                        --trial-days "$trial_days" \
+                        --trial-traffic "$trial_traffic"
+                fi
+                wait_seconds 2
+                ;;
+            2)
+                python3 $CLI_PATH client-bot stop
+                wait_seconds 2
+                ;;
+            3)
+                python3 $CLI_PATH client-bot restart
+                wait_seconds 2
+                ;;
+            4)
+                python3 $CLI_PATH client-bot status
+                wait_seconds 3
+                ;;
+            5)
+                read -e -p "Tariff Name (e.g. '100 GB'): " name
+                echo "Tariff Type:"
+                echo "  1) Traffic (unlimited time)"
+                echo "  2) Time (unlimited traffic)"
+                read -e -p "Choose type [1/2]: " type_choice
+                if [ "$type_choice" = "1" ]; then
+                    tariff_type="traffic"
+                    read -e -p "Traffic limit (GB): " traffic_gb
+                    days_opt=""
+                else
+                    tariff_type="time"
+                    read -e -p "Duration (days): " days
+                    traffic_gb=""
+                fi
+                read -e -p "Price (rubles): " price
+                read -e -p "Price in Stars (optional): " stars
+                
+                cmd="python3 $CLI_PATH tariff add -n '$name' -t $tariff_type -p $price"
+                [ -n "$traffic_gb" ] && cmd="$cmd --traffic-gb $traffic_gb"
+                [ -n "$days" ] && cmd="$cmd --days $days"
+                [ -n "$stars" ] && cmd="$cmd --price-stars $stars"
+                eval $cmd
+                wait_seconds 2
+                ;;
+            6)
+                python3 $CLI_PATH tariff list
+                wait_seconds 3
+                ;;
+            7)
+                read -e -p "Promo Code (leave empty for auto): " code
+                echo "Promo Type:"
+                echo "  1) Discount (%)"
+                echo "  2) Free Period (days)"
+                echo "  3) Extra Traffic (GB)"
+                read -e -p "Choose type [1/2/3]: " ptype
+                case $ptype in
+                    1) promo_type="discount" ;;
+                    2) promo_type="free_period" ;;
+                    3) promo_type="extra_traffic" ;;
+                    *) echo "Invalid type"; continue ;;
+                esac
+                read -e -p "Value: " value
+                read -e -p "Max Uses (default: 100): " max_uses
+                max_uses=${max_uses:-100}
+                read -e -p "Expire in days (0 = never): " expire
+                
+                cmd="python3 $CLI_PATH promo add -t $promo_type -v $value -m $max_uses"
+                [ -n "$code" ] && cmd="$cmd -c '$code'"
+                [ -n "$expire" ] && [ "$expire" != "0" ] && cmd="$cmd -e $expire"
+                eval $cmd
+                wait_seconds 2
+                ;;
+            8)
+                python3 $CLI_PATH promo list
+                wait_seconds 3
+                ;;
+            9)
+                python3 $CLI_PATH shop-stats
+                wait_seconds 3
+                ;;
+            0)
+                break
+                ;;
+            *)
+                echo "Invalid option."
+                ;;
+        esac
+    done
+}
+
 display_main_menu() {
     print_header
     
@@ -1182,23 +1312,24 @@ display_advance_menu() {
     menu_item "4" "Uninstall WARP" "$red"
     
     print_section "Services"
-    menu_item "5" "Telegram Bot" "$cyan"
-    menu_item "6" "Normal-SUB SubLink" "$cyan"
-    menu_item "7" "Web Panel" "$cyan"
-    menu_item "8" "IP Limiter" "$cyan"
+    menu_item "5" "Telegram Bot (Admin)" "$cyan"
+    menu_item "6" "Client Bot (Sales)" "$purple"
+    menu_item "7" "Normal-SUB SubLink" "$cyan"
+    menu_item "8" "Web Panel" "$cyan"
+    menu_item "9" "IP Limiter" "$cyan"
     
     print_section "Hysteria2 Config"
-    menu_item "9" "Change Port" "$yellow"
-    menu_item "10" "Change SNI" "$yellow"
-    menu_item "11" "Manage OBFS" "$yellow"
-    menu_item "12" "Change IPs" "$yellow"
-    menu_item "13" "Update Geo Files" "$yellow"
-    menu_item "14" "Manage Masquerade" "$yellow"
+    menu_item "a" "Change Port" "$yellow"
+    menu_item "b" "Change SNI" "$yellow"
+    menu_item "c" "Manage OBFS" "$yellow"
+    menu_item "d" "Change IPs" "$yellow"
+    menu_item "e" "Update Geo Files" "$yellow"
+    menu_item "f" "Manage Masquerade" "$yellow"
     
     print_section "System"
-    menu_item "15" "Restart Hysteria2" "$cyan"
-    menu_item "16" "Update Hysteria2 Core" "$cyan"
-    menu_item "17" "Uninstall Hysteria2" "$red"
+    menu_item "g" "Restart Hysteria2" "$cyan"
+    menu_item "h" "Update Hysteria2 Core" "$cyan"
+    menu_item "i" "Uninstall Hysteria2" "$red"
     print_line
     menu_item "0" "← Back" "$gray"
     print_line
@@ -1216,18 +1347,19 @@ advance_menu() {
             3) warp_configure_handler ;;
             4) python3 $CLI_PATH uninstall-warp; wait_seconds 2 ;;
             5) telegram_bot_handler ;;
-            6) normalsub_handler ;;
-            7) webpanel_handler ;;
-            8) ip_limit_handler ;;
-            9) hysteria2_change_port_handler; wait_seconds 2 ;;
-            10) hysteria2_change_sni_handler; wait_seconds 2 ;;
-            11) obfs_handler ;;
-            12) edit_ips ;;
-            13) geo_update_handler; wait_seconds 2 ;;
-            14) masquerade_handler ;;
-            15) python3 $CLI_PATH restart-hysteria2; wait_seconds 2 ;;
-            16) python3 $CLI_PATH update-hysteria2; wait_seconds 2 ;;
-            17) python3 $CLI_PATH uninstall-hysteria2; wait_seconds 2 ;;
+            6) client_bot_handler ;;
+            7) normalsub_handler ;;
+            8) webpanel_handler ;;
+            9) ip_limit_handler ;;
+            a|A) hysteria2_change_port_handler; wait_seconds 2 ;;
+            b|B) hysteria2_change_sni_handler; wait_seconds 2 ;;
+            c|C) obfs_handler ;;
+            d|D) edit_ips ;;
+            e|E) geo_update_handler; wait_seconds 2 ;;
+            f|F) masquerade_handler ;;
+            g|G) python3 $CLI_PATH restart-hysteria2; wait_seconds 2 ;;
+            h|H) python3 $CLI_PATH update-hysteria2; wait_seconds 2 ;;
+            i|I) python3 $CLI_PATH uninstall-hysteria2; wait_seconds 2 ;;
             0) return ;;
             *) print_error "Invalid option"; sleep 1 ;;
         esac

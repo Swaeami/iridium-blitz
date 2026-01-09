@@ -851,5 +851,184 @@ def config_ip_limit(block_duration: int, max_ips: int):
 # endregion
 
 
+# region Client Bot Management
+
+@cli.group('client-bot')
+def client_bot():
+    """Manage Client Telegram Bot (for sales/promos)."""
+    pass
+
+
+@client_bot.command('start')
+@click.option('--token', '-t', required=True, help='Telegram Bot Token')
+@click.option('--yookassa-shop-id', '-ys', required=False, default='', help='YooKassa Shop ID (optional)')
+@click.option('--yookassa-secret', '-yk', required=False, default='', help='YooKassa Secret Key (optional)')
+@click.option('--support', '-s', required=False, default='', help='Support Telegram username (optional)')
+@click.option('--trial-days', '-td', type=int, default=3, help='Trial period days (default: 3)')
+@click.option('--trial-traffic', '-tt', type=int, default=999999, help='Trial traffic GB (default: unlimited)')
+def start_client_bot(token: str, yookassa_shop_id: str, yookassa_secret: str, support: str, trial_days: int, trial_traffic: int):
+    """Start the client bot service."""
+    try:
+        cli_api.start_client_bot(token, yookassa_shop_id, yookassa_secret, support, trial_days, trial_traffic)
+        click.echo('Client bot started successfully.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@client_bot.command('stop')
+def stop_client_bot():
+    """Stop the client bot service."""
+    try:
+        cli_api.stop_client_bot()
+        click.echo('Client bot stopped successfully.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@client_bot.command('restart')
+def restart_client_bot():
+    """Restart the client bot service."""
+    try:
+        cli_api.restart_client_bot()
+        click.echo('Client bot restarted successfully.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@client_bot.command('status')
+def client_bot_status():
+    """Check the client bot service status."""
+    try:
+        status = cli_api.get_client_bot_status()
+        if status:
+            pretty_print(status)
+        else:
+            click.echo('Client bot is not configured.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@cli.group('tariff')
+def tariff():
+    """Manage tariffs for client bot."""
+    pass
+
+
+@tariff.command('add')
+@click.option('--name', '-n', required=True, help='Tariff name (e.g., "100 GB")')
+@click.option('--type', '-t', 'tariff_type', required=True, type=click.Choice(['traffic', 'time']), help='Tariff type')
+@click.option('--price', '-p', required=True, type=float, help='Price in rubles')
+@click.option('--traffic-gb', '-tg', type=int, help='Traffic limit in GB (for traffic type)')
+@click.option('--days', '-d', type=int, help='Duration in days (for time type)')
+@click.option('--price-stars', '-ps', type=int, help='Price in Telegram Stars (optional)')
+def add_tariff(name: str, tariff_type: str, price: float, traffic_gb: int, days: int, price_stars: int):
+    """Add a new tariff."""
+    try:
+        result = cli_api.add_tariff(name, tariff_type, price, traffic_gb, days, price_stars)
+        click.echo(f'Tariff "{name}" created successfully.')
+        if result:
+            pretty_print(result)
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@tariff.command('list')
+def list_tariffs():
+    """List all tariffs."""
+    try:
+        tariffs = cli_api.list_tariffs()
+        if tariffs:
+            for t in tariffs:
+                status = '✅' if t.get('is_active') else '❌'
+                type_emoji = '📦' if t.get('type') == 'traffic' else '📅'
+                value = f"{t.get('traffic_gb', 0)} GB" if t.get('type') == 'traffic' else f"{t.get('days', 0)} дней"
+                click.echo(f"{status} {t.get('name')} - {type_emoji} {value} - {t.get('price')}₽")
+        else:
+            click.echo('No tariffs found.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@tariff.command('delete')
+@click.option('--id', '-i', 'tariff_id', required=True, help='Tariff ID to delete')
+def delete_tariff(tariff_id: str):
+    """Delete (deactivate) a tariff."""
+    try:
+        cli_api.delete_tariff(tariff_id)
+        click.echo('Tariff deleted successfully.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@cli.group('promo')
+def promo():
+    """Manage promo codes for client bot."""
+    pass
+
+
+@promo.command('add')
+@click.option('--code', '-c', required=False, help='Promo code (auto-generated if not provided)')
+@click.option('--type', '-t', 'promo_type', required=True, type=click.Choice(['discount', 'free_period', 'extra_traffic']), help='Promo type')
+@click.option('--value', '-v', required=True, type=float, help='Value (% for discount, days for free_period, GB for extra_traffic)')
+@click.option('--max-uses', '-m', type=int, default=100, help='Maximum uses (default: 100)')
+@click.option('--expire-days', '-e', type=int, help='Expire after days (optional, 0 = never)')
+@click.option('--description', '-d', help='Description (optional)')
+def add_promo(code: str, promo_type: str, value: float, max_uses: int, expire_days: int, description: str):
+    """Create a new promo code."""
+    try:
+        result = cli_api.add_promo(code, promo_type, value, max_uses, expire_days, description)
+        click.echo(f'Promo code "{result.get("code")}" created successfully.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@promo.command('list')
+def list_promos():
+    """List all promo codes."""
+    try:
+        promos = cli_api.list_promos()
+        if promos:
+            for p in promos:
+                status = '✅' if p.get('is_active') else '❌'
+                type_labels = {'discount': '💸 Скидка', 'free_period': '📅 Дни', 'extra_traffic': '📦 Трафик'}
+                type_label = type_labels.get(p.get('type'), p.get('type'))
+                click.echo(f"{status} {p.get('code')} - {type_label} {p.get('value')} - {p.get('uses_count')}/{p.get('max_uses')}")
+        else:
+            click.echo('No promo codes found.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@promo.command('delete')
+@click.option('--code', '-c', required=True, help='Promo code to deactivate')
+def delete_promo(code: str):
+    """Delete (deactivate) a promo code."""
+    try:
+        cli_api.delete_promo(code)
+        click.echo('Promo code deactivated successfully.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@cli.command('shop-stats')
+@click.option('--days', '-d', type=int, default=30, help='Statistics period in days (default: 30)')
+def shop_stats(days: int):
+    """Show shop statistics (customers, revenue, payments)."""
+    try:
+        stats = cli_api.get_shop_stats(days)
+        if stats:
+            click.echo(f"\n📊 Статистика за {days} дней:\n")
+            click.echo(f"👥 Клиентов: {stats.get('customers', 0)}")
+            click.echo(f"💰 Доход: {stats.get('revenue', 0)}₽")
+            click.echo(f"💳 Платежей: {stats.get('payments', 0)}")
+            click.echo(f"📋 Активных тарифов: {stats.get('tariffs', 0)}")
+        else:
+            click.echo('No statistics available.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+# endregion
+
+
 if __name__ == '__main__':
     cli()

@@ -983,3 +983,211 @@ def get_ip_limiter_config() -> dict[str, int | None]:
         print(f"Error reading IP Limiter config from .configs.env: {e}")
         return {"block_duration": None, "max_ips": None}
 # endregion
+
+
+# region Client Bot Management
+
+CLIENTBOT_ENV_FILE = '/etc/hysteria/.clientbot.env'
+CLIENTBOT_SERVICE = 'hysteria-client-bot.service'
+
+
+def start_client_bot(token: str, yookassa_shop_id: str = '', yookassa_secret: str = '', 
+                     support: str = '', trial_days: int = 3, trial_traffic: int = 999999):
+    '''Starts the client bot service.'''
+    # Write config
+    content = f"""# Iridium Client Bot Configuration
+BOT_TOKEN={token}
+YOOKASSA_SHOP_ID={yookassa_shop_id}
+YOOKASSA_SECRET_KEY={yookassa_secret}
+SUPPORT_USERNAME={support}
+RETURN_URL=https://t.me
+TRIAL_DAYS={trial_days}
+TRIAL_TRAFFIC_GB={trial_traffic}
+"""
+    with open(CLIENTBOT_ENV_FILE, 'w') as f:
+        f.write(content)
+    
+    # Create service file
+    service_content = """[Unit]
+Description=Iridium Client Telegram Bot
+After=network.target mongodb.service
+
+[Service]
+ExecStart=/bin/bash -c 'source /etc/hysteria/hysteria2_venv/bin/activate && /etc/hysteria/hysteria2_venv/bin/python /etc/hysteria/core/scripts/clientbot/bot.py'
+WorkingDirectory=/etc/hysteria/core/scripts/clientbot
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+"""
+    with open(f'/etc/systemd/system/{CLIENTBOT_SERVICE}', 'w') as f:
+        f.write(service_content)
+    
+    run_cmd(['systemctl', 'daemon-reload'])
+    run_cmd(['systemctl', 'enable', CLIENTBOT_SERVICE])
+    run_cmd(['systemctl', 'start', CLIENTBOT_SERVICE])
+
+
+def stop_client_bot():
+    '''Stops the client bot service.'''
+    run_cmd(['systemctl', 'stop', CLIENTBOT_SERVICE])
+    run_cmd(['systemctl', 'disable', CLIENTBOT_SERVICE])
+
+
+def restart_client_bot():
+    '''Restarts the client bot service.'''
+    run_cmd(['systemctl', 'restart', CLIENTBOT_SERVICE])
+
+
+def get_client_bot_status() -> dict | None:
+    '''Gets the client bot service status.'''
+    result = subprocess.run(['systemctl', 'is-active', CLIENTBOT_SERVICE], capture_output=True, text=True)
+    is_running = result.stdout.strip() == 'active'
+    
+    config = {
+        'is_running': is_running,
+        'bot_token': '',
+        'yookassa_configured': False,
+        'trial_days': 3,
+        'trial_traffic_gb': 999999
+    }
+    
+    if os.path.exists(CLIENTBOT_ENV_FILE):
+        env_vars = dotenv_values(CLIENTBOT_ENV_FILE)
+        config['bot_token'] = '***' if env_vars.get('BOT_TOKEN') else ''
+        config['yookassa_configured'] = bool(env_vars.get('YOOKASSA_SHOP_ID'))
+        config['trial_days'] = int(env_vars.get('TRIAL_DAYS', 3))
+        config['trial_traffic_gb'] = int(env_vars.get('TRIAL_TRAFFIC_GB', 999999))
+    
+    return config
+
+
+def add_tariff(name: str, tariff_type: str, price: float, traffic_gb: int = None, 
+               days: int = None, price_stars: int = None) -> dict:
+    '''Adds a new tariff via the shop database.'''
+    import sys
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        raise CommandExecutionError("Database not available")
+    
+    result = shop_db.create_tariff(name, tariff_type, price, traffic_gb, days, price_stars)
+    result['_id'] = str(result['_id'])
+    return result
+
+
+def list_tariffs() -> list:
+    '''Lists all tariffs.'''
+    import sys
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        return []
+    
+    tariffs = shop_db.get_all_tariffs()
+    for t in tariffs:
+        t['_id'] = str(t['_id'])
+    return tariffs
+
+
+def delete_tariff(tariff_id: str):
+    '''Deletes (deactivates) a tariff.'''
+    import sys
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        raise CommandExecutionError("Database not available")
+    
+    if not shop_db.delete_tariff(tariff_id):
+        raise CommandExecutionError("Tariff not found")
+
+
+def add_promo(code: str = None, promo_type: str = 'discount', value: float = 0, 
+              max_uses: int = 100, expire_days: int = None, description: str = '') -> dict:
+    '''Creates a new promo code.'''
+    import sys
+    from datetime import datetime, timedelta
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        raise CommandExecutionError("Database not available")
+    
+    expires_at = None
+    if expire_days and expire_days > 0:
+        expires_at = datetime.utcnow() + timedelta(days=expire_days)
+    
+    result = shop_db.create_promo(code, promo_type, value, max_uses, expires_at, description)
+    result['_id'] = str(result['_id'])
+    if result.get('expires_at'):
+        result['expires_at'] = result['expires_at'].isoformat()
+    if result.get('created_at'):
+        result['created_at'] = result['created_at'].isoformat()
+    return result
+
+
+def list_promos() -> list:
+    '''Lists all promo codes.'''
+    import sys
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        return []
+    
+    promos = shop_db.get_all_promos()
+    for p in promos:
+        p['_id'] = str(p['_id'])
+        if p.get('expires_at'):
+            p['expires_at'] = p['expires_at'].isoformat()
+        if p.get('created_at'):
+            p['created_at'] = p['created_at'].isoformat()
+    return promos
+
+
+def delete_promo(code: str):
+    '''Deactivates a promo code.'''
+    import sys
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        raise CommandExecutionError("Database not available")
+    
+    if not shop_db.deactivate_promo(code):
+        raise CommandExecutionError("Promo code not found")
+
+
+def get_shop_stats(days: int = 30) -> dict:
+    '''Gets shop statistics.'''
+    import sys
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        return {'customers': 0, 'revenue': 0, 'payments': 0, 'tariffs': 0}
+    
+    # Get payment stats
+    payment_stats = shop_db.get_payments_stats(days)
+    total_revenue = sum(s.get('total', 0) for s in payment_stats.values())
+    total_payments = sum(s.get('count', 0) for s in payment_stats.values())
+    
+    # Get customer count
+    customers = shop_db.get_all_customers()
+    
+    # Get active tariffs
+    tariffs = shop_db.get_all_tariffs()
+    active_tariffs = len([t for t in tariffs if t.get('is_active')])
+    
+    return {
+        'customers': len(customers),
+        'revenue': total_revenue,
+        'payments': total_payments,
+        'tariffs': active_tariffs
+    }
+
+# endregion

@@ -1,5 +1,24 @@
-## Iridium 1.0.23 - Bugfix
+Iridium 1.0.24 - Client Bot Integration
 
-### Fixes
-- Fixed cli_api.py add_user command building with positional arguments
-- Telegram bot user creation now works correctly with all optional parameters
+🏪 New Features:
+- Client Telegram Bot for sales & self-service
+- Tariff management (traffic-based, time-based)
+- Promo codes (discounts, free days, extra traffic)
+- Payment via Telegram Stars & YooKassa
+- Trial period support (configurable days/traffic)
+- Customer management & statistics
+
+📱 Web Panel:
+- New "Shop" page with full management UI
+- Tariffs & promos CRUD
+- Customer list & payment stats
+- Client bot start/stop/config
+
+🖥️ CLI:
+- `client-bot start/stop/restart/status`
+- `tariff add/list/delete`
+- `promo add/list/delete`
+- `shop-stats` - revenue & customer stats
+
+📋 Menu:
+- "Client Bot (Sales)" in Advanced Settings
