@@ -2056,60 +2056,71 @@ form .btn-primary {
 .jsoneditor {
   border: 1px solid var(--ir-border) !important;
   border-radius: var(--radius) !important;
-  background: var(--ir-bg-card) !important;
+  background-color: var(--ir-bg-card) !important;
 }
 
 .jsoneditor-menu {
-  background: var(--ir-bg-elevated) !important;
+  background-color: var(--ir-bg-elevated) !important;
   border-bottom: 1px solid var(--ir-border) !important;
   border-radius: var(--radius) var(--radius) 0 0 !important;
 }
 
+/* JSONEditor buttons - use background-color to preserve icon sprites */
 .jsoneditor-menu > button,
 .jsoneditor-menu > .jsoneditor-modes > button {
-  background: var(--ir-bg-surface) !important;
+  background-color: var(--ir-bg-surface) !important;
   border: 1px solid var(--ir-border) !important;
   border-radius: var(--radius-sm) !important;
   color: var(--ir-text) !important;
-  filter: none !important;
-  opacity: 1 !important;
+  filter: invert(0.85) hue-rotate(180deg) !important;
+  opacity: 0.9 !important;
 }
 
 .jsoneditor-menu > button:hover,
 .jsoneditor-menu > .jsoneditor-modes > button:hover {
-  background: rgba(99, 102, 241, 0.15) !important;
+  background-color: rgba(99, 102, 241, 0.25) !important;
   border-color: var(--ir-primary) !important;
+  opacity: 1 !important;
 }
 
 .jsoneditor-menu > button.jsoneditor-selected,
 .jsoneditor-menu > .jsoneditor-modes > button.jsoneditor-selected {
-  background: var(--ir-primary) !important;
+  background-color: var(--ir-primary) !important;
   border-color: var(--ir-primary) !important;
+  filter: invert(0) !important;
+  opacity: 1 !important;
+}
+
+/* JSONEditor search */
+.jsoneditor-search {
+  background-color: var(--ir-bg-elevated) !important;
 }
 
 .jsoneditor-search input {
-  background: var(--ir-bg-elevated) !important;
+  background-color: var(--ir-bg-card) !important;
   border: 1px solid var(--ir-border) !important;
   color: var(--ir-text) !important;
   border-radius: var(--radius-sm) !important;
 }
 
 .jsoneditor-search button {
-  background: var(--ir-bg-surface) !important;
+  background-color: var(--ir-bg-surface) !important;
   border: 1px solid var(--ir-border) !important;
   filter: invert(0.85) !important;
 }
 
+/* JSONEditor content areas */
 .jsoneditor-outer,
 .jsoneditor-tree,
-.jsoneditor-text-mode {
-  background: var(--ir-bg-card) !important;
+.jsoneditor-text-mode,
+.jsoneditor-mode-code {
+  background-color: #1a1f2e !important;
   color: var(--ir-text) !important;
 }
 
 .jsoneditor-frame,
 .jsoneditor-treepath {
-  background: var(--ir-bg-elevated) !important;
+  background-color: var(--ir-bg-elevated) !important;
   border-color: var(--ir-border) !important;
 }
 
@@ -2121,72 +2132,148 @@ form .btn-primary {
   color: var(--ir-primary) !important;
 }
 
-/* ACE Editor (code mode) dark theme */
+/* ACE Editor (code mode) - Complete Dark Theme */
 .ace_editor,
-.ace-jsoneditor {
-  background: var(--ir-bg-card) !important;
-  color: var(--ir-text) !important;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+.ace-jsoneditor,
+.jsoneditor-mode-code .ace_editor {
+  background-color: #1a1f2e !important;
+  color: #e4e4e7 !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
 }
 
+/* ACE Gutter (line numbers) */
 .ace_gutter {
-  background: var(--ir-bg-elevated) !important;
-  color: var(--ir-text-muted) !important;
+  background-color: #151921 !important;
+  color: #6b7280 !important;
+  border-right: 1px solid #2d3548 !important;
+}
+
+.ace_gutter-cell {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
 }
 
 .ace_gutter-active-line {
-  background: rgba(99, 102, 241, 0.15) !important;
+  background-color: rgba(99, 102, 241, 0.2) !important;
 }
 
+/* ACE Scroller */
+.ace_scroller {
+  background-color: #1a1f2e !important;
+}
+
+.ace_content {
+  background-color: #1a1f2e !important;
+}
+
+/* ACE Cursor */
 .ace_cursor {
-  color: var(--ir-primary-light) !important;
+  color: #a78bfa !important;
+  border-left: 2px solid #a78bfa !important;
 }
 
+/* ACE Selection */
 .ace_marker-layer .ace_selection {
-  background: rgba(99, 102, 241, 0.3) !important;
+  background-color: rgba(99, 102, 241, 0.35) !important;
 }
 
 .ace_marker-layer .ace_active-line {
-  background: rgba(255, 255, 255, 0.03) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
 }
 
-.ace_string { color: #a5d6a7 !important; }
-.ace_constant.ace_numeric { color: #ce93d8 !important; }
-.ace_variable { color: #90caf9 !important; }
-.ace_keyword { color: #f48fb1 !important; }
-.ace_paren { color: #ffcc80 !important; }
+.ace_marker-layer .ace_bracket {
+  border: 1px solid #6366f1 !important;
+  background-color: rgba(99, 102, 241, 0.2) !important;
+}
 
+/* ACE Syntax Highlighting - Monokai-inspired for dark theme */
+.ace_string { color: #a5d6a7 !important; }
+.ace_string.ace_quasi { color: #a5d6a7 !important; }
+.ace_constant { color: #ce93d8 !important; }
+.ace_constant.ace_numeric { color: #f48fb1 !important; }
+.ace_constant.ace_language { color: #ce93d8 !important; }
+.ace_constant.ace_character { color: #ce93d8 !important; }
+.ace_variable { color: #90caf9 !important; }
+.ace_variable.ace_language { color: #f48fb1 !important; }
+.ace_keyword { color: #c792ea !important; }
+.ace_keyword.ace_operator { color: #89ddff !important; }
+.ace_support { color: #82aaff !important; }
+.ace_support.ace_function { color: #82aaff !important; }
+.ace_support.ace_type { color: #ffcb6b !important; }
+.ace_storage { color: #c792ea !important; }
+.ace_paren { color: #ffcc80 !important; }
+.ace_punctuation { color: #89ddff !important; }
+.ace_comment { color: #6b7280 !important; font-style: italic !important; }
+.ace_entity.ace_name.ace_function { color: #82aaff !important; }
+.ace_entity.ace_name.ace_tag { color: #f07178 !important; }
+.ace_entity.ace_other.ace_attribute-name { color: #c792ea !important; }
+.ace_invisible { color: #4a5568 !important; }
+
+/* ACE Print margin */
+.ace_print-margin {
+  width: 1px !important;
+  background-color: #2d3548 !important;
+}
+
+/* ACE Scrollbars */
+.ace_scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.ace_scrollbar::-webkit-scrollbar-track {
+  background: #1a1f2e;
+}
+
+.ace_scrollbar::-webkit-scrollbar-thumb {
+  background: #3f4759;
+  border-radius: 5px;
+}
+
+.ace_scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #525d73;
+}
+
+/* JSONEditor context menu */
 .jsoneditor-contextmenu {
-  background: var(--ir-bg-surface) !important;
+  background-color: var(--ir-bg-surface) !important;
   border: 1px solid var(--ir-border) !important;
   border-radius: var(--radius-sm) !important;
   box-shadow: var(--ir-shadow-lg) !important;
 }
 
 .jsoneditor-contextmenu .jsoneditor-menu {
-  background: var(--ir-bg-surface) !important;
+  background-color: var(--ir-bg-surface) !important;
   border: none !important;
 }
 
 .jsoneditor-contextmenu .jsoneditor-menu li button {
   color: var(--ir-text-secondary) !important;
-  background: transparent !important;
+  background-color: transparent !important;
 }
 
 .jsoneditor-contextmenu .jsoneditor-menu li button:hover {
-  background: rgba(99, 102, 241, 0.1) !important;
+  background-color: rgba(99, 102, 241, 0.1) !important;
   color: var(--ir-text) !important;
 }
 
+/* JSONEditor status bar */
 .jsoneditor-statusbar {
-  background: var(--ir-bg-elevated) !important;
+  background-color: var(--ir-bg-elevated) !important;
   border-top: 1px solid var(--ir-border) !important;
   color: var(--ir-text-secondary) !important;
 }
 
 .jsoneditor-navigation-bar {
-  background: var(--ir-bg-elevated) !important;
+  background-color: var(--ir-bg-elevated) !important;
   border-bottom: 1px solid var(--ir-border) !important;
+}
+
+/* JSONEditor poweredBy link */
+.jsoneditor-poweredBy {
+  display: none !important;
 }
 
 #jsoneditor {

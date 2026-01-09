@@ -1,3 +1,29 @@
+# 🎨 **Iridium 1.0.8 - JSON Editor Dark Theme Fix**
+
+*Released: 2026-01-09*
+
+## 🐛 Bug Fixes
+
+* **JSONEditor Icons**: Fixed missing toolbar icons
+  - Changed `background` to `background-color` to preserve icon sprites
+  - Added `filter: invert()` for dark theme icon visibility
+
+* **ACE Editor Dark Theme**: Complete dark theme implementation
+  - Set monokai theme programmatically via JavaScript
+  - Added comprehensive syntax highlighting colors
+  - Dark backgrounds for editor, gutter, and scrollbars
+  - Custom scrollbar styling
+  - Proper cursor and selection colors
+
+## 🎨 Visual Changes
+
+* Editor background: `#1a1f2e` (darker, more contrast)
+* Gutter: `#151921` with subtle border
+* Syntax colors: Material-inspired palette
+* Hidden "Powered by JSONEditor" branding
+
+---
+
 # 🔧 **Iridium 1.0.7 - Cache Busting & Stability**
 
 *Released: 2026-01-09*

@@ -9,8 +9,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const editor = new JSONEditor(container, {
         mode: "code",
-        onChange: validateJson
+        onChange: validateJson,
+        onEditable: function() { return true; },
+        ace: ace // Pass ace reference for theming
     });
+    
+    // Apply dark theme to ACE editor
+    if (editor.aceEditor) {
+        editor.aceEditor.setTheme("ace/theme/monokai");
+        editor.aceEditor.setOptions({
+            fontSize: "13px",
+            fontFamily: "'JetBrains Mono', 'Fira Code', monospace"
+        });
+    }
 
     // Toast helper
     function showToast(type, message) {
