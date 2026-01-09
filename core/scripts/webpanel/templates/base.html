@@ -22,7 +22,7 @@
     {% block styles %}{% endblock %}
     {% block stylesheets %}{% endblock %}
     <!-- Custom CSS (loaded last to override everything) -->
-    <link rel="stylesheet" href="{{ url_for('assets', path='css/custom.css') }}?v=1.0.8">
+    <link rel="stylesheet" href="{{ url_for('assets', path='css/custom.css') }}?v=1.0.9">
 </head>
 
 <body class="iridium-dark">
@@ -151,9 +151,6 @@
                     <a href="{{ url_for('index') }}docs" target="_blank" class="btn-icon" title="API Documentation">
                         <i class="fas fa-book"></i>
                     </a>
-                    <a href="https://github.com/Swaeami/iridium-blitz" target="_blank" rel="noopener noreferrer" class="btn-icon" title="GitHub">
-                        <i class="fab fa-github"></i>
-                    </a>
                 </div>
             </header>
 
@@ -215,7 +212,7 @@
     <!-- ShowdownJS for Markdown -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
     <!-- Base JS -->
-    <script src="{{ url_for('assets', path='js/base.js') }}?v=1.0.8"></script>
+    <script src="{{ url_for('assets', path='js/base.js') }}?v=1.0.9"></script>
     
     {% block javascripts %}{% endblock %}
 </body>

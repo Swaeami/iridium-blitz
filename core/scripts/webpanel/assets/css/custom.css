@@ -466,6 +466,34 @@ a:hover {
   color: var(--ir-text);
 }
 
+/* Card body dividers/rows - use dark borders */
+.card-body .row {
+  border-color: var(--ir-border) !important;
+}
+
+.card-body hr,
+.card-body .border-bottom {
+  border-color: var(--ir-border) !important;
+}
+
+/* Row grid gaps don't add borders, but nested info-boxes might */
+.card-body > .row + .row {
+  padding-top: 1rem;
+  border-top: 1px solid var(--ir-border);
+  margin-top: 1rem;
+}
+
+/* Status containers - dark themed */
+.border.rounded,
+.p-3.border.rounded,
+#obfs_status_container,
+#masquerade_status_container,
+#decoy_status_container {
+  background: var(--ir-bg-elevated) !important;
+  border-color: var(--ir-border) !important;
+  color: var(--ir-text) !important;
+}
+
 .card-footer {
   padding: 1rem 1.25rem;
   background: rgba(255, 255, 255, 0.02);
@@ -644,21 +672,23 @@ a:hover {
   transform: translateY(-1px);
 }
 
-/* Warning buttons (for clean database etc) - also make purple */
+/* Warning buttons - orange gradient (for secondary actions like clean database) */
 .btn-warning {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   border: none;
-  color: white;
+  color: white !important;
   box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
 }
 
 .btn-warning:hover {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: white;
+  color: white !important;
   box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+  transform: translateY(-1px);
 }
 
 /* Info buttons - purple style */
+/* Info buttons - purple gradient (consistent with primary) */
 .btn-info {
   background: var(--ir-gradient);
   border: none;
@@ -670,26 +700,6 @@ a:hover {
   background: var(--ir-gradient-hover);
   color: white;
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-}
-
-.btn-warning {
-  background: var(--ir-warning);
-  color: #1a1a1a;
-}
-
-.btn-warning:hover {
-  background: #d97706;
-  color: #1a1a1a;
-}
-
-.btn-info {
-  background: var(--ir-info);
-  color: white;
-}
-
-.btn-info:hover {
-  background: #2563eb;
-  color: white;
 }
 
 .btn-sm {
@@ -1009,29 +1019,49 @@ form .btn-primary {
 
 .alert {
   border-radius: var(--radius-sm);
-  border: none;
+  border: 1px solid;
   padding: 0.9rem 1.1rem;
   color: var(--ir-text);
 }
 
 .alert-info {
-  background: var(--ir-info-bg);
-  color: var(--ir-info);
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+}
+
+.alert-info i {
+  color: #818cf8;
 }
 
 .alert-success {
-  background: var(--ir-success-bg);
-  color: var(--ir-success);
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+
+.alert-success i {
+  color: #4ade80;
 }
 
 .alert-warning {
-  background: var(--ir-warning-bg);
-  color: var(--ir-warning);
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+}
+
+.alert-warning i {
+  color: #fbbf24;
 }
 
 .alert-danger {
-  background: var(--ir-danger-bg);
-  color: var(--ir-danger);
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.alert-danger i {
+  color: #f87171;
 }
 
 /* ================================================== */

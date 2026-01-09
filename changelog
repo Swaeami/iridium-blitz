@@ -1,3 +1,24 @@
+# 🎨 **Iridium 1.0.9 - UI Polish & Cleanup**
+
+*Released: 2026-01-09*
+
+## 🎨 Visual Fixes
+
+* **Card Body Dividers**: Fixed white divider lines in dashboard cards - now use dark borders
+* **Status Containers**: Fixed white borders on OBFS/Masquerade/Decoy status containers
+* **Alert Colors**: Updated alert styles with proper borders and theme-matching colors
+  - Info alerts: Purple tint
+  - Warning alerts: Orange/amber tint
+  - Success alerts: Green tint
+  - Danger alerts: Red tint
+
+## 🧹 Cleanup
+
+* **Removed GitHub Links**: Removed GitHub links from header and login page footer
+* **Button Styling**: Cleaned up duplicate btn-warning styles
+
+---
+
 # 🎨 **Iridium 1.0.8 - JSON Editor Dark Theme Fix**
 
 *Released: 2026-01-09*
