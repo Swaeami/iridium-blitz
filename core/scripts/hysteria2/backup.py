@@ -18,6 +18,7 @@ FILES_TO_BACKUP = [
     Path("/etc/hysteria/ca.crt"),
     Path("/etc/hysteria/config.json"),
     Path("/etc/hysteria/.configs.env"),
+    Path("/etc/hysteria/.clientbot.env"),  # Client bot config
 ]
 
 def create_backup():

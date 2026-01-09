@@ -908,41 +908,36 @@ def client_bot_status():
 
 @cli.group('tariff')
 def tariff():
-    """Manage tariffs for client bot."""
+    """Manage tariffs for client bot (time-based, unlimited traffic)."""
     pass
 
 
 @tariff.command('add')
-@click.option('--name', '-n', required=True, help='Tariff name (e.g., "100 GB")')
-@click.option('--type', '-t', 'tariff_type', required=True, type=click.Choice(['traffic', 'time']), help='Tariff type')
-@click.option('--price', '-p', required=True, type=float, help='Price in rubles')
-@click.option('--traffic-gb', '-tg', type=int, help='Traffic limit in GB (for traffic type)')
-@click.option('--days', '-d', type=int, help='Duration in days (for time type)')
-@click.option('--price-stars', '-ps', type=int, help='Price in Telegram Stars (optional)')
-def add_tariff(name: str, tariff_type: str, price: float, traffic_gb: int, days: int, price_stars: int):
-    """Add a new tariff."""
+@click.option('--name', '-n', required=True, help='Tariff name (e.g., "1 месяц")')
+@click.option('--days', '-d', required=True, type=int, help='Duration in days')
+@click.option('--price-stars', '-ps', required=True, type=int, help='Price in Telegram Stars')
+def add_tariff(name: str, days: int, price_stars: int):
+    """Add a new time-based tariff (unlimited traffic)."""
     try:
-        result = cli_api.add_tariff(name, tariff_type, price, traffic_gb, days, price_stars)
-        click.echo(f'Tariff "{name}" created successfully.')
-        if result:
-            pretty_print(result)
+        result = cli_api.add_tariff(name, days, price_stars)
+        click.echo(f'✅ Тариф "{name}" создан: {days} дней за {price_stars}⭐')
     except Exception as e:
         click.echo(f'{e}', err=True)
 
 
 @tariff.command('list')
 def list_tariffs():
-    """List all tariffs."""
+    """List all tariffs (sorted by display order)."""
     try:
         tariffs = cli_api.list_tariffs()
         if tariffs:
-            for t in tariffs:
+            click.echo('\n📋 Тарифы (в порядке отображения):\n')
+            for i, t in enumerate(tariffs, 1):
                 status = '✅' if t.get('is_active') else '❌'
-                type_emoji = '📦' if t.get('type') == 'traffic' else '📅'
-                value = f"{t.get('traffic_gb', 0)} GB" if t.get('type') == 'traffic' else f"{t.get('days', 0)} дней"
-                click.echo(f"{status} {t.get('name')} - {type_emoji} {value} - {t.get('price')}₽")
+                click.echo(f"  {i}. {status} {t.get('name')} — {t.get('days', 0)} дней — {t.get('price_stars', 0)}⭐  [ID: {t.get('_id')}]")
+            click.echo()
         else:
-            click.echo('No tariffs found.')
+            click.echo('Нет тарифов.')
     except Exception as e:
         click.echo(f'{e}', err=True)
 
@@ -953,7 +948,47 @@ def delete_tariff(tariff_id: str):
     """Delete (deactivate) a tariff."""
     try:
         cli_api.delete_tariff(tariff_id)
-        click.echo('Tariff deleted successfully.')
+        click.echo('✅ Тариф удалён.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@tariff.command('edit')
+@click.option('--id', '-i', 'tariff_id', required=True, help='Tariff ID')
+@click.option('--name', '-n', help='New name')
+@click.option('--days', '-d', type=int, help='New duration in days')
+@click.option('--price-stars', '-ps', type=int, help='New price in Stars')
+def edit_tariff(tariff_id: str, name: str, days: int, price_stars: int):
+    """Edit tariff properties."""
+    try:
+        cli_api.edit_tariff(tariff_id, name, days, price_stars)
+        click.echo('✅ Тариф обновлён.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@tariff.command('move-up')
+@click.option('--id', '-i', 'tariff_id', required=True, help='Tariff ID to move up')
+def move_tariff_up(tariff_id: str):
+    """Move tariff up in display order."""
+    try:
+        if cli_api.move_tariff_up(tariff_id):
+            click.echo('✅ Тариф перемещён вверх.')
+        else:
+            click.echo('Тариф уже первый в списке.')
+    except Exception as e:
+        click.echo(f'{e}', err=True)
+
+
+@tariff.command('move-down')
+@click.option('--id', '-i', 'tariff_id', required=True, help='Tariff ID to move down')
+def move_tariff_down(tariff_id: str):
+    """Move tariff down in display order."""
+    try:
+        if cli_api.move_tariff_down(tariff_id):
+            click.echo('✅ Тариф перемещён вниз.')
+        else:
+            click.echo('Тариф уже последний в списке.')
     except Exception as e:
         click.echo(f'{e}', err=True)
 
@@ -966,16 +1001,19 @@ def promo():
 
 @promo.command('add')
 @click.option('--code', '-c', required=False, help='Promo code (auto-generated if not provided)')
-@click.option('--type', '-t', 'promo_type', required=True, type=click.Choice(['discount', 'free_period', 'extra_traffic']), help='Promo type')
-@click.option('--value', '-v', required=True, type=float, help='Value (% for discount, days for free_period, GB for extra_traffic)')
+@click.option('--type', '-t', 'promo_type', required=True, type=click.Choice(['discount', 'free_period']), help='Promo type: discount (%) or free_period (days)')
+@click.option('--value', '-v', required=True, type=float, help='Value (% for discount, days for free_period)')
 @click.option('--max-uses', '-m', type=int, default=100, help='Maximum uses (default: 100)')
-@click.option('--expire-days', '-e', type=int, help='Expire after days (optional, 0 = never)')
+@click.option('--expire-days', '-e', type=int, help='Expire after days (0 = never)')
+@click.option('--for-user', '-u', type=int, help='Telegram ID for user-specific promo')
 @click.option('--description', '-d', help='Description (optional)')
-def add_promo(code: str, promo_type: str, value: float, max_uses: int, expire_days: int, description: str):
+def add_promo(code: str, promo_type: str, value: float, max_uses: int, expire_days: int, for_user: int, description: str):
     """Create a new promo code."""
     try:
-        result = cli_api.add_promo(code, promo_type, value, max_uses, expire_days, description)
-        click.echo(f'Promo code "{result.get("code")}" created successfully.')
+        result = cli_api.add_promo(code, promo_type, value, max_uses, expire_days, for_user, description)
+        type_text = f"{int(value)}%" if promo_type == 'discount' else f"{int(value)} дней"
+        user_text = f" (для пользователя {for_user})" if for_user else ""
+        click.echo(f'✅ Промокод "{result.get("code")}" создан: {type_text}{user_text}')
     except Exception as e:
         click.echo(f'{e}', err=True)
 
@@ -986,13 +1024,16 @@ def list_promos():
     try:
         promos = cli_api.list_promos()
         if promos:
+            click.echo('\n🎁 Промокоды:\n')
             for p in promos:
                 status = '✅' if p.get('is_active') else '❌'
-                type_labels = {'discount': '💸 Скидка', 'free_period': '📅 Дни', 'extra_traffic': '📦 Трафик'}
+                type_labels = {'discount': '💸 Скидка', 'free_period': '📅 Дни'}
                 type_label = type_labels.get(p.get('type'), p.get('type'))
-                click.echo(f"{status} {p.get('code')} - {type_label} {p.get('value')} - {p.get('uses_count')}/{p.get('max_uses')}")
+                user_text = f" [для {p.get('for_telegram_id')}]" if p.get('for_telegram_id') else ""
+                click.echo(f"  {status} {p.get('code')} — {type_label} {int(p.get('value', 0))} — {p.get('uses_count')}/{p.get('max_uses')}{user_text}")
+            click.echo()
         else:
-            click.echo('No promo codes found.')
+            click.echo('Нет промокодов.')
     except Exception as e:
         click.echo(f'{e}', err=True)
 
@@ -1003,7 +1044,7 @@ def delete_promo(code: str):
     """Delete (deactivate) a promo code."""
     try:
         cli_api.delete_promo(code)
-        click.echo('Promo code deactivated successfully.')
+        click.echo('✅ Промокод деактивирован.')
     except Exception as e:
         click.echo(f'{e}', err=True)
 

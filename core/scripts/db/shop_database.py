@@ -55,6 +55,7 @@ class ShopDatabase:
             "telegram_username": telegram_username,
             "vpn_username": None,  # Set when subscription created
             "trial_used": False,
+            "used_promos": [],  # Track which promo codes user has used
             "created_at": datetime.utcnow(),
             "last_active": datetime.utcnow()
         }
@@ -74,6 +75,22 @@ class ShopDatabase:
         """Mark trial as used for customer"""
         return self.update_customer(telegram_id, {"trial_used": True})
     
+    def mark_promo_used(self, telegram_id: int, promo_code: str) -> bool:
+        """Mark promo code as used by customer"""
+        result = self.customers.update_one(
+            {"telegram_id": telegram_id},
+            {"$addToSet": {"used_promos": promo_code.upper()}}
+        )
+        return result.modified_count > 0
+    
+    def has_used_promo(self, telegram_id: int, promo_code: str) -> bool:
+        """Check if customer has already used this promo code"""
+        customer = self.get_customer(telegram_id)
+        if customer:
+            used_promos = customer.get("used_promos", [])
+            return promo_code.upper() in used_promos
+        return False
+    
     def get_all_customers(self) -> List[Dict]:
         """Get all customers"""
         return list(self.customers.find({}))
@@ -83,28 +100,25 @@ class ShopDatabase:
     def create_tariff(
         self,
         name: str,
-        tariff_type: str,  # "traffic" or "time"
-        price: float,
-        traffic_gb: Optional[int] = None,  # For traffic-based
-        days: Optional[int] = None,  # For time-based
-        price_stars: Optional[int] = None,  # Telegram Stars price
-        is_active: bool = True
+        days: int,  # Subscription duration in days
+        price_stars: int,  # Telegram Stars price
+        is_active: bool = True,
+        order: int = 0  # Display order (lower = first)
     ) -> Dict:
         """
-        Create a tariff
-        tariff_type: 
-            - "traffic": limited traffic, unlimited time
-            - "time": unlimited traffic, limited time
-            - "trial": free trial (3 days, unlimited)
+        Create a time-based tariff (unlimited traffic)
         """
+        # Get max order if not specified
+        if order == 0:
+            max_order = self.tariffs.find_one(sort=[("order", -1)])
+            order = (max_order.get("order", 0) + 1) if max_order else 1
+        
         tariff = {
             "name": name,
-            "type": tariff_type,
-            "price": price,  # RUB
-            "price_stars": price_stars,  # Telegram Stars
-            "traffic_gb": traffic_gb,
             "days": days,
+            "price_stars": price_stars,
             "is_active": is_active,
+            "order": order,
             "created_at": datetime.utcnow()
         }
         result = self.tariffs.insert_one(tariff)
@@ -118,16 +132,13 @@ class ShopDatabase:
             tariff_id = ObjectId(tariff_id)
         return self.tariffs.find_one({"_id": tariff_id})
     
-    def get_active_tariffs(self, tariff_type: str = None) -> List[Dict]:
-        """Get all active tariffs, optionally filtered by type"""
-        query = {"is_active": True}
-        if tariff_type:
-            query["type"] = tariff_type
-        return list(self.tariffs.find(query).sort("price", 1))
+    def get_active_tariffs(self) -> List[Dict]:
+        """Get all active tariffs sorted by order"""
+        return list(self.tariffs.find({"is_active": True}).sort("order", 1))
     
     def get_all_tariffs(self) -> List[Dict]:
-        """Get all tariffs"""
-        return list(self.tariffs.find({}).sort("created_at", -1))
+        """Get all tariffs sorted by order"""
+        return list(self.tariffs.find({}).sort("order", 1))
     
     def update_tariff(self, tariff_id, updates: Dict) -> bool:
         """Update tariff"""
@@ -144,6 +155,60 @@ class ShopDatabase:
         """Delete tariff (soft delete - just deactivate)"""
         return self.update_tariff(tariff_id, {"is_active": False})
     
+    def reorder_tariff(self, tariff_id, new_order: int) -> bool:
+        """Change tariff display order"""
+        return self.update_tariff(tariff_id, {"order": new_order})
+    
+    def move_tariff_up(self, tariff_id) -> bool:
+        """Move tariff up in display order"""
+        from bson.objectid import ObjectId
+        if isinstance(tariff_id, str):
+            tariff_id = ObjectId(tariff_id)
+        
+        tariff = self.get_tariff(tariff_id)
+        if not tariff:
+            return False
+        
+        current_order = tariff.get("order", 0)
+        
+        # Find tariff with lower order (higher in list)
+        prev_tariff = self.tariffs.find_one(
+            {"order": {"$lt": current_order}, "is_active": True},
+            sort=[("order", -1)]
+        )
+        
+        if prev_tariff:
+            # Swap orders
+            self.update_tariff(tariff_id, {"order": prev_tariff["order"]})
+            self.update_tariff(prev_tariff["_id"], {"order": current_order})
+            return True
+        return False
+    
+    def move_tariff_down(self, tariff_id) -> bool:
+        """Move tariff down in display order"""
+        from bson.objectid import ObjectId
+        if isinstance(tariff_id, str):
+            tariff_id = ObjectId(tariff_id)
+        
+        tariff = self.get_tariff(tariff_id)
+        if not tariff:
+            return False
+        
+        current_order = tariff.get("order", 0)
+        
+        # Find tariff with higher order (lower in list)
+        next_tariff = self.tariffs.find_one(
+            {"order": {"$gt": current_order}, "is_active": True},
+            sort=[("order", 1)]
+        )
+        
+        if next_tariff:
+            # Swap orders
+            self.update_tariff(tariff_id, {"order": next_tariff["order"]})
+            self.update_tariff(next_tariff["_id"], {"order": current_order})
+            return True
+        return False
+    
     # ==================== PROMO CODES ====================
     
     def generate_promo_code(self, length: int = 8) -> str:
@@ -157,10 +222,11 @@ class ShopDatabase:
     def create_promo(
         self,
         code: str = None,
-        promo_type: str = "discount",  # discount, free_period, extra_traffic
-        value: float = 0,  # % for discount, days for free_period, GB for extra_traffic
+        promo_type: str = "discount",  # discount, free_period
+        value: float = 0,  # % for discount, days for free_period
         max_uses: int = 1,
         tariff_ids: List[str] = None,  # Applicable tariffs (None = all)
+        for_telegram_id: int = None,  # Specific user only (None = everyone)
         expires_at: datetime = None,
         description: str = ""
     ) -> Dict:
@@ -169,7 +235,7 @@ class ShopDatabase:
         promo_type:
             - "discount": value = discount percentage (0-100)
             - "free_period": value = free days to add
-            - "extra_traffic": value = extra GB to add
+        for_telegram_id: if set, only this user can use the promo
         """
         if not code:
             code = self.generate_promo_code()
@@ -180,7 +246,9 @@ class ShopDatabase:
             "value": value,
             "max_uses": max_uses,
             "uses_count": 0,
+            "used_by": [],  # Track telegram IDs who used this code
             "tariff_ids": tariff_ids,  # None means applicable to all
+            "for_telegram_id": for_telegram_id,  # If set, only this user can use
             "expires_at": expires_at,
             "description": description,
             "is_active": True,
@@ -193,9 +261,9 @@ class ShopDatabase:
         """Get promo by code"""
         return self.promos.find_one({"code": code.upper()})
     
-    def validate_promo(self, code: str, tariff_id: str = None) -> tuple[bool, str, Optional[Dict]]:
+    def validate_promo(self, code: str, telegram_id: int = None, tariff_id: str = None) -> tuple[bool, str, Optional[Dict]]:
         """
-        Validate promo code
+        Validate promo code for a specific user
         Returns: (is_valid, message, promo_data)
         """
         promo = self.get_promo(code)
@@ -212,6 +280,17 @@ class ShopDatabase:
         if promo["uses_count"] >= promo["max_uses"]:
             return False, "Промокод исчерпан", None
         
+        # Check if promo is for specific user
+        if promo.get("for_telegram_id") and telegram_id:
+            if promo["for_telegram_id"] != telegram_id:
+                return False, "Промокод недоступен для вас", None
+        
+        # Check if user already used this promo
+        if telegram_id:
+            used_by = promo.get("used_by", [])
+            if telegram_id in used_by:
+                return False, "Вы уже использовали этот промокод", None
+        
         # Check if applicable to tariff
         if tariff_id and promo.get("tariff_ids"):
             if str(tariff_id) not in [str(t) for t in promo["tariff_ids"]]:
@@ -219,12 +298,17 @@ class ShopDatabase:
         
         return True, "OK", promo
     
-    def use_promo(self, code: str) -> bool:
-        """Increment promo usage count"""
+    def use_promo(self, code: str, telegram_id: int) -> bool:
+        """Mark promo as used by user"""
         result = self.promos.update_one(
             {"code": code.upper()},
-            {"$inc": {"uses_count": 1}}
+            {
+                "$inc": {"uses_count": 1},
+                "$addToSet": {"used_by": telegram_id}
+            }
         )
+        # Also track in customer record
+        self.mark_promo_used(telegram_id, code)
         return result.modified_count > 0
     
     def get_all_promos(self, active_only: bool = False) -> List[Dict]:
@@ -247,7 +331,7 @@ class ShopDatabase:
         customer_id: int,
         tariff_id,
         amount: float,
-        payment_method: str,  # "stars", "yookassa"
+        payment_method: str = "stars",
         promo_code: str = None
     ) -> Dict:
         """Create payment record"""
@@ -260,7 +344,7 @@ class ShopDatabase:
             "payment_method": payment_method,
             "promo_code": promo_code,
             "status": "pending",  # pending, completed, failed, refunded
-            "external_id": None,  # YooKassa payment ID or Stars payment
+            "external_id": None,  # Stars payment ID
             "created_at": datetime.utcnow(),
             "completed_at": None
         }
@@ -318,4 +402,3 @@ try:
     shop_db = ShopDatabase()
 except pymongo.errors.ConnectionFailure:
     shop_db = None
-

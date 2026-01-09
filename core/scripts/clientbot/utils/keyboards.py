@@ -1,5 +1,6 @@
 """
 Keyboard utilities for Client Bot
+Time-based tariffs only
 """
 
 from telebot import types
@@ -10,74 +11,51 @@ def main_menu_keyboard() -> types.ReplyKeyboardMarkup:
     """Main menu keyboard"""
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row(types.KeyboardButton("🛒 Купить подписку"))
-    markup.row(types.KeyboardButton("👤 Мой профиль"), types.KeyboardButton("📊 Статистика"))
+    markup.row(types.KeyboardButton("👤 Мой профиль"))
     markup.row(types.KeyboardButton("🎁 Ввести промокод"), types.KeyboardButton("💬 Поддержка"))
     return markup
 
 
-def tariff_type_keyboard() -> types.InlineKeyboardMarkup:
-    """Tariff type selection"""
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    markup.add(
-        types.InlineKeyboardButton("📦 По трафику (безлимит времени)", callback_data="tariff_type:traffic"),
-        types.InlineKeyboardButton("📅 По времени (безлимит трафика)", callback_data="tariff_type:time"),
-        types.InlineKeyboardButton("🎁 Пробный период (3 дня)", callback_data="tariff_type:trial")
-    )
-    return markup
-
-
-def tariffs_keyboard(tariffs: List[Dict], tariff_type: str) -> types.InlineKeyboardMarkup:
+def tariffs_keyboard(tariffs: List[Dict], show_trial: bool = True) -> types.InlineKeyboardMarkup:
     """Display available tariffs"""
     markup = types.InlineKeyboardMarkup(row_width=1)
     
     for t in tariffs:
-        if tariff_type == "traffic":
-            label = f"📦 {t['traffic_gb']} GB — {t['price']}₽"
-            if t.get('price_stars'):
-                label += f" / {t['price_stars']}⭐"
-        else:  # time
-            days = t.get('days', 30)
-            if days >= 365:
-                period = f"{days // 365} год" if days // 365 == 1 else f"{days // 365} года"
-            elif days >= 30:
-                months = days // 30
-                period = f"{months} мес."
-            else:
-                period = f"{days} дн."
-            label = f"📅 {period} — {t['price']}₽"
-            if t.get('price_stars'):
-                label += f" / {t['price_stars']}⭐"
+        days = t.get('days', 30)
+        if days >= 365:
+            period = f"{days // 365} год" if days // 365 == 1 else f"{days // 365} года"
+        elif days >= 30:
+            months = days // 30
+            period = f"{months} мес."
+        else:
+            period = f"{days} дн."
+        
+        label = f"📅 {t['name']} — {t.get('price_stars', 0)}⭐"
         
         markup.add(types.InlineKeyboardButton(
             label,
             callback_data=f"tariff:{str(t['_id'])}"
         ))
     
-    markup.add(types.InlineKeyboardButton("◀️ Назад", callback_data="back:tariff_type"))
+    if show_trial:
+        markup.add(types.InlineKeyboardButton(
+            "🎁 Пробный период (бесплатно)",
+            callback_data="trial"
+        ))
+    
     return markup
 
 
-def payment_method_keyboard(tariff_id: str, price_rub: float, price_stars: int = None) -> types.InlineKeyboardMarkup:
-    """Payment method selection - Telegram Stars only"""
+def payment_keyboard(tariff_id: str, price_stars: int) -> types.InlineKeyboardMarkup:
+    """Payment confirmation keyboard"""
     markup = types.InlineKeyboardMarkup(row_width=1)
     
-    # Telegram Stars
-    if price_stars:
-        markup.add(types.InlineKeyboardButton(
-            f"⭐ Оплатить {price_stars} Stars",
-            callback_data=f"pay:stars:{tariff_id}"
-        ))
-    else:
-        # Fallback if no stars price set
-        markup.add(types.InlineKeyboardButton(
-            "❌ Тариф недоступен для оплаты",
-            callback_data="noop"
-        ))
+    markup.add(types.InlineKeyboardButton(
+        f"⭐ Оплатить {price_stars} Stars",
+        callback_data=f"pay:{tariff_id}"
+    ))
     
-    markup.add(
-        types.InlineKeyboardButton("🎁 Применить промокод", callback_data=f"apply_promo:{tariff_id}"),
-        types.InlineKeyboardButton("◀️ Назад", callback_data="back:tariff_type")
-    )
+    markup.add(types.InlineKeyboardButton("◀️ Назад", callback_data="back:tariffs"))
     return markup
 
 
@@ -119,9 +97,11 @@ def support_keyboard(support_username: str = None) -> types.InlineKeyboardMarkup
     markup = types.InlineKeyboardMarkup(row_width=1)
     
     if support_username:
+        # Remove @ if present
+        username = support_username.lstrip('@')
         markup.add(types.InlineKeyboardButton(
             "💬 Написать в поддержку",
-            url=f"https://t.me/{support_username}"
+            url=f"https://t.me/{username}"
         ))
     
     markup.add(types.InlineKeyboardButton(
@@ -136,4 +116,3 @@ def cancel_keyboard() -> types.ReplyKeyboardMarkup:
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     markup.add(types.KeyboardButton("❌ Отмена"))
     return markup
-

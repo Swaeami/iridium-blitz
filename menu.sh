@@ -1092,14 +1092,15 @@ manage_tariffs_menu() {
         echo -e "${IRIDIUM}${BOLD}  📋 Manage Tariffs${NC}\n"
         
         # List tariffs
-        echo -e "${gray}Current Tariffs:${NC}"
         python3 $CLI_PATH tariff list 2>/dev/null || echo "  No tariffs found"
-        echo ""
         
         print_section "Actions"
         echo -e "${green}1.${NC} Add New Tariff"
-        echo -e "${yellow}2.${NC} Delete Tariff"
-        echo -e "${cyan}3.${NC} Refresh List"
+        echo -e "${yellow}2.${NC} Edit Tariff"
+        echo -e "${red}3.${NC} Delete Tariff"
+        echo -e "${cyan}4.${NC} Move Tariff Up"
+        echo -e "${cyan}5.${NC} Move Tariff Down"
+        echo -e "${gray}6.${NC} Refresh List"
         print_line
         echo "0. Back"
         print_line
@@ -1108,44 +1109,46 @@ manage_tariffs_menu() {
         case $option in
             1)
                 echo ""
-                read -e -p "Tariff Name (e.g. 'VPN Premium'): " name
+                read -e -p "Tariff Name (e.g. '1 месяц'): " name
                 if [ -z "$name" ]; then
                     echo "Name cannot be empty."
                     read -p "Press Enter..."
                     continue
                 fi
-                echo "Tariff Type:"
-                echo "  1) Unlimited traffic (time-based)"
-                echo "  2) Limited traffic"
-                read -e -p "Choose type [1/2]: " type_choice
-                if [ "$type_choice" = "2" ]; then
-                    tariff_type="traffic"
-                    read -e -p "Traffic limit (GB): " traffic_gb
-                else
-                    tariff_type="time"
-                    traffic_gb=""
+                read -e -p "Duration (days): " days
+                if [ -z "$days" ]; then
+                    echo "Days cannot be empty."
+                    read -p "Press Enter..."
+                    continue
                 fi
-                echo ""
-                echo "Enter prices in Telegram Stars:"
-                read -e -p "1 month price ⭐: " price_1m
-                read -e -p "3 months price ⭐ (optional): " price_3m
-                read -e -p "6 months price ⭐ (optional): " price_6m
-                read -e -p "12 months price ⭐ (optional): " price_12m
-                
-                if [ -z "$price_1m" ]; then
-                    echo "Price for 1 month is required."
+                read -e -p "Price in Stars ⭐: " price_stars
+                if [ -z "$price_stars" ]; then
+                    echo "Price cannot be empty."
                     read -p "Press Enter..."
                     continue
                 fi
                 
-                # Use default price for legacy compatibility
-                cmd="python3 $CLI_PATH tariff add -n '$name' -t $tariff_type -p 0 --price-stars $price_1m"
-                [ -n "$traffic_gb" ] && cmd="$cmd --traffic-gb $traffic_gb"
-                eval $cmd
+                python3 $CLI_PATH tariff add -n "$name" -d "$days" -ps "$price_stars"
                 echo ""
                 read -p "Press Enter to continue..."
                 ;;
             2)
+                echo ""
+                read -e -p "Enter Tariff ID to edit: " tariff_id
+                if [ -n "$tariff_id" ]; then
+                    read -e -p "New name (leave empty to skip): " new_name
+                    read -e -p "New days (leave empty to skip): " new_days
+                    read -e -p "New price in Stars (leave empty to skip): " new_price
+                    
+                    cmd="python3 $CLI_PATH tariff edit -i '$tariff_id'"
+                    [ -n "$new_name" ] && cmd="$cmd -n '$new_name'"
+                    [ -n "$new_days" ] && cmd="$cmd -d $new_days"
+                    [ -n "$new_price" ] && cmd="$cmd -ps $new_price"
+                    eval $cmd
+                fi
+                read -p "Press Enter to continue..."
+                ;;
+            3)
                 echo ""
                 read -e -p "Enter Tariff ID to delete: " tariff_id
                 if [ -n "$tariff_id" ]; then
@@ -1156,7 +1159,23 @@ manage_tariffs_menu() {
                 fi
                 read -p "Press Enter to continue..."
                 ;;
-            3)
+            4)
+                echo ""
+                read -e -p "Enter Tariff ID to move up: " tariff_id
+                if [ -n "$tariff_id" ]; then
+                    python3 $CLI_PATH tariff move-up -i "$tariff_id"
+                fi
+                read -p "Press Enter to continue..."
+                ;;
+            5)
+                echo ""
+                read -e -p "Enter Tariff ID to move down: " tariff_id
+                if [ -n "$tariff_id" ]; then
+                    python3 $CLI_PATH tariff move-down -i "$tariff_id"
+                fi
+                read -p "Press Enter to continue..."
+                ;;
+            6)
                 # Just refresh - loop will re-display
                 ;;
             0)
@@ -1176,14 +1195,12 @@ manage_promos_menu() {
         echo -e "${IRIDIUM}${BOLD}  🎁 Manage Promo Codes${NC}\n"
         
         # List promos
-        echo -e "${gray}Current Promo Codes:${NC}"
         python3 $CLI_PATH promo list 2>/dev/null || echo "  No promo codes found"
-        echo ""
         
         print_section "Actions"
         echo -e "${green}1.${NC} Add New Promo Code"
         echo -e "${red}2.${NC} Delete Promo Code"
-        echo -e "${cyan}3.${NC} Refresh List"
+        echo -e "${gray}3.${NC} Refresh List"
         print_line
         echo "0. Back"
         print_line
@@ -1196,8 +1213,7 @@ manage_promos_menu() {
                 echo "Promo Type:"
                 echo "  1) Discount (%)"
                 echo "  2) Free Period (days)"
-                echo "  3) Extra Traffic (GB)"
-                read -e -p "Choose type [1/2/3]: " ptype
+                read -e -p "Choose type [1/2]: " ptype
                 case $ptype in
                     1) 
                         promo_type="discount"
@@ -1207,10 +1223,6 @@ manage_promos_menu() {
                         promo_type="free_period"
                         read -e -p "Free days: " value
                         ;;
-                    3) 
-                        promo_type="extra_traffic"
-                        read -e -p "Extra traffic (GB): " value
-                        ;;
                     *) 
                         echo "Invalid type"
                         read -p "Press Enter..."
@@ -1219,10 +1231,12 @@ manage_promos_menu() {
                 esac
                 read -e -p "Max Uses (default: 100): " max_uses
                 max_uses=${max_uses:-100}
+                read -e -p "For specific Telegram ID (empty = all users): " for_user
                 read -e -p "Expire in days (0 = never): " expire
                 
                 cmd="python3 $CLI_PATH promo add -t $promo_type -v $value -m $max_uses"
                 [ -n "$code" ] && cmd="$cmd -c '$code'"
+                [ -n "$for_user" ] && cmd="$cmd -u $for_user"
                 [ -n "$expire" ] && [ "$expire" != "0" ] && cmd="$cmd -e $expire"
                 eval $cmd
                 echo ""

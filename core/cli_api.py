@@ -1057,9 +1057,8 @@ def get_client_bot_status() -> dict | None:
     return config
 
 
-def add_tariff(name: str, tariff_type: str, price: float, traffic_gb: int = None, 
-               days: int = None, price_stars: int = None) -> dict:
-    '''Adds a new tariff via the shop database.'''
+def add_tariff(name: str, days: int, price_stars: int) -> dict:
+    '''Adds a new time-based tariff (unlimited traffic).'''
     import sys
     sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
     from db.shop_database import shop_db
@@ -1067,13 +1066,13 @@ def add_tariff(name: str, tariff_type: str, price: float, traffic_gb: int = None
     if not shop_db:
         raise CommandExecutionError("Database not available")
     
-    result = shop_db.create_tariff(name, tariff_type, price, traffic_gb, days, price_stars)
+    result = shop_db.create_tariff(name, days, price_stars)
     result['_id'] = str(result['_id'])
     return result
 
 
 def list_tariffs() -> list:
-    '''Lists all tariffs.'''
+    '''Lists all tariffs sorted by order.'''
     import sys
     sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
     from db.shop_database import shop_db
@@ -1100,8 +1099,57 @@ def delete_tariff(tariff_id: str):
         raise CommandExecutionError("Tariff not found")
 
 
+def edit_tariff(tariff_id: str, name: str = None, days: int = None, price_stars: int = None):
+    '''Updates tariff properties.'''
+    import sys
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        raise CommandExecutionError("Database not available")
+    
+    updates = {}
+    if name:
+        updates['name'] = name
+    if days:
+        updates['days'] = days
+    if price_stars:
+        updates['price_stars'] = price_stars
+    
+    if not updates:
+        raise CommandExecutionError("No updates specified")
+    
+    if not shop_db.update_tariff(tariff_id, updates):
+        raise CommandExecutionError("Tariff not found")
+
+
+def move_tariff_up(tariff_id: str) -> bool:
+    '''Moves tariff up in display order.'''
+    import sys
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        raise CommandExecutionError("Database not available")
+    
+    return shop_db.move_tariff_up(tariff_id)
+
+
+def move_tariff_down(tariff_id: str) -> bool:
+    '''Moves tariff down in display order.'''
+    import sys
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        raise CommandExecutionError("Database not available")
+    
+    return shop_db.move_tariff_down(tariff_id)
+
+
 def add_promo(code: str = None, promo_type: str = 'discount', value: float = 0, 
-              max_uses: int = 100, expire_days: int = None, description: str = '') -> dict:
+              max_uses: int = 100, expire_days: int = None, for_telegram_id: int = None,
+              description: str = '') -> dict:
     '''Creates a new promo code.'''
     import sys
     from datetime import datetime, timedelta
@@ -1115,7 +1163,7 @@ def add_promo(code: str = None, promo_type: str = 'discount', value: float = 0,
     if expire_days and expire_days > 0:
         expires_at = datetime.utcnow() + timedelta(days=expire_days)
     
-    result = shop_db.create_promo(code, promo_type, value, max_uses, expires_at, description)
+    result = shop_db.create_promo(code, promo_type, value, max_uses, None, for_telegram_id, expires_at, description)
     result['_id'] = str(result['_id'])
     if result.get('expires_at'):
         result['expires_at'] = result['expires_at'].isoformat()

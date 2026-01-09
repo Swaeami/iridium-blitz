@@ -64,7 +64,7 @@ def main():
             run_command(f"mongorestore --db={DB_NAME} --drop --dir='{dump_dir}'", check=True)
             print("Database restored successfully.")
 
-            files_to_copy = ["config.json", ".configs.env", "ca.key", "ca.crt"]
+            files_to_copy = ["config.json", ".configs.env", "ca.key", "ca.crt", ".clientbot.env"]
             print("Restoring configuration files...")
             for filename in files_to_copy:
                 src = temp_dir / filename
