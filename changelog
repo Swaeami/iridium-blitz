@@ -1,5 +1,21 @@
-Iridium 1.0.26 - Fix Shop JS Loading
+Iridium 1.0.27 - Shop UX Improvements
 
-🔧 Fixed:
-- shop.js wasn't loading (wrong url_for path)
-- Changed from 'static' to 'assets' path
+🔧 Client Bot Section:
+- Token input shows only when bot is stopped
+- After start, shows settings form only (no token)
+- Save settings auto-restarts bot
+
+📋 Tariff Modal:
+- Prices for 1, 3, 6, 12 months
+- Traffic limit field only for limited tariffs
+- Unlimited/Limited type selector
+
+🎁 Promo Modal:
+- Dynamic fields based on promo type
+- Discount: % field
+- Free period: days field  
+- Extra traffic: GB field
+
+🐛 Fixes:
+- Fixed infinite loading issue
+- Section visibility now works correctly

@@ -42,9 +42,11 @@ class ClientBotConfig(BaseModel):
 class TariffCreate(BaseModel):
     name: str
     tariff_type: str  # "traffic" or "time"
-    price_stars: int  # Only Telegram Stars
     traffic_gb: Optional[int] = None
-    days: Optional[int] = None
+    price_1m: Optional[int] = None  # Price for 1 month
+    price_3m: Optional[int] = None  # Price for 3 months
+    price_6m: Optional[int] = None  # Price for 6 months
+    price_12m: Optional[int] = None  # Price for 12 months
 
 
 class PromoCreate(BaseModel):
@@ -245,16 +247,24 @@ async def create_tariff(tariff: TariffCreate):
     if not shop_db:
         raise HTTPException(500, "Database not available")
     
-    result = shop_db.create_tariff(
-        name=tariff.name,
-        tariff_type=tariff.tariff_type,
-        price=0,  # No RUB price, only stars
-        traffic_gb=tariff.traffic_gb,
-        days=tariff.days,
-        price_stars=tariff.price_stars
-    )
-    result["_id"] = str(result["_id"])
-    return {"detail": "Tariff created", "tariff": result}
+    # Create tariff with multi-period pricing
+    tariff_data = {
+        "name": tariff.name,
+        "type": tariff.tariff_type,
+        "traffic_gb": tariff.traffic_gb,
+        "price_1m": tariff.price_1m,
+        "price_3m": tariff.price_3m,
+        "price_6m": tariff.price_6m,
+        "price_12m": tariff.price_12m,
+        "price_stars": tariff.price_1m,  # Default for compatibility
+        "is_active": True,
+        "created_at": datetime.utcnow()
+    }
+    
+    result = shop_db.tariffs.insert_one(tariff_data)
+    tariff_data["_id"] = str(result.inserted_id)
+    
+    return {"detail": "Tariff created", "tariff": tariff_data}
 
 
 @router.delete("/tariffs/{tariff_id}")

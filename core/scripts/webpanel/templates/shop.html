@@ -38,14 +38,16 @@
     }
     .tariff-badge.traffic { background: rgba(var(--ir-info-rgb), 0.2); color: var(--ir-info); }
     .tariff-badge.time { background: rgba(var(--ir-success-rgb), 0.2); color: var(--ir-success); }
-    .promo-type {
+    .promo-type-badge {
         font-size: 0.75rem;
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
     }
-    .promo-type.discount { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
-    .promo-type.free_period { background: rgba(var(--ir-success-rgb), 0.2); color: var(--ir-success); }
-    .promo-type.extra_traffic { background: rgba(var(--ir-info-rgb), 0.2); color: var(--ir-info); }
+    .promo-type-badge.discount { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+    .promo-type-badge.free_period { background: rgba(var(--ir-success-rgb), 0.2); color: var(--ir-success); }
+    .promo-type-badge.extra_traffic { background: rgba(var(--ir-info-rgb), 0.2); color: var(--ir-info); }
+    .config-section { display: none; }
+    .config-section.active { display: block; }
 </style>
 {% endblock %}
 
@@ -79,7 +81,7 @@
         </div>
         <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-value" id="stat-revenue">0₽</div>
+                <div class="stat-value" id="stat-revenue">0⭐</div>
                 <div class="stat-label">💰 Доход (30 дн.)</div>
             </div>
         </div>
@@ -117,68 +119,73 @@
         <!-- Client Bot Tab -->
         <div class="tab-pane fade show active" id="tab-clientbot">
             <div class="row g-4">
-                <!-- Bot Status -->
-                <div class="col-lg-6">
+                <!-- Bot Status & Controls -->
+                <div class="col-12">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">📱 Статус бота</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="service-status">
-                                    <span class="status-dot" id="clientbot-status-dot"></span>
-                                    <span id="clientbot-status-text">Загрузка...</span>
-                                </div>
-                                <div class="btn-group">
-                                    <button class="btn btn-success btn-sm" id="btn-start-clientbot" disabled>
-                                        <i class="fas fa-play"></i> Запустить
-                                    </button>
-                                    <button class="btn btn-danger btn-sm" id="btn-stop-clientbot" disabled>
-                                        <i class="fas fa-stop"></i> Остановить
-                                    </button>
-                                    <button class="btn btn-warning btn-sm" id="btn-restart-clientbot" disabled>
-                                        <i class="fas fa-redo"></i>
-                                    </button>
-                                </div>
+                            <div class="service-status">
+                                <span class="status-dot stopped" id="clientbot-status-dot"></span>
+                                <span id="clientbot-status-text">Проверка...</span>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Bot Config -->
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0">⚙️ Настройки бота</h5>
-                        </div>
                         <div class="card-body">
-                            <form id="clientbot-config-form">
+                            <!-- Section: Bot NOT running - show token input -->
+                            <div class="config-section" id="bot-setup-section">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> Для запуска бота введите токен от @BotFather
+                                </div>
                                 <div class="mb-3">
                                     <label class="form-label">Bot Token <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="bot_token" placeholder="123456:ABC-DEF..." required>
-                                    <small class="text-muted">Получите у @BotFather</small>
+                                    <input type="text" class="form-control" id="bot_token" placeholder="123456:ABC-DEF...">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Support Username</label>
-                                    <input type="text" class="form-control" id="support_username" placeholder="@username">
+                                    <input type="text" class="form-control" id="setup_support_username" placeholder="@username">
                                 </div>
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Trial Days</label>
-                                        <input type="number" class="form-control" id="trial_days" value="3" min="1">
+                                        <input type="number" class="form-control" id="setup_trial_days" value="3" min="1">
                                     </div>
                                     <div class="col-md-6">
+                                        <label class="form-label">Trial Traffic GB</label>
+                                        <input type="number" class="form-control" id="setup_trial_traffic_gb" value="999999">
+                                    </div>
+                                </div>
+                                <button class="btn btn-success" id="btn-start-clientbot">
+                                    <i class="fas fa-play"></i> Запустить бота
+                                </button>
+                            </div>
+
+                            <!-- Section: Bot IS running - show settings only -->
+                            <div class="config-section" id="bot-settings-section">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Support Username</label>
+                                        <input type="text" class="form-control" id="support_username" placeholder="@username">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Trial Days</label>
+                                        <input type="number" class="form-control" id="trial_days" value="3" min="1">
+                                    </div>
+                                    <div class="col-md-4">
                                         <label class="form-label">Trial Traffic GB</label>
                                         <input type="number" class="form-control" id="trial_traffic_gb" value="999999">
                                     </div>
                                 </div>
-                                <div class="alert alert-info mb-3">
-                                    <i class="fas fa-info-circle"></i> Оплата через Telegram Stars
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary" id="btn-save-settings">
+                                        <i class="fas fa-save"></i> Сохранить
+                                    </button>
+                                    <button class="btn btn-warning" id="btn-restart-clientbot">
+                                        <i class="fas fa-redo"></i> Перезапустить
+                                    </button>
+                                    <button class="btn btn-danger" id="btn-stop-clientbot">
+                                        <i class="fas fa-stop"></i> Остановить
+                                    </button>
                                 </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Сохранить
-                                </button>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -201,8 +208,8 @@
                                 <tr>
                                     <th>Название</th>
                                     <th>Тип</th>
-                                    <th>Объём / Срок</th>
-                                    <th>Цена ⭐</th>
+                                    <th>Объём</th>
+                                    <th>Цены ⭐</th>
                                     <th>Статус</th>
                                     <th>Действия</th>
                                 </tr>
@@ -272,7 +279,7 @@
 
 <!-- Add Tariff Modal -->
 <div class="modal fade" id="addTariffModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">➕ Новый тариф</h5>
@@ -280,28 +287,45 @@
             </div>
             <form id="add-tariff-form">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Название</label>
-                        <input type="text" class="form-control" name="name" required placeholder="100 GB">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Название <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" required placeholder="VPN Premium">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Тип</label>
+                            <select class="form-select" name="tariff_type" id="tariff-type-select">
+                                <option value="unlimited">♾️ Безлимитный трафик</option>
+                                <option value="limited">📦 Ограниченный трафик</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Тип</label>
-                        <select class="form-select" name="tariff_type" id="tariff-type-select" required>
-                            <option value="traffic">📦 По трафику (безлимит времени)</option>
-                            <option value="time">📅 По времени (безлимит трафика)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="traffic-gb-group">
-                        <label class="form-label">Трафик (GB)</label>
+                    
+                    <div class="mt-3 d-none" id="traffic-limit-group">
+                        <label class="form-label">Лимит трафика (GB)</label>
                         <input type="number" class="form-control" name="traffic_gb" min="1" placeholder="100">
                     </div>
-                    <div class="mb-3 d-none" id="days-group">
-                        <label class="form-label">Срок (дни)</label>
-                        <input type="number" class="form-control" name="days" min="1" placeholder="30">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Цена (⭐ Telegram Stars) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" name="price_stars" required min="1" placeholder="50">
+
+                    <hr class="my-4">
+                    <h6 class="mb-3">💰 Цены (Telegram Stars)</h6>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">1 месяц ⭐</label>
+                            <input type="number" class="form-control" name="price_1m" required min="1" placeholder="50">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">3 месяца ⭐</label>
+                            <input type="number" class="form-control" name="price_3m" min="1" placeholder="120">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">6 месяцев ⭐</label>
+                            <input type="number" class="form-control" name="price_6m" min="1" placeholder="200">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">12 месяцев ⭐</label>
+                            <input type="number" class="form-control" name="price_12m" min="1" placeholder="350">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -328,29 +352,45 @@
                         <input type="text" class="form-control" name="code" placeholder="SALE50" style="text-transform: uppercase">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Тип промокода</label>
+                        <label class="form-label">Тип промокода <span class="text-danger">*</span></label>
                         <select class="form-select" name="promo_type" id="promo-type-select" required>
+                            <option value="">-- Выберите тип --</option>
                             <option value="discount">💸 Скидка (%)</option>
                             <option value="free_period">📅 Бесплатные дни</option>
                             <option value="extra_traffic">📦 Доп. трафик (GB)</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label" id="promo-value-label">Значение (%)</label>
-                        <input type="number" class="form-control" name="value" required min="1" placeholder="50">
+                    
+                    <!-- Dynamic fields based on promo type -->
+                    <div class="mb-3 d-none" id="promo-discount-field">
+                        <label class="form-label">Скидка (%) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="discount_percent" min="1" max="100" placeholder="20">
                     </div>
+                    
+                    <div class="mb-3 d-none" id="promo-days-field">
+                        <label class="form-label">Бесплатные дни <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="free_days" min="1" placeholder="7">
+                    </div>
+                    
+                    <div class="mb-3 d-none" id="promo-traffic-field">
+                        <label class="form-label">Доп. трафик (GB) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="extra_traffic" min="1" placeholder="10">
+                    </div>
+                    
+                    <hr>
+                    
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Макс. использований</label>
-                            <input type="number" class="form-control" name="max_uses" required min="1" value="100">
+                            <input type="number" class="form-control" name="max_uses" min="1" value="100">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Срок действия (дни, 0 = бессрочно)</label>
+                            <label class="form-label">Срок (дни, 0 = бессрочно)</label>
                             <input type="number" class="form-control" name="expire_days" min="0" value="0">
                         </div>
                     </div>
                     <div class="mt-3">
-                        <label class="form-label">Описание (опционально)</label>
+                        <label class="form-label">Описание</label>
                         <input type="text" class="form-control" name="description" placeholder="Новогодняя скидка">
                     </div>
                 </div>
@@ -366,6 +406,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('assets', path='js/shop.js') }}?v=1.0.26"></script>
+<script src="{{ url_for('assets', path='js/shop.js') }}?v=1.0.27"></script>
 {% endblock %}
-
