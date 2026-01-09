@@ -28,10 +28,6 @@ def enable_masquerade():
             print("Masquerade is already enabled.")
             sys.exit(0)
 
-        if "obfs" in config:
-            print("Error: Cannot enable masquerade when 'obfs' is configured.")
-            sys.exit(1)
-
         config["masquerade"] = {
             "type": "string",
             "string": {

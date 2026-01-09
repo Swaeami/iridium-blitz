@@ -1,9 +1,5 @@
-## Iridium 1.0.15 - OBFS/Masquerade Independence & Restart Button
+## Iridium 1.0.16 - Backend OBFS/Masquerade Fix
 
 ### Fixed
-- OBFS and Masquerade can now be enabled/disabled independently
-- Removed blocking logic that prevented using both together
-- Removed unnecessary alert messages from Hysteria Settings
-
-### Added
-- Restart Hysteria2 button now always visible in dashboard (not just when offline)
+- Removed backend restriction that blocked masquerade when OBFS is active
+- Now both OBFS and Masquerade can be enabled simultaneously
