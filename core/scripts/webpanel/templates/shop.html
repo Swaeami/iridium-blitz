@@ -29,25 +29,27 @@
         height: 10px;
         border-radius: 50%;
     }
-    .service-status .status-dot.running { background: var(--ir-success); }
-    .service-status .status-dot.stopped { background: var(--ir-danger); }
+    .service-status .status-dot.running { background: #22c55e !important; }
+    .service-status .status-dot.stopped { background: #ef4444 !important; }
     .tariff-badge {
         font-size: 0.75rem;
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
+        display: inline-block;
     }
-    .tariff-badge.traffic { background: rgba(var(--ir-info-rgb), 0.2); color: var(--ir-info); }
-    .tariff-badge.time { background: rgba(var(--ir-success-rgb), 0.2); color: var(--ir-success); }
+    .tariff-badge.traffic { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+    .tariff-badge.time { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
     .promo-type-badge {
         font-size: 0.75rem;
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
+        display: inline-block;
     }
     .promo-type-badge.discount { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
-    .promo-type-badge.free_period { background: rgba(var(--ir-success-rgb), 0.2); color: var(--ir-success); }
-    .promo-type-badge.extra_traffic { background: rgba(var(--ir-info-rgb), 0.2); color: var(--ir-info); }
-    .config-section { display: none; }
-    .config-section.active { display: block; }
+    .promo-type-badge.free_period { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+    .promo-type-badge.extra_traffic { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+    #bot-setup-section { display: none; }
+    #bot-settings-section { display: none; }
 </style>
 {% endblock %}
 
@@ -131,7 +133,7 @@
                         </div>
                         <div class="card-body">
                             <!-- Section: Bot NOT running - show token input -->
-                            <div class="config-section" id="bot-setup-section">
+                            <div id="bot-setup-section" style="display: none;">
                                 <div class="alert alert-info">
                                     <i class="fas fa-info-circle"></i> Для запуска бота введите токен от @BotFather
                                 </div>
@@ -159,7 +161,7 @@
                             </div>
 
                             <!-- Section: Bot IS running - show settings only -->
-                            <div class="config-section" id="bot-settings-section">
+                            <div id="bot-settings-section" style="display: none;">
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-4">
                                         <label class="form-label">Support Username</label>

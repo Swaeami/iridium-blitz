@@ -36,6 +36,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const setupSection = document.getElementById('bot-setup-section');
     const settingsSection = document.getElementById('bot-settings-section');
 
+    function showSetupSection() {
+        if (setupSection) setupSection.style.display = 'block';
+        if (settingsSection) settingsSection.style.display = 'none';
+    }
+    
+    function showSettingsSection() {
+        if (setupSection) setupSection.style.display = 'none';
+        if (settingsSection) settingsSection.style.display = 'block';
+    }
+
     async function loadClientBotStatus() {
         const statusDot = document.getElementById('clientbot-status-dot');
         const statusText = document.getElementById('clientbot-status-text');
@@ -45,13 +55,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const data = await response.json();
+            console.log('Bot status:', data);
             
             if (data.is_running) {
                 // Bot is running - show settings section
                 statusDot.className = 'status-dot running';
                 statusText.textContent = 'Запущен';
-                setupSection.classList.remove('active');
-                settingsSection.classList.add('active');
+                showSettingsSection();
                 
                 // Fill settings form
                 const config = data.config;
@@ -62,16 +72,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Bot is not running - show setup section
                 statusDot.className = 'status-dot stopped';
                 statusText.textContent = 'Остановлен';
-                setupSection.classList.add('active');
-                settingsSection.classList.remove('active');
+                showSetupSection();
             }
             
         } catch (error) {
             console.error('Error loading client bot status:', error);
             statusDot.className = 'status-dot stopped';
             statusText.textContent = 'Ошибка';
-            setupSection.classList.add('active');
-            settingsSection.classList.remove('active');
+            showSetupSection();
         }
     }
 
