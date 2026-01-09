@@ -7,13 +7,12 @@ source /etc/hysteria/core/scripts/services_status.sh >/dev/null 2>&1
 check_services() {
     for service in "${services[@]}"; do
         service_base_name=$(basename "$service" .service)
-
-        display_name=$(echo "$service_base_name" | sed -E 's/([^-]+)-?/\u\1/g')
+        display_name=$(echo "$service_base_name" | sed -E 's/hysteria-//; s/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
 
         if systemctl is-active --quiet "$service"; then
-            echo -e "${NC}${display_name}:${green} Active${NC}"
+            echo -e "  ${green}●${NC} ${display_name}"
         else
-            echo -e "${NC}${display_name}:${red} Inactive${NC}"
+            echo -e "  ${gray}○${NC} ${DIM}${display_name}${NC}"
         fi
     done
 }
@@ -1088,39 +1087,30 @@ ip_limit_handler() {
 }
 
 display_main_menu() {
-    clear
-    tput setaf 7 ; tput setab 4 ; tput bold
-    echo -e "◇────────────────🚀 Welcome To Blitz Panel 🚀─────────────────◇"
-    tput sgr0
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-
-    printf "\033[0;32m• OS:  \033[0m%-25s \033[0;32m• ARCH:  \033[0m%-25s\n" "$OS" "$ARCH"
-    printf "\033[0;32m• ISP: \033[0m%-25s \033[0;32m• CPU:   \033[0m%-25s\n" "$ISP" "$CPU"
-    printf "\033[0;32m• IP:  \033[0m%-25s \033[0;32m• RAM:   \033[0m%-25s\n" "$IP" "$RAM"
-
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-        check_core_version
-        check_version
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-    echo -e "${yellow}                   ☼ Services Status ☼                   ${NC}"
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-
-        check_services
-
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-    echo -e "${yellow}                   ☼ Main Menu ☼                   ${NC}"
-
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-    echo -e "${green}[1] ${NC}↝ Hysteria2 Menu"
-    echo -e "${cyan}[2] ${NC}↝ Advance Menu"
-    echo -e "${cyan}[3] ${NC}↝ Update Panel"
-    echo -e "${red}[0] ${NC}↝ Exit"
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-    echo -ne "${yellow}➜ Enter your option: ${NC}"
+    print_header
+    
+    # System info in compact format
+    echo -e "  ${gray}OS${NC} ${white}$OS${NC}  ${gray}│${NC}  ${gray}ARCH${NC} ${white}$ARCH${NC}"
+    echo -e "  ${gray}IP${NC} ${cyan}$IP${NC}  ${gray}│${NC}  ${gray}ISP${NC} ${white}$ISP${NC}"
+    echo -e "  ${gray}CPU${NC} ${yellow}$CPU${NC}  ${gray}│${NC}  ${gray}RAM${NC} ${yellow}$RAM${NC}"
+    
+    print_section "Version Info"
+    check_core_version
+    check_version
+    
+    print_section "Services"
+    check_services
+    
+    print_section "Main Menu"
+    menu_item "1" "Hysteria2 Menu" "$green"
+    menu_item "2" "Advanced Settings" "$cyan"
+    menu_item "3" "Update Panel" "$yellow"
+    menu_item "0" "Exit" "$red"
+    print_line
+    echo -ne "\n${IRIDIUM}❯${NC} "
 }
 
 main_menu() {
-    clear
     local choice
     while true; do
         get_system_info
@@ -1130,122 +1120,117 @@ main_menu() {
             1) hysteria2_menu ;;
             2) advance_menu ;;
             3) hysteria_upgrade ;;
-            0) exit 0 ;;
-            *) echo "Invalid option. Please try again." ;;
+            0) echo -e "\n${IRIDIUM}Goodbye!${NC}\n"; exit 0 ;;
+            *) print_error "Invalid option"; sleep 1 ;;
         esac
-        echo
-        read -rp "Press Enter to continue..."
     done
 }
 
 display_hysteria2_menu() {
     clear
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-
-    echo -e "${yellow}                   ☼ Blitz Menu ☼                   ${NC}"
-
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-
-    echo -e "${green}[1] ${NC}↝ Install and Configure Hysteria2"
-    echo -e "${cyan}[2] ${NC}↝ Add User"
-    echo -e "${cyan}[3] ${NC}↝ Edit User"
-    echo -e "${cyan}[4] ${NC}↝ Reset User"
-    echo -e "${cyan}[5] ${NC}↝ Remove User"
-    echo -e "${cyan}[6] ${NC}↝ Get User"
-    echo -e "${cyan}[7] ${NC}↝ List Users"
-    echo -e "${cyan}[8] ${NC}↝ Check Traffic Status"
-    echo -e "${cyan}[9] ${NC}↝ Show User URI"
-
-    echo -e "${red}[0] ${NC}↝ Back to Main Menu"
-
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-
-    echo -ne "${yellow}➜ Enter your option: ${NC}"
+    echo -e "${IRIDIUM}${BOLD}"
+    echo '  ╦ ╦╦ ╦╔═╗╔╦╗╔═╗╦═╗╦╔═╗2'
+    echo '  ╠═╣╚╦╝╚═╗ ║ ║╣ ╠╦╝║╠═╣ '
+    echo '  ╩ ╩ ╩ ╚═╝ ╩ ╚═╝╩╚═╩╩ ╩ '
+    echo -e "${NC}"
+    
+    print_section "User Management"
+    menu_item "1" "Install & Configure Hysteria2" "$green"
+    menu_item "2" "Add User" "$cyan"
+    menu_item "3" "Edit User" "$cyan"
+    menu_item "4" "Reset User" "$yellow"
+    menu_item "5" "Remove User" "$red"
+    menu_item "6" "Get User Info" "$cyan"
+    menu_item "7" "List All Users" "$cyan"
+    menu_item "8" "Traffic Status" "$cyan"
+    menu_item "9" "Show User URI/QR" "$cyan"
+    print_line
+    menu_item "0" "← Back" "$gray"
+    print_line
+    echo -ne "\n${IRIDIUM}❯${NC} "
 }
 
 hysteria2_menu() {
-    clear
     local choice
     while true; do
-        get_system_info
         display_hysteria2_menu
         read -r choice
         case $choice in
-            1) hysteria2_install_handler ;;
-            2) hysteria2_add_user_handler ;;
-            3) hysteria2_edit_user_handler ;;
-            4) hysteria2_reset_user_handler ;;
-            5) hysteria2_remove_user_handler  ;;
-            6) hysteria2_get_user_handler ;;
-            7) hysteria2_list_users_handler ;;
-            8) python3 $CLI_PATH traffic-status ;;
-            9) hysteria2_show_user_uri_handler ;;
+            1) hysteria2_install_handler; wait_seconds 2 ;;
+            2) hysteria2_add_user_handler; wait_seconds 2 ;;
+            3) hysteria2_edit_user_handler; wait_seconds 2 ;;
+            4) hysteria2_reset_user_handler; wait_seconds 2 ;;
+            5) hysteria2_remove_user_handler; wait_seconds 2 ;;
+            6) hysteria2_get_user_handler; wait_seconds 3 ;;
+            7) hysteria2_list_users_handler; wait_seconds 3 ;;
+            8) python3 $CLI_PATH traffic-status; wait_seconds 3 ;;
+            9) hysteria2_show_user_uri_handler; wait_seconds 3 ;;
             0) return ;;
-            *) echo "Invalid option. Please try again." ;;
+            *) print_error "Invalid option"; sleep 1 ;;
         esac
-        echo
-        read -rp "Press Enter to continue..."
     done
 }
 
 display_advance_menu() {
     clear
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-    echo -e "${yellow}                   ☼ Advance Menu ☼                   ${NC}"
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-    echo -e "${green}[1] ${NC}↝ Install TCP Brutal"
-    echo -e "${green}[2] ${NC}↝ Install WARP"
-    echo -e "${cyan}[3] ${NC}↝ Configure WARP"
-    echo -e "${red}[4] ${NC}↝ Uninstall WARP"
-    echo -e "${green}[5] ${NC}↝ Telegram Bot"
-    echo -e "${green}[6] ${NC}↝ SingBox SubLink(${red}Deprecated${NC})"
-    echo -e "${green}[7] ${NC}↝ Normal-SUB SubLink"
-    echo -e "${green}[8] ${NC}↝ Web Panel"
-    echo -e "${cyan}[9] ${NC}↝ Change Port Hysteria2"
-    echo -e "${cyan}[10] ${NC}↝ Change SNI Hysteria2"
-    echo -e "${cyan}[11] ${NC}↝ Manage OBFS"
-    echo -e "${cyan}[12] ${NC}↝ Change IPs(4-6)"
-    echo -e "${cyan}[13] ${NC}↝ Update geo Files"
-    echo -e "${cyan}[14] ${NC}↝ Manage Masquerade"
-    echo -e "${cyan}[15] ${NC}↝ Restart Hysteria2"
-    echo -e "${cyan}[16] ${NC}↝ Update Core Hysteria2"
-    echo -e "${cyan}[17] ${NC}↝ IP Limiter Menu"
-    echo -e "${red}[18] ${NC}↝ Uninstall Hysteria2"
-    echo -e "${red}[0] ${NC}↝ Back to Main Menu"
-    echo -e "${LPurple}◇──────────────────────────────────────────────────────────────────────◇${NC}"
-    echo -ne "${yellow}➜ Enter your option: ${NC}"
+    echo -e "${IRIDIUM}${BOLD}  ⚙  Advanced Settings${NC}\n"
+    
+    print_section "Installation"
+    menu_item "1" "Install TCP Brutal" "$green"
+    menu_item "2" "Install WARP" "$green"
+    menu_item "3" "Configure WARP" "$cyan"
+    menu_item "4" "Uninstall WARP" "$red"
+    
+    print_section "Services"
+    menu_item "5" "Telegram Bot" "$cyan"
+    menu_item "6" "Normal-SUB SubLink" "$cyan"
+    menu_item "7" "Web Panel" "$cyan"
+    menu_item "8" "IP Limiter" "$cyan"
+    
+    print_section "Hysteria2 Config"
+    menu_item "9" "Change Port" "$yellow"
+    menu_item "10" "Change SNI" "$yellow"
+    menu_item "11" "Manage OBFS" "$yellow"
+    menu_item "12" "Change IPs" "$yellow"
+    menu_item "13" "Update Geo Files" "$yellow"
+    menu_item "14" "Manage Masquerade" "$yellow"
+    
+    print_section "System"
+    menu_item "15" "Restart Hysteria2" "$cyan"
+    menu_item "16" "Update Hysteria2 Core" "$cyan"
+    menu_item "17" "Uninstall Hysteria2" "$red"
+    print_line
+    menu_item "0" "← Back" "$gray"
+    print_line
+    echo -ne "\n${IRIDIUM}❯${NC} "
 }
 
 advance_menu() {
-    clear
     local choice
     while true; do
         display_advance_menu
         read -r choice
         case $choice in
-            1) python3 $CLI_PATH install-tcp-brutal ;;
-            2) python3 $CLI_PATH install-warp ;;
+            1) python3 $CLI_PATH install-tcp-brutal; wait_seconds 2 ;;
+            2) python3 $CLI_PATH install-warp; wait_seconds 2 ;;
             3) warp_configure_handler ;;
-            4) python3 $CLI_PATH uninstall-warp ;;
+            4) python3 $CLI_PATH uninstall-warp; wait_seconds 2 ;;
             5) telegram_bot_handler ;;
-            6) singbox_handler ;;
-            7) normalsub_handler ;;
-            8) webpanel_handler ;;
-            9) hysteria2_change_port_handler ;;
-            10) hysteria2_change_sni_handler ;;
+            6) normalsub_handler ;;
+            7) webpanel_handler ;;
+            8) ip_limit_handler ;;
+            9) hysteria2_change_port_handler; wait_seconds 2 ;;
+            10) hysteria2_change_sni_handler; wait_seconds 2 ;;
             11) obfs_handler ;;
             12) edit_ips ;;
-            13) geo_update_handler ;;
+            13) geo_update_handler; wait_seconds 2 ;;
             14) masquerade_handler ;;
-            15) python3 $CLI_PATH restart-hysteria2 ;;
-            16) python3 $CLI_PATH update-hysteria2 ;;
-            17) ip_limit_handler ;;
-            18) python3 $CLI_PATH uninstall-hysteria2 ;;
+            15) python3 $CLI_PATH restart-hysteria2; wait_seconds 2 ;;
+            16) python3 $CLI_PATH update-hysteria2; wait_seconds 2 ;;
+            17) python3 $CLI_PATH uninstall-hysteria2; wait_seconds 2 ;;
             0) return ;;
-            *) echo "Invalid option. Please try again." ;;
+            *) print_error "Invalid option"; sleep 1 ;;
         esac
-        echo
-        read -rp "Press Enter to continue..."
     done
 }
 define_colors

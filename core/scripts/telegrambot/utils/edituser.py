@@ -74,12 +74,20 @@ def process_show_user(message):
     note = user_details.get('note', '')
     note_display = f"📝 Note: {escape_markdown(note)}" if note else "📝 Note: None"
     
+    max_ips = user_details.get('max_ips')
+    max_ips_display = str(max_ips) if max_ips else "Global"
+    unlimited_ip = "✅ Yes" if user_details.get('unlimited_user', False) else "❌ No"
+    blocked_display = "🚫 Yes" if user_details.get('blocked', False) else "✅ No"
+    
     formatted_details = (
-        f"\n🆔 Name: {display_username}\n"
-        f"📊 Traffic Limit: {user_details.get('max_download_bytes', 0) / (1024 ** 3):.2f} GB\n"
-        f"📅 Days: {user_details.get('expiration_days', 'N/A')}\n"
-        f"⏳ Creation: {user_details.get('account_creation_date', 'N/A')}\n"
-        f"💡 Blocked: {user_details.get('blocked', 'N/A')}\n"
+        f"\n👤 *{display_username}*\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"📊 Traffic Limit: `{user_details.get('max_download_bytes', 0) / (1024 ** 3):.2f}` GB\n"
+        f"📅 Expiration: `{user_details.get('expiration_days', 'N/A')}` days\n"
+        f"🗓 Created: `{user_details.get('account_creation_date', 'N/A')}`\n"
+        f"🌐 Max IPs: `{max_ips_display}`\n"
+        f"♾ Unlimited IP: {unlimited_ip}\n"
+        f"🔒 Blocked: {blocked_display}\n"
         f"{note_display}\n\n"
         f"{traffic_message}"
     )
@@ -109,16 +117,18 @@ def process_show_user(message):
     qr_img.save(bio, 'PNG')
     bio.seek(0)
     
-    markup = types.InlineKeyboardMarkup(row_width=3)
-    markup.add(types.InlineKeyboardButton("🔄 Reset User", callback_data=f"reset_user:{actual_username}"),
-               types.InlineKeyboardButton("🌐 IPv6-URI", callback_data=f"ipv6_uri:{actual_username}"))
-    markup.add(types.InlineKeyboardButton("✏️ Edit Username", callback_data=f"edit_username:{actual_username}"),
-               types.InlineKeyboardButton("📶 Edit Traffic", callback_data=f"edit_traffic:{actual_username}"))
-    markup.add(types.InlineKeyboardButton("📅 Edit Expiration", callback_data=f"edit_expiration:{actual_username}"),
-               types.InlineKeyboardButton("🔑 Renew Password", callback_data=f"renew_password:{actual_username}"))
-    markup.add(types.InlineKeyboardButton("🕒 Renew Creation Date", callback_data=f"renew_creation:{actual_username}"),
-               types.InlineKeyboardButton("📝 Edit Note", callback_data=f"edit_note:{actual_username}"))
-    markup.add(types.InlineKeyboardButton("⛔ Block User", callback_data=f"block_user:{actual_username}"))
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup.add(types.InlineKeyboardButton("✏️ Username", callback_data=f"edit_username:{actual_username}"),
+               types.InlineKeyboardButton("📶 Traffic", callback_data=f"edit_traffic:{actual_username}"))
+    markup.add(types.InlineKeyboardButton("📅 Expiration", callback_data=f"edit_expiration:{actual_username}"),
+               types.InlineKeyboardButton("🌐 Max IPs", callback_data=f"edit_max_ips:{actual_username}"))
+    markup.add(types.InlineKeyboardButton("🔑 New Password", callback_data=f"renew_password:{actual_username}"),
+               types.InlineKeyboardButton("🕒 Reset Date", callback_data=f"renew_creation:{actual_username}"))
+    markup.add(types.InlineKeyboardButton("📝 Edit Note", callback_data=f"edit_note:{actual_username}"),
+               types.InlineKeyboardButton("♾ Unlimited IP", callback_data=f"toggle_unlimited:{actual_username}"))
+    markup.add(types.InlineKeyboardButton("⛔ Block/Unblock", callback_data=f"block_user:{actual_username}"),
+               types.InlineKeyboardButton("🔄 Reset User", callback_data=f"reset_user:{actual_username}"))
+    markup.add(types.InlineKeyboardButton("🌐 IPv6-URI", callback_data=f"ipv6_uri:{actual_username}"))
 
     caption = formatted_details
     if uri_v4:
@@ -134,12 +144,30 @@ def process_show_user(message):
         parse_mode="Markdown"
     )
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith(('edit_', 'renew_', 'block_', 'reset_', 'ipv6_', 'set_new_note', 'clear_note')))
+@bot.callback_query_handler(func=lambda call: call.data.startswith(('edit_', 'renew_', 'block_', 'reset_', 'ipv6_', 'set_new_note', 'clear_note', 'toggle_')))
 def handle_edit_callback(call):
     action, username = call.data.split(':', 1)
     display_username = escape_markdown(username)
 
-    if action == 'edit_username':
+    if action == 'edit_max_ips':
+        msg = bot.send_message(call.message.chat.id, f"Enter new max IPs for {display_username} (0 to use global limit):")
+        bot.register_next_step_handler(msg, process_edit_max_ips, username)
+    elif action == 'toggle_unlimited':
+        # Get current status and toggle
+        command = f"python3 {CLI_PATH} get-user -u \"{username}\""
+        user_result = run_cli_command(command)
+        try:
+            user_details = json.loads(user_result)
+            current_status = user_details.get('unlimited_user', False)
+            new_status = not current_status
+            flag = '--unlimited-ip' if new_status else '--limited-ip'
+            edit_cmd = f"python3 {CLI_PATH} edit-user -u \"{username}\" {flag}"
+            result = run_cli_command(edit_cmd)
+            status_text = "enabled" if new_status else "disabled"
+            bot.send_message(call.message.chat.id, f"✅ Unlimited IP {status_text} for {display_username}")
+        except json.JSONDecodeError:
+            bot.send_message(call.message.chat.id, "Error toggling unlimited IP status.")
+    elif action == 'edit_username':
         msg = bot.send_message(call.message.chat.id, f"Enter new username for {display_username}:")
         bot.register_next_step_handler(msg, process_edit_username, username)
     elif action == 'edit_traffic':
@@ -256,3 +284,18 @@ def process_edit_note(message, username):
     
     result = run_cli_command(command)
     bot.reply_to(message, result)
+
+
+def process_edit_max_ips(message, username):
+    try:
+        new_max_ips = int(message.text.strip())
+        if new_max_ips < 0:
+            bot.reply_to(message, "Max IPs cannot be negative. Please enter 0 or higher:")
+            bot.register_next_step_handler(message, process_edit_max_ips, username)
+            return
+        command = f"python3 {CLI_PATH} edit-user -u \"{username}\" --max-ips {new_max_ips}"
+        result = run_cli_command(command)
+        bot.reply_to(message, result)
+    except ValueError:
+        bot.reply_to(message, "Invalid number. Please enter a valid number:")
+        bot.register_next_step_handler(message, process_edit_max_ips, username)

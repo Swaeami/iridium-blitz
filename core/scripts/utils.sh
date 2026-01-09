@@ -1,12 +1,142 @@
 source /etc/hysteria/core/scripts/path.sh
 
 define_colors() {
+    # Basic colors
     green='\033[0;32m'
     cyan='\033[0;36m'
     red='\033[0;31m'
     yellow='\033[0;33m'
+    blue='\033[0;34m'
+    magenta='\033[0;35m'
+    white='\033[1;37m'
+    gray='\033[0;90m'
+    
+    # Bold colors
+    BOLD='\033[1m'
+    DIM='\033[2m'
+    
+    # Brand colors
     LPurple='\033[1;35m'
+    IRIDIUM='\033[38;5;141m'  # Purple/violet for Iridium brand
+    ACCENT='\033[38;5;213m'   # Pink accent
+    
     NC='\033[0m' # No Color
+}
+
+# UI Helper Functions
+print_header() {
+    clear
+    echo -e "${IRIDIUM}"
+    echo '  ██╗██████╗ ██╗██████╗ ██╗██╗   ██╗███╗   ███╗'
+    echo '  ██║██╔══██╗██║██╔══██╗██║██║   ██║████╗ ████║'
+    echo '  ██║██████╔╝██║██║  ██║██║██║   ██║██╔████╔██║'
+    echo '  ██║██╔══██╗██║██║  ██║██║██║   ██║██║╚██╔╝██║'
+    echo '  ██║██║  ██║██║██████╔╝██║╚██████╔╝██║ ╚═╝ ██║'
+    echo '  ╚═╝╚═╝  ╚═╝╚═╝╚═════╝ ╚═╝ ╚═════╝ ╚═╝     ╚═╝'
+    echo -e "${NC}"
+}
+
+print_line() {
+    echo -e "${gray}────────────────────────────────────────────────${NC}"
+}
+
+print_section() {
+    local title="$1"
+    echo -e "\n${IRIDIUM}▸ ${BOLD}${title}${NC}"
+    print_line
+}
+
+print_success() {
+    echo -e "${green}✓${NC} $1"
+}
+
+print_error() {
+    echo -e "${red}✗${NC} $1"
+}
+
+print_warning() {
+    echo -e "${yellow}!${NC} $1"
+}
+
+print_info() {
+    echo -e "${cyan}ℹ${NC} $1"
+}
+
+# Menu item formatter
+menu_item() {
+    local num="$1"
+    local text="$2"
+    local color="${3:-$cyan}"
+    printf "  ${color}[${white}%2s${color}]${NC} %s\n" "$num" "$text"
+}
+
+# Status badge
+status_badge() {
+    local status="$1"
+    if [ "$status" = "active" ] || [ "$status" = "running" ]; then
+        echo -e "${green}●${NC}"
+    else
+        echo -e "${red}●${NC}"
+    fi
+}
+
+# Progress spinner
+spin() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    while kill -0 $pid 2>/dev/null; do
+        local temp=${spinstr#?}
+        printf " ${IRIDIUM}%c${NC}" "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b"
+    done
+    printf "  \b\b"
+}
+
+# Prompt with default value
+prompt_default() {
+    local prompt="$1"
+    local default="$2"
+    local var_name="$3"
+    
+    if [ -n "$default" ]; then
+        read -p "$(echo -e "${IRIDIUM}?${NC} ${prompt} [${cyan}${default}${NC}]: ")" input
+        eval "$var_name=\"\${input:-$default}\""
+    else
+        read -p "$(echo -e "${IRIDIUM}?${NC} ${prompt}: ")" input
+        eval "$var_name=\"\$input\""
+    fi
+}
+
+# Confirm action (returns 0 for yes, 1 for no)
+confirm() {
+    local prompt="$1"
+    local default="${2:-n}"
+    local yn_prompt
+    
+    if [ "$default" = "y" ]; then
+        yn_prompt="[${green}Y${NC}/n]"
+    else
+        yn_prompt="[y/${red}N${NC}]"
+    fi
+    
+    read -p "$(echo -e "${yellow}?${NC} ${prompt} ${yn_prompt}: ")" -n 1 -r reply
+    echo
+    reply=${reply:-$default}
+    
+    [[ "$reply" =~ ^[Yy]$ ]]
+}
+
+# Wait with countdown (no Enter needed)
+wait_seconds() {
+    local seconds="${1:-3}"
+    for ((i=seconds; i>0; i--)); do
+        printf "\r${gray}Returning in ${i}s...${NC}"
+        sleep 1
+    done
+    printf "\r                        \r"
 }
 
 get_system_info() {

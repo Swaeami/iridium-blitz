@@ -122,21 +122,45 @@ def process_add_user_step4(message, username, traffic_limit, expiration_days):
         bot.register_next_step_handler(msg, process_add_user_step3, username, traffic_limit)
         return
     
+    if message.text == "⏭️ Skip":
+        note = None
+    else:
+        note = message.text.strip()
+        if len(note) > 200:
+            bot.reply_to(message, "Note is too long (max 200 characters). Please enter a shorter note or press Skip:", reply_markup=create_cancel_markup_with_skip(back_step=process_add_user_step3, username=username, traffic_limit=traffic_limit))
+            bot.register_next_step_handler(message, process_add_user_step4, username, traffic_limit, expiration_days)
+            return
+
+    # Ask for max_ips
+    msg = bot.reply_to(message, "Enter max IPs for this user (or Skip for global limit):", reply_markup=create_cancel_markup_with_skip(back_step=process_add_user_step4))
+    bot.register_next_step_handler(msg, process_add_user_step5, username, traffic_limit, expiration_days, note)
+
+
+def process_add_user_step5(message, username, traffic_limit, expiration_days, note):
+    if message.text == "❌ Cancel":
+        bot.reply_to(message, "Process canceled.", reply_markup=create_main_markup())
+        return
+    if message.text == "⬅️ Back":
+        msg = bot.reply_to(message, "Enter note (optional, press Skip to continue):", reply_markup=create_cancel_markup_with_skip(back_step=process_add_user_step3, username=username, traffic_limit=traffic_limit))
+        bot.register_next_step_handler(msg, process_add_user_step4, username, traffic_limit, expiration_days)
+        return
+    
     try:
         if message.text == "⏭️ Skip":
-            note = None
+            max_ips = None
         else:
-            note = message.text.strip()
-            if len(note) > 200:
-                bot.reply_to(message, "Note is too long (max 200 characters). Please enter a shorter note or press Skip:", reply_markup=create_cancel_markup_with_skip(back_step=process_add_user_step3, username=username, traffic_limit=traffic_limit))
-                bot.register_next_step_handler(message, process_add_user_step4, username, traffic_limit, expiration_days)
+            max_ips = int(message.text.strip())
+            if max_ips < 1:
+                bot.reply_to(message, "Max IPs must be at least 1. Please try again or Skip:", reply_markup=create_cancel_markup_with_skip(back_step=process_add_user_step4))
+                bot.register_next_step_handler(message, process_add_user_step5, username, traffic_limit, expiration_days, note)
                 return
 
-        # Build command with or without note
-        if note is not None:
-            add_user_command = f"python3 {CLI_PATH} add-user -u \"{username}\" -t {traffic_limit} -e {expiration_days} -n \"{note}\""
-        else:
-            add_user_command = f"python3 {CLI_PATH} add-user -u \"{username}\" -t {traffic_limit} -e {expiration_days}"
+        # Build command
+        add_user_command = f"python3 {CLI_PATH} add-user -u \"{username}\" -t {traffic_limit} -e {expiration_days}"
+        if note:
+            add_user_command += f" -n \"{note}\""
+        if max_ips:
+            add_user_command += f" --max-ips {max_ips}"
         
         add_user_feedback = run_cli_command(add_user_command).strip()
         
@@ -179,7 +203,7 @@ def process_add_user_step4(message, username, traffic_limit, expiration_days):
             bot.send_message(message.chat.id, caption_text, parse_mode="Markdown", reply_markup=create_main_markup())
 
     except ValueError:
-        bot.reply_to(message, "Invalid expiration days. Please enter a number:", reply_markup=create_cancel_markup(back_step=process_add_user_step2))
-        bot.register_next_step_handler(message, process_add_user_step3, username, traffic_limit)
+        bot.reply_to(message, "Invalid number. Please enter a valid number or Skip:", reply_markup=create_cancel_markup_with_skip(back_step=process_add_user_step4))
+        bot.register_next_step_handler(message, process_add_user_step5, username, traffic_limit, expiration_days, note)
     except Exception as e:
         bot.reply_to(message, f"An unexpected error occurred: {str(e)}", reply_markup=create_main_markup())

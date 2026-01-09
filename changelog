@@ -1,18 +1,16 @@
-## Iridium 1.0.20 - Per-User IP Limits
+## Iridium 1.0.21 - Telegram Bot & CLI Improvements
 
-### Added
-- **Per-user IP limit**: Each user can now have their own IP limit
-- New `max_ips` field in user creation and editing forms
-- Per-user limit stored in MongoDB, checked by IP Limit service
-- If no per-user limit set, global limit is used as fallback
+### Telegram Bot Updates
+- Added max_ips field when creating users
+- Added max_ips editing in user management
+- Added toggle for unlimited IP status
+- Improved user info display with all fields (max_ips, unlimited_ip, note, status)
+- Better formatted messages with emojis
 
-### Changed
-- Updated `limit.sh` to check per-user `max_ips` from database
-- Updated `add_user.py` and `edit_user.py` to support `max_ips` parameter
-- Updated API schemas and endpoints for `max_ips` support
-- Updated UI forms to include IP limit field (visible when IP Limit service is running)
-
-### Technical
-- `max_ips: null` or not set = use global MAX_IPS
-- `max_ips: 0` in edit = reset to global limit
-- `max_ips: N` = user-specific limit of N concurrent IPs
+### CLI Visual Improvements (WIP)
+- New Iridium ASCII art header
+- Modern color scheme with brand colors
+- New UI helper functions (print_success, print_error, etc.)
+- Progress spinner for long operations
+- Better prompts with default values
+- Countdown timers instead of "Press Enter"
