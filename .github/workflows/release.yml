@@ -6,6 +6,12 @@ on:
       - 'VERSION'
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      force_release:
+        description: 'Force release even if VERSION unchanged'
+        required: false
+        default: 'true'
 
 jobs:
   build-and-release:

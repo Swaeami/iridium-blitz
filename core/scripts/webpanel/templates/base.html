@@ -11,7 +11,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Bootstrap 5 -->
@@ -94,38 +94,32 @@
                 <ul class="nav-list">
                     <li class="nav-item">
                         <a href="{{ url_for('index') }}" class="nav-link {% if request.path == url_for('index') %}active{% endif %}">
-                            <span class="nav-icon"><i class="fas fa-th-large"></i></span>
+                            <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
                             <span class="nav-text">Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('users') }}" class="nav-link {% if request.path == url_for('users') %}active{% endif %}">
-                            <span class="nav-icon"><i class="fas fa-users"></i></span>
+                            <span class="nav-icon"><i class="fas fa-users-cog"></i></span>
                             <span class="nav-text">Users</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('settings') }}" class="nav-link {% if request.path == url_for('settings') %}active{% endif %}">
-                            <span class="nav-icon"><i class="fas fa-server"></i></span>
-                            <span class="nav-text">Server</span>
+                            <span class="nav-icon"><i class="fas fa-cogs"></i></span>
+                            <span class="nav-text">Settings</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('hysteria_settings') }}" class="nav-link {% if request.path == url_for('hysteria_settings') %}active{% endif %}">
-                            <span class="nav-icon"><i class="fas fa-globe"></i></span>
-                            <span class="nav-text">External Nodes</span>
+                            <span class="nav-icon"><i class="fas fa-network-wired"></i></span>
+                            <span class="nav-text">Hysteria</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('config') }}" class="nav-link {% if request.path == url_for('config') %}active{% endif %}">
-                            <span class="nav-icon"><i class="fas fa-exchange-alt"></i></span>
-                            <span class="nav-text">Routing</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#subscriptionModal">
-                            <span class="nav-icon"><i class="fas fa-link"></i></span>
-                            <span class="nav-text">Subscription</span>
+                            <span class="nav-icon"><i class="fas fa-route"></i></span>
+                            <span class="nav-text">Config</span>
                         </a>
                     </li>
                 </ul>
@@ -148,7 +142,7 @@
         <main class="main-content">
             <!-- Top Bar -->
             <header class="top-bar">
-                <button class="btn-toggle-sidebar d-lg-none" id="toggleSidebar">
+                <button class="btn-toggle-sidebar" id="toggleSidebar" title="Toggle Sidebar">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="top-bar-right">

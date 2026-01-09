@@ -1,11 +1,29 @@
 $(function () {
-    // Sidebar toggle for mobile
+    // Sidebar toggle for all screens
     const toggleSidebar = $("#toggleSidebar");
     const sidebar = $("#sidebar");
+    const mainContent = $(".main-content");
+    
+    // Check saved sidebar state
+    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (sidebarCollapsed && $(window).width() >= 992) {
+        sidebar.addClass('collapsed');
+        mainContent.addClass('expanded');
+    }
 
     toggleSidebar.on("click", function (e) {
         e.preventDefault();
-        sidebar.toggleClass("show");
+        
+        if ($(window).width() >= 992) {
+            // Desktop: toggle collapsed state
+            sidebar.toggleClass("collapsed");
+            mainContent.toggleClass("expanded");
+            // Save state
+            localStorage.setItem('sidebarCollapsed', sidebar.hasClass('collapsed'));
+        } else {
+            // Mobile: toggle show state
+            sidebar.toggleClass("show");
+        }
     });
 
     // Close sidebar when clicking outside on mobile
@@ -14,6 +32,20 @@ $(function () {
             if (!$(e.target).closest("#sidebar, #toggleSidebar").length) {
                 sidebar.removeClass("show");
             }
+        }
+    });
+
+    // Handle window resize
+    $(window).on('resize', function() {
+        if ($(window).width() >= 992) {
+            sidebar.removeClass('show');
+            // Restore desktop collapsed state
+            const collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            sidebar.toggleClass('collapsed', collapsed);
+            mainContent.toggleClass('expanded', collapsed);
+        } else {
+            sidebar.removeClass('collapsed');
+            mainContent.removeClass('expanded');
         }
     });
 
@@ -65,7 +97,7 @@ $(function () {
     $('.card, .stat-card, .info-box, .small-box').each(function(index) {
         $(this).css({
             'opacity': '0',
-            'animation': `fadeIn 0.3s ease-out ${index * 0.05}s forwards`
+            'animation': `fadeIn 0.3s ease-out ${index * 0.04}s forwards`
         });
     });
 });

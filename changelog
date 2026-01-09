@@ -1,3 +1,23 @@
+# 🎨 **Iridium 1.0.2 - UI Polish**
+
+*Released: 2026-01-09*
+
+## 🔧 Fixes
+
+* Fixed white backgrounds in tables
+* Fixed dark text on dark background issues
+* Improved sidebar toggle - now works on all screens
+* Content area now scrolls horizontally when needed
+
+## ✨ Improvements
+
+* Changed font to **Plus Jakarta Sans** for better readability
+* Simplified menu labels (Settings, Hysteria, Config)
+* Collapsible sidebar state is now saved
+* Overall theme consistency improvements
+
+---
+
 # 🚀 **Iridium 1.0.0 - Initial Release** 
 
 *Released: 2026-01-09*
