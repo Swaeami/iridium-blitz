@@ -1,3 +1,24 @@
+# 🔧 **Iridium 1.0.7 - Cache Busting & Stability**
+
+*Released: 2026-01-09*
+
+## 🔧 Technical Improvements
+
+* **Cache Busting**: Added version query parameters to all CSS/JS files
+  - Ensures users always get latest styles after updates
+  - Format: `custom.css?v=1.0.7`
+
+* **CSS Load Order**: Fixed style loading sequence
+  - Page-specific styles (like JSONEditor) now load before custom.css
+  - Custom.css loads last to properly override library styles
+
+* **Development Tools**: Added local preview server for UI development
+  - `preview.py` - simple HTTP server for UI testing
+  - `ui_preview.html` - standalone preview of all UI components
+  - Both files excluded from releases via .gitignore
+
+---
+
 # 🎨 **Iridium 1.0.6 - Settings UX & Editor Polish**
 
 *Released: 2026-01-09*
