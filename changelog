@@ -1,24 +1,17 @@
-Iridium 1.0.24 - Client Bot Integration
+Iridium 1.0.25 - Client Bot Fixes
 
-🏪 New Features:
-- Client Telegram Bot for sales & self-service
-- Tariff management (traffic-based, time-based)
-- Promo codes (discounts, free days, extra traffic)
-- Payment via Telegram Stars & YooKassa
-- Trial period support (configurable days/traffic)
-- Customer management & statistics
+🔧 Fixes:
+- Fixed shop page infinite loading (graceful DB handling)
+- Fixed config save not showing toast notification
+- Added Client Bot to dashboard services
+- Removed YooKassa (Telegram Stars only)
 
-📱 Web Panel:
-- New "Shop" page with full management UI
-- Tariffs & promos CRUD
-- Customer list & payment stats
-- Client bot start/stop/config
+🏪 Shop Page:
+- Simplified config form
+- Better error handling with console logs
+- Toast notifications now work correctly
+- Loading states for buttons
 
-🖥️ CLI:
-- `client-bot start/stop/restart/status`
-- `tariff add/list/delete`
-- `promo add/list/delete`
-- `shop-stats` - revenue & customer stats
-
-📋 Menu:
-- "Client Bot (Sales)" in Advanced Settings
+📊 Dashboard:
+- Client Bot service status box
+- Restart button for Client Bot

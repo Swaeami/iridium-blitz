@@ -154,32 +154,26 @@
                         <div class="card-body">
                             <form id="clientbot-config-form">
                                 <div class="mb-3">
-                                    <label class="form-label">Bot Token</label>
+                                    <label class="form-label">Bot Token <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="bot_token" placeholder="123456:ABC-DEF..." required>
+                                    <small class="text-muted">Получите у @BotFather</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Support Username</label>
+                                    <input type="text" class="form-control" id="support_username" placeholder="@username">
                                 </div>
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-6">
-                                        <label class="form-label">YooKassa Shop ID</label>
-                                        <input type="text" class="form-control" id="yookassa_shop_id" placeholder="Опционально">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">YooKassa Secret Key</label>
-                                        <input type="password" class="form-control" id="yookassa_secret_key" placeholder="Опционально">
-                                    </div>
-                                </div>
-                                <div class="row g-3 mb-3">
-                                    <div class="col-md-4">
-                                        <label class="form-label">Support Username</label>
-                                        <input type="text" class="form-control" id="support_username" placeholder="@username">
-                                    </div>
-                                    <div class="col-md-4">
                                         <label class="form-label">Trial Days</label>
                                         <input type="number" class="form-control" id="trial_days" value="3" min="1">
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <label class="form-label">Trial Traffic GB</label>
                                         <input type="number" class="form-control" id="trial_traffic_gb" value="999999">
                                     </div>
+                                </div>
+                                <div class="alert alert-info mb-3">
+                                    <i class="fas fa-info-circle"></i> Оплата через Telegram Stars
                                 </div>
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save"></i> Сохранить
@@ -208,7 +202,6 @@
                                     <th>Название</th>
                                     <th>Тип</th>
                                     <th>Объём / Срок</th>
-                                    <th>Цена ₽</th>
                                     <th>Цена ⭐</th>
                                     <th>Статус</th>
                                     <th>Действия</th>
@@ -306,15 +299,9 @@
                         <label class="form-label">Срок (дни)</label>
                         <input type="number" class="form-control" name="days" min="1" placeholder="30">
                     </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Цена (₽)</label>
-                            <input type="number" class="form-control" name="price" required min="0" step="0.01">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Цена (⭐ Stars)</label>
-                            <input type="number" class="form-control" name="price_stars" min="1" placeholder="Опционально">
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Цена (⭐ Telegram Stars) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="price_stars" required min="1" placeholder="50">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -379,6 +366,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', path='js/shop.js') }}?v=1.0.0"></script>
+<script src="{{ url_for('static', path='js/shop.js') }}?v=1.0.25"></script>
 {% endblock %}
 
