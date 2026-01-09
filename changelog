@@ -1,16 +1,5 @@
-## Iridium 1.0.21 - Telegram Bot & CLI Improvements
+## Iridium 1.0.22 - Bugfix
 
-### Telegram Bot Updates
-- Added max_ips field when creating users
-- Added max_ips editing in user management
-- Added toggle for unlimited IP status
-- Improved user info display with all fields (max_ips, unlimited_ip, note, status)
-- Better formatted messages with emojis
-
-### CLI Visual Improvements (WIP)
-- New Iridium ASCII art header
-- Modern color scheme with brand colors
-- New UI helper functions (print_success, print_error, etc.)
-- Progress spinner for long operations
-- Better prompts with default values
-- Countdown timers instead of "Press Enter"
+### Fixes
+- Added `--max-ips` option to CLI `add-user` command
+- Fixed Telegram bot user creation with per-user IP limits
