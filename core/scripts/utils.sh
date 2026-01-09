@@ -139,14 +139,51 @@ wait_seconds() {
     printf "\r                        \r"
 }
 
+# Cache file for IP info (avoid repeated slow lookups)
+IP_CACHE_FILE="/tmp/.iridium_ip_cache"
+IP_CACHE_TTL=300  # 5 minutes
+
 get_system_info() {
-    OS=$(lsb_release -d | awk -F'\t' '{print $2}')
+    OS=$(lsb_release -d 2>/dev/null | awk -F'\t' '{print $2}' || cat /etc/os-release 2>/dev/null | grep PRETTY_NAME | cut -d'"' -f2 || echo "Unknown")
     ARCH=$(uname -m)
-    IP_API_DATA=$(curl -s https://ipapi.co/json/ -4)
-    ISP=$(echo "$IP_API_DATA" | jq -r '.org')
-    IP=$(echo "$IP_API_DATA" | jq -r '.ip')
-    CPU=$(top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4 "%"}')
-    RAM=$(free -m | awk 'NR==2{printf "%.2f%%", $3*100/$2 }')
+    
+    # CPU and RAM - fast, always refresh
+    CPU=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk '{print $2 + $4 "%"}' || echo "N/A")
+    RAM=$(free -m 2>/dev/null | awk 'NR==2{printf "%.1f%%", $3*100/$2 }' || echo "N/A")
+    
+    # IP and ISP - use cache to speed up
+    local cache_valid=false
+    if [[ -f "$IP_CACHE_FILE" ]]; then
+        local cache_age=$(( $(date +%s) - $(stat -c %Y "$IP_CACHE_FILE" 2>/dev/null || echo 0) ))
+        if [[ $cache_age -lt $IP_CACHE_TTL ]]; then
+            cache_valid=true
+            source "$IP_CACHE_FILE"
+        fi
+    fi
+    
+    if [[ "$cache_valid" != "true" ]]; then
+        # Show loading indicator
+        echo -ne "  ${gray}Loading network info...${NC}\r"
+        
+        # Get IP - try fast services first
+        IP=$(curl -s -4 --connect-timeout 3 --max-time 5 ip.sb 2>/dev/null)
+        [[ -z "$IP" ]] && IP=$(curl -s -4 --connect-timeout 3 --max-time 5 ifconfig.me 2>/dev/null)
+        [[ -z "$IP" ]] && IP="N/A"
+        
+        # Get ISP from ipinfo.io (single call)
+        local ipinfo=$(curl -s --connect-timeout 3 --max-time 5 "https://ipinfo.io/json" 2>/dev/null)
+        if [[ -n "$ipinfo" ]]; then
+            ISP=$(echo "$ipinfo" | grep -o '"org"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4 | head -c 35)
+        fi
+        [[ -z "$ISP" ]] && ISP="N/A"
+        
+        # Save to cache
+        echo "IP=\"$IP\"" > "$IP_CACHE_FILE"
+        echo "ISP=\"$ISP\"" >> "$IP_CACHE_FILE"
+        
+        # Clear loading indicator
+        echo -ne "                                \r"
+    fi
 }
 
 version_greater_equal() {
