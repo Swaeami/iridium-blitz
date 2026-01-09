@@ -1,17 +1,5 @@
-Iridium 1.0.25 - Client Bot Fixes
+Iridium 1.0.26 - Fix Shop JS Loading
 
-🔧 Fixes:
-- Fixed shop page infinite loading (graceful DB handling)
-- Fixed config save not showing toast notification
-- Added Client Bot to dashboard services
-- Removed YooKassa (Telegram Stars only)
-
-🏪 Shop Page:
-- Simplified config form
-- Better error handling with console logs
-- Toast notifications now work correctly
-- Loading states for buttons
-
-📊 Dashboard:
-- Client Bot service status box
-- Restart button for Client Bot
+🔧 Fixed:
+- shop.js wasn't loading (wrong url_for path)
+- Changed from 'static' to 'assets' path
