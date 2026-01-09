@@ -162,3 +162,8 @@ cython_debug/
 hysteria2_venv/
 # .vscode/
 # !.vscode/settings.json
+
+# Local development files
+core/scripts/webpanel/dev_server.py
+core/scripts/webpanel/preview.py
+core/scripts/webpanel/ui_preview.html

@@ -18,9 +18,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('assets', path='css/custom.css') }}">
+    <!-- Page-specific styles (loaded before custom.css for proper overriding) -->
+    {% block styles %}{% endblock %}
     {% block stylesheets %}{% endblock %}
+    <!-- Custom CSS (loaded last to override everything) -->
+    <link rel="stylesheet" href="{{ url_for('assets', path='css/custom.css') }}?v=1.0.6">
 </head>
 
 <body class="iridium-dark">
@@ -213,7 +215,7 @@
     <!-- ShowdownJS for Markdown -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
     <!-- Base JS -->
-    <script src="{{ url_for('assets', path='js/base.js') }}"></script>
+    <script src="{{ url_for('assets', path='js/base.js') }}?v=1.0.6"></script>
     
     {% block javascripts %}{% endblock %}
 </body>
