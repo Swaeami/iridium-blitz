@@ -2,23 +2,38 @@
 
 {% block title %}Config Editor{% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsoneditor@9.1.0/dist/jsoneditor.min.css" />
+{% endblock %}
+
 {% block content %}
-<br>
-<div class="" style="margin-left: 20px; margin-right: 20px; margin-bottom: 20px;"
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Config Editor</h1>
+            <p class="text-muted mb-0">Edit Hysteria2 configuration</p>
+        </div>
+    </div>
+</div>
+
+<div class="config-editor-wrapper"
      data-get-file-url="{{ url_for('get_file') }}"
      data-set-file-url="{{ url_for('set_file') }}">
-    <div class="flex justify mb-4 space-x-2">
-        <button id="restore-button" class="px-4 py-2 bg-blue text-black rounded-lg">Restore JSON</button>
-        <button id="save-button" class="px-4 py-2 bg-green text-black rounded-lg duration-200">Save JSON</button>
+    <div class="config-toolbar">
+        <button id="restore-button" class="btn btn-secondary">
+            <i class="fas fa-undo me-2"></i>Restore JSON
+        </button>
+        <button id="save-button" class="btn btn-primary">
+            <i class="fas fa-save me-2"></i>Save JSON
+        </button>
     </div>
 
-    <div id="jsoneditor" class="border rounded-lg shadow-lg" style="height: 750px; width: 100%;"></div>
+    <div id="jsoneditor"></div>
 </div>
 {% endblock %}
 
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/jsoneditor@9.1.0/dist/jsoneditor.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsoneditor@9.1.0/dist/jsoneditor.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ url_for('assets', path='js/config.js') }}"></script>
 {% endblock %}

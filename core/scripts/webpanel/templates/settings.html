@@ -4,11 +4,10 @@
 
 {% block content %}
 <div class='content-header'>
-    <div class='container-fluid'>
-        <div class='row mb-2'>
-            <div class='col-sm-6'>
-                <h1 class='m-0'>Settings</h1>
-            </div>
+    <div class='d-flex justify-content-between align-items-center'>
+        <div>
+            <h1>Settings</h1>
+            <p class="text-muted mb-0">Configure your panel and services</p>
         </div>
     </div>
 </div>
@@ -50,54 +49,53 @@
     data-edit-node-url="{{ url_for('edit_node') }}"
 >
     <div class='container-fluid'>
-        <div class='row'>
-            <div class='col-lg-12'>
-                <div class='card card-primary card-outline card-tabs'>
-                    <div class='card-header p-0 pt-1 border-bottom-0'>
-                        <ul class='nav nav-pills' id='custom-tabs-three-tab' role='tablist'
-                            style="margin-left: 20px; margin-top: 10px;">
-                            <li class='nav-item'>
-                                <a class='nav-link active' id='subs-tab' data-bs-toggle='pill' href='#subs' role='tab'
-                                    aria-controls='subs' aria-selected='false'><i class="fas fa-link"></i>
-                                    Subscriptions</a>
-                            </li>
-                            <li class='nav-item'>
-                                <a class='nav-link' id='telegram-tab' data-bs-toggle='pill' href='#telegram' role='tab'
-                                    aria-controls='telegram' aria-selected='true'><i class="fab fa-telegram"></i>
-                                    Telegram Bot</a>
-                            </li>
-                            <li class='nav-item'>
-                                <a class='nav-link' id='ip-tab' data-bs-toggle='pill' href='#change_ip' role='tab'
-                                    aria-controls='change_ip' aria-selected='false'><i class="fas fa-network-wired"></i>
-                                    IP Management</a>
-                            </li>
-                            <li class='nav-item'>
-                                <a class='nav-link' id='extra-config-tab' data-bs-toggle='pill' href='#extra-config' role='tab'
-                                    aria-controls='extra-config' aria-selected='false'><i class="fas fa-plus-circle"></i>
-                                    Extra Configs</a>
-                            </li>
-                            <li class='nav-item'>
-                                <a class='nav-link' id='backup-tab' data-bs-toggle='pill' href='#backup' role='tab'
-                                    aria-controls='backup' aria-selected='false'><i class="fas fa-download"></i>
-                                    Backup</a>
-                            </li>
-                            <li class='nav-item'>
-                                <a class='nav-link' id='ip-limit-tab' data-bs-toggle='pill' href='#ip-limit' role='tab'
-                                    aria-controls='ip-limit' aria-selected='false'><i class="fas fa-user-slash"></i>
-                                    IP Limit</a>
-                            </li>
-                             <li class='nav-item'>
-                                <a class='nav-link' id='decoy-tab' data-bs-toggle='pill' href='#decoy' role='tab'
-                                    aria-controls='decoy' aria-selected='false'><i class="fas fa-mask"></i>
-                                    Decoy Site</a>
-                            </li>
-                            <li class='nav-item'>
-                                <a class='nav-link' id='warp-tab-link' data-bs-toggle='pill' href='#warp-content' role='tab'
-                                    aria-controls='warp-content' aria-selected='false'><i class="fas fa-cloud"></i> WARP</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class='card-body' style="margin-left: 25px;">
+        <div class='card'>
+            <!-- Settings Navigation Tabs -->
+            <ul class='nav nav-pills settings-tabs' id='settings-tabs' role='tablist'>
+                <li class='nav-item'>
+                    <a class='nav-link active' id='subs-tab' data-bs-toggle='pill' href='#subs' role='tab'>
+                        <i class="fas fa-link"></i> Subscriptions
+                    </a>
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' id='telegram-tab' data-bs-toggle='pill' href='#telegram' role='tab'>
+                        <i class="fab fa-telegram"></i> Telegram
+                    </a>
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' id='ip-tab' data-bs-toggle='pill' href='#change_ip' role='tab'>
+                        <i class="fas fa-network-wired"></i> IP & Nodes
+                    </a>
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' id='extra-config-tab' data-bs-toggle='pill' href='#extra-config' role='tab'>
+                        <i class="fas fa-plus-circle"></i> Extra
+                    </a>
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' id='backup-tab' data-bs-toggle='pill' href='#backup' role='tab'>
+                        <i class="fas fa-download"></i> Backup
+                    </a>
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' id='ip-limit-tab' data-bs-toggle='pill' href='#ip-limit' role='tab'>
+                        <i class="fas fa-shield-alt"></i> IP Limit
+                    </a>
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' id='decoy-tab' data-bs-toggle='pill' href='#decoy' role='tab'>
+                        <i class="fas fa-mask"></i> Decoy
+                    </a>
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' id='warp-tab-link' data-bs-toggle='pill' href='#warp-content' role='tab'>
+                        <i class="fas fa-cloud"></i> WARP
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Settings Content -->
+            <div class='settings-content'>
                         <div class='tab-content' id='custom-tabs-three-tabContent'>
 
                             <!-- Subscriptions Tab -->
@@ -652,7 +650,6 @@
                 </div>
             </div>
         </div>
-    </div>
 </div>
 {% endblock %}
 

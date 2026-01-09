@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const mainContent = document.querySelector('.page-content > div') || document.querySelector('[data-get-file-url]');
+    const mainContent = document.querySelector('.config-editor-wrapper') || document.querySelector('[data-get-file-url]');
     const GET_FILE_URL = mainContent.dataset.getFileUrl;
     const SET_FILE_URL = mainContent.dataset.setFileUrl;
 
@@ -40,9 +40,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateSaveButton(isValid) {
         saveButton.disabled = !isValid;
-        saveButton.style.cursor = isValid ? "pointer" : "not-allowed";
-        saveButton.style.setProperty('background-color', isValid ? "#10b981" : "#374151", 'important');
-        saveButton.style.setProperty('color', isValid ? "#fff" : "#6b7280", 'important');
+        if (isValid) {
+            saveButton.classList.remove('btn-disabled');
+        } else {
+            saveButton.classList.add('btn-disabled');
+        }
     }
 
     function saveJson() {

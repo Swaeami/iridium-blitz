@@ -378,7 +378,7 @@ a:hover {
   background: var(--ir-bg-elevated);
   border: 1px solid var(--ir-border);
   color: var(--ir-text-secondary);
-  display: flex;
+  display: none; /* Hidden on desktop by default */
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -389,6 +389,13 @@ a:hover {
   background: rgba(99, 102, 241, 0.15);
   border-color: var(--ir-primary);
   color: var(--ir-text);
+}
+
+/* Show toggle button only on mobile */
+@media (max-width: 991.98px) {
+  .btn-toggle-sidebar {
+    display: flex;
+  }
 }
 
 .top-bar-right {
@@ -581,14 +588,28 @@ a:hover {
   color: white;
 }
 
-.btn-secondary {
+.btn-secondary,
+.btn-default {
   background: var(--ir-bg-elevated);
   color: var(--ir-text);
   border: 1px solid var(--ir-border);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover,
+.btn-default:hover {
   background: var(--ir-bg-surface);
+  border-color: var(--ir-primary);
+  color: var(--ir-text);
+}
+
+.btn-outline-secondary {
+  background: transparent;
+  color: var(--ir-text-secondary);
+  border: 1px solid var(--ir-border);
+}
+
+.btn-outline-secondary:hover {
+  background: var(--ir-bg-elevated);
   border-color: var(--ir-primary);
   color: var(--ir-text);
 }
@@ -682,6 +703,89 @@ form .btn-primary {
   margin-top: 0.5rem;
 }
 
+/* ================================================== */
+/*              TABLE ACTION BUTTONS                  */
+/* ================================================== */
+
+.table .btn-group-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+}
+
+.table td .btn-sm {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+}
+
+/* Edit button - purple */
+.table td .btn-info,
+.table td .edit-user {
+  background: var(--ir-gradient) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.table td .btn-info:hover,
+.table td .edit-user:hover {
+  background: var(--ir-gradient-hover) !important;
+  transform: translateY(-1px);
+}
+
+/* Reset button - orange/warning */
+.table td .btn-warning,
+.table td .reset-user {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.table td .btn-warning:hover,
+.table td .reset-user:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+  transform: translateY(-1px);
+}
+
+/* Delete button - red */
+.table td .btn-danger,
+.table td .delete-user {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.table td .btn-danger:hover,
+.table td .delete-user:hover {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%) !important;
+  transform: translateY(-1px);
+}
+
+/* QR code link in table */
+.table td .config-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--ir-bg-elevated);
+  border: 1px solid var(--ir-border);
+  border-radius: var(--radius-sm);
+  color: var(--ir-text-secondary);
+  transition: all var(--transition);
+}
+
+.table td .config-link:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--ir-primary);
+  color: var(--ir-primary);
+}
+
 .btn-xs {
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
@@ -690,6 +794,13 @@ form .btn-primary {
 .btn-lg {
   padding: 0.8rem 1.5rem;
   font-size: 1rem;
+}
+
+.btn-disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  pointer-events: none;
 }
 
 /* ================================================== */
@@ -744,6 +855,11 @@ form .btn-primary {
 .form-text {
   color: var(--ir-text-muted);
   font-size: 0.8rem;
+}
+
+/* Form group spacing */
+.form-group {
+  margin-bottom: 1rem;
 }
 
 .form-check-input {
@@ -1023,6 +1139,7 @@ form .btn-primary {
 .nav-tabs, .nav-pills {
   border-bottom: 1px solid var(--ir-border);
   gap: 0.25rem;
+  flex-wrap: wrap;
 }
 
 .nav-tabs .nav-link, .nav-pills .nav-link {
@@ -1053,6 +1170,171 @@ form .btn-primary {
 
 .tab-pane {
   color: var(--ir-text);
+}
+
+/* ================================================== */
+/*                SETTINGS PAGE                       */
+/* ================================================== */
+
+/* Settings main tabs - horizontal scrollable on mobile */
+.settings-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--ir-bg-elevated);
+  border-radius: var(--radius) var(--radius) 0 0;
+  border-bottom: 1px solid var(--ir-border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.settings-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-tabs .nav-link {
+  white-space: nowrap;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.settings-tabs .nav-link i {
+  font-size: 0.9rem;
+}
+
+.settings-tabs .nav-link.active {
+  background: var(--ir-gradient);
+  color: white;
+  border: none;
+}
+
+/* Settings content area */
+.settings-content {
+  padding: 1.5rem;
+}
+
+/* Settings section card */
+.settings-section {
+  background: var(--ir-bg-card);
+  border: 1px solid var(--ir-border);
+  border-radius: var(--radius);
+  margin-bottom: 1.25rem;
+}
+
+.settings-section-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--ir-border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.settings-section-header i {
+  font-size: 1.1rem;
+  color: var(--ir-primary);
+}
+
+.settings-section-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ir-text);
+}
+
+.settings-section-body {
+  padding: 1.25rem;
+}
+
+.settings-section-body p {
+  color: var(--ir-text-secondary);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+/* Form groups with better spacing */
+.settings-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.settings-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.settings-form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  color: var(--ir-text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Settings service status indicator */
+.service-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.service-status.active {
+  background: var(--ir-success-bg);
+  color: var(--ir-success);
+}
+
+.service-status.inactive {
+  background: var(--ir-danger-bg);
+  color: var(--ir-danger);
+}
+
+/* Settings action buttons row */
+.settings-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+/* Custom switch styling for settings */
+.settings-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  background: var(--ir-bg-elevated);
+  border: 1px solid var(--ir-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.75rem;
+}
+
+.settings-switch:last-child {
+  margin-bottom: 0;
+}
+
+.settings-switch-label {
+  color: var(--ir-text);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.settings-switch-desc {
+  color: var(--ir-text-muted);
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+
+/* Form row for inline fields */
+.settings-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
 }
 
 /* ================================================== */
@@ -1529,8 +1811,8 @@ form .btn-primary {
   .sidebar.mobile-show .nav-text,
   .sidebar.mobile-show .user-name,
   .sidebar.mobile-show .btn-logout {
-    opacity: 1;
-  }
+  opacity: 1;
+}
   
   .main-content {
     margin-left: 0;
@@ -1675,6 +1957,24 @@ form .btn-primary {
   color: var(--ir-text-secondary);
 }
 
+/* Form switch (Bootstrap 5) */
+.form-switch .form-check-input {
+  width: 2.5em;
+  height: 1.25em;
+  background-color: var(--ir-bg-elevated);
+  border-color: var(--ir-border);
+}
+
+.form-switch .form-check-input:checked {
+  background-color: var(--ir-primary);
+  border-color: var(--ir-primary);
+}
+
+.form-check-input:focus {
+  border-color: var(--ir-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
 /* Text colors */
 .text-success { color: var(--ir-success) !important; }
 .text-danger { color: var(--ir-danger) !important; }
@@ -1738,28 +2038,160 @@ form .btn-primary {
   border-color: var(--ir-primary);
 }
 
-/* JSONEditor compatibility */
+/* ================================================== */
+/*                  CONFIG EDITOR                     */
+/* ================================================== */
+
+.config-editor-wrapper {
+  padding: 0;
+}
+
+.config-toolbar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* JSONEditor Full Dark Theme */
 .jsoneditor {
   border: 1px solid var(--ir-border) !important;
   border-radius: var(--radius) !important;
+  background: var(--ir-bg-card) !important;
 }
 
 .jsoneditor-menu {
   background: var(--ir-bg-elevated) !important;
   border-bottom: 1px solid var(--ir-border) !important;
+  border-radius: var(--radius) var(--radius) 0 0 !important;
 }
 
-.jsoneditor-outer {
-  background: var(--ir-bg-card) !important;
+.jsoneditor-menu > button,
+.jsoneditor-menu > .jsoneditor-modes > button {
+  background: var(--ir-bg-surface) !important;
+  border: 1px solid var(--ir-border) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--ir-text) !important;
+  filter: none !important;
+  opacity: 1 !important;
 }
 
-.jsoneditor-tree {
+.jsoneditor-menu > button:hover,
+.jsoneditor-menu > .jsoneditor-modes > button:hover {
+  background: rgba(99, 102, 241, 0.15) !important;
+  border-color: var(--ir-primary) !important;
+}
+
+.jsoneditor-menu > button.jsoneditor-selected,
+.jsoneditor-menu > .jsoneditor-modes > button.jsoneditor-selected {
+  background: var(--ir-primary) !important;
+  border-color: var(--ir-primary) !important;
+}
+
+.jsoneditor-search input {
+  background: var(--ir-bg-elevated) !important;
+  border: 1px solid var(--ir-border) !important;
+  color: var(--ir-text) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.jsoneditor-search button {
+  background: var(--ir-bg-surface) !important;
+  border: 1px solid var(--ir-border) !important;
+  filter: invert(0.85) !important;
+}
+
+.jsoneditor-outer,
+.jsoneditor-tree,
+.jsoneditor-text-mode {
   background: var(--ir-bg-card) !important;
   color: var(--ir-text) !important;
 }
 
+.jsoneditor-frame,
+.jsoneditor-treepath {
+  background: var(--ir-bg-elevated) !important;
+  border-color: var(--ir-border) !important;
+}
+
+.jsoneditor-treepath span {
+  color: var(--ir-text-secondary) !important;
+}
+
+.jsoneditor-treepath span:hover {
+  color: var(--ir-primary) !important;
+}
+
+/* ACE Editor (code mode) dark theme */
+.ace_editor,
+.ace-jsoneditor {
+  background: var(--ir-bg-card) !important;
+  color: var(--ir-text) !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+}
+
+.ace_gutter {
+  background: var(--ir-bg-elevated) !important;
+  color: var(--ir-text-muted) !important;
+}
+
+.ace_gutter-active-line {
+  background: rgba(99, 102, 241, 0.15) !important;
+}
+
+.ace_cursor {
+  color: var(--ir-primary-light) !important;
+}
+
+.ace_marker-layer .ace_selection {
+  background: rgba(99, 102, 241, 0.3) !important;
+}
+
+.ace_marker-layer .ace_active-line {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.ace_string { color: #a5d6a7 !important; }
+.ace_constant.ace_numeric { color: #ce93d8 !important; }
+.ace_variable { color: #90caf9 !important; }
+.ace_keyword { color: #f48fb1 !important; }
+.ace_paren { color: #ffcc80 !important; }
+
+.jsoneditor-contextmenu {
+  background: var(--ir-bg-surface) !important;
+  border: 1px solid var(--ir-border) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: var(--ir-shadow-lg) !important;
+}
+
 .jsoneditor-contextmenu .jsoneditor-menu {
   background: var(--ir-bg-surface) !important;
+  border: none !important;
+}
+
+.jsoneditor-contextmenu .jsoneditor-menu li button {
+  color: var(--ir-text-secondary) !important;
+  background: transparent !important;
+}
+
+.jsoneditor-contextmenu .jsoneditor-menu li button:hover {
+  background: rgba(99, 102, 241, 0.1) !important;
+  color: var(--ir-text) !important;
+}
+
+.jsoneditor-statusbar {
+  background: var(--ir-bg-elevated) !important;
+  border-top: 1px solid var(--ir-border) !important;
+  color: var(--ir-text-secondary) !important;
+}
+
+.jsoneditor-navigation-bar {
+  background: var(--ir-bg-elevated) !important;
+  border-bottom: 1px solid var(--ir-border) !important;
+}
+
+#jsoneditor {
+  height: calc(100vh - 220px);
+  min-height: 500px;
 }
 
 /* Close button fix for modals */

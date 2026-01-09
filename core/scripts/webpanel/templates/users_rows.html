@@ -57,19 +57,21 @@
             </a>
         </td>
         <td class="d-none d-md-table-cell text-nowrap">
-            <button type="button" class="btn btn-sm btn-info edit-user"
-                data-user="{{ user.username }}" data-bs-toggle="modal"
-                data-bs-target="#editUserModal">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button type="button" class="btn btn-sm btn-warning reset-user"
-                data-user="{{ user.username }}">
-                <i class="fas fa-undo"></i>
-            </button>
-            <button type="button" class="btn btn-sm btn-danger delete-user"
-                data-user="{{ user.username }}">
-                <i class="fas fa-trash"></i>
-            </button>
+            <div class="btn-group-actions">
+                <button type="button" class="btn btn-sm edit-user" title="Edit"
+                    data-user="{{ user.username }}" data-bs-toggle="modal"
+                    data-bs-target="#editUserModal">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button type="button" class="btn btn-sm reset-user" title="Reset"
+                    data-user="{{ user.username }}">
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button type="button" class="btn btn-sm delete-user" title="Delete"
+                    data-user="{{ user.username }}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
         </td>
         <td class="d-md-none text-center">
             <button type="button" class="btn btn-sm btn-secondary toggle-details-btn">

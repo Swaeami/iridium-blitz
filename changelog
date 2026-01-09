@@ -1,3 +1,34 @@
+# 🎨 **Iridium 1.0.6 - Settings UX & Editor Polish**
+
+*Released: 2026-01-09*
+
+## 🎨 Major UI Improvements
+
+* **JSON Config Editor**: Complete dark theme overhaul
+  - Proper dark backgrounds for ACE editor
+  - Styled toolbar buttons matching Iridium theme
+  - Syntax highlighting with theme-appropriate colors
+  - Dark context menus and search
+
+* **Settings Page Redesign**:
+  - New horizontal scrollable tabs
+  - Active tab uses purple gradient
+  - Better visual hierarchy with section cards
+  - Improved form layouts and spacing
+
+* **Users Table Actions**: 
+  - Action buttons now properly styled with gradients
+  - Edit (purple), Reset (orange), Delete (red)
+  - Consistent 32px square buttons
+  - QR code link styled as outlined button
+
+## 🐛 Fixes
+
+* **Toggle Sidebar Button**: Now hidden on desktop (sidebar opens on hover), visible only on mobile
+* **Table Action Buttons**: Fixed white/square buttons - now have proper colors and rounded corners
+
+---
+
 # 🎨 **Iridium 1.0.5 - UI Polish & Fixes**
 
 *Released: 2026-01-09*
