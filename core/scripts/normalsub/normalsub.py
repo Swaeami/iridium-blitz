@@ -13,7 +13,7 @@ from io import BytesIO
 from aiohttp import web
 from aiohttp.web_middlewares import middleware
 from urllib.parse import unquote, parse_qs, urlparse, urljoin, quote
-from dotenv import load_dotenv
+from dotenv import load_dotenv, dotenv_values
 import qrcode
 from jinja2 import Environment, FileSystemLoader
 
@@ -21,6 +21,16 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from db.database import db
 
 load_dotenv()
+
+CONFIGS_ENV_PATH = '/etc/hysteria/.configs.env'
+
+def get_subscription_name() -> str:
+    """Get custom subscription name from .configs.env or default"""
+    try:
+        env_vars = dotenv_values(CONFIGS_ENV_PATH)
+        return env_vars.get('SUB_NAME', 'Iridium')
+    except Exception:
+        return 'Iridium'
 
 
 @dataclass
@@ -407,7 +417,8 @@ class SubscriptionManager:
             f"total={user_info.max_download_bytes}; "
             f"expire={user_info.expiration_timestamp}\n"
         )
-        profile_lines = f"//profile-title: {username}-Blitz ⚡\n//profile-update-interval: 1\n"
+        sub_name = get_subscription_name()
+        profile_lines = f"//profile-title: {username}-{sub_name} ⚡\n//profile-update-interval: 1\n"
         return profile_lines + subscription_info + "\n".join(all_processed_uris)
 
 

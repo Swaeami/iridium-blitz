@@ -1,19 +1,6 @@
-## Iridium 1.0.12 - Settings Page Redesign
+## Iridium 1.0.13 - Subscription Name Fix
 
-### New Features
-- Complete settings page redesign with modern UX
-- Horizontal scrollable navigation tabs
-- Grouped settings into logical categories:
-  - **Network**: Server IP, Connection Labels, External Nodes
-  - **Subscriptions**: Service control, Path config, Extra proxies
-  - **Telegram**: Bot configuration
-  - **Security**: IP Limit + Decoy Site (combined)
-  - **WARP**: Cloudflare WARP configuration
-  - **Backup**: Create and restore backups
-
-### Improvements
-- Removed nested sub-tabs for cleaner navigation
-- Collapsible "Add Node" form
-- Better card-based layout
-- Consistent form styling across all sections
-- Improved mobile responsiveness
+### Fixed
+- Subscription profile-title now uses custom SUB_NAME from settings
+- Previously hardcoded "Blitz" is now replaced with the configured subscription name
+- Default subscription name changed from "Hysteria2" to "Iridium"
