@@ -8,7 +8,7 @@ import re
 from datetime import datetime
 from db.database import db
 
-def edit_user(username, new_username=None, new_password=None, traffic_gb=None, expiration_days=None, creation_date=None, blocked=None, unlimited_user=None, note=None):
+def edit_user(username, new_username=None, new_password=None, traffic_gb=None, expiration_days=None, creation_date=None, blocked=None, unlimited_user=None, note=None, max_ips=None):
     if db is None:
         print("Error: Database connection failed.", file=sys.stderr)
         return 1
@@ -48,6 +48,13 @@ def edit_user(username, new_username=None, new_password=None, traffic_gb=None, e
 
     if note is not None:
         updates['note'] = note
+    
+    if max_ips is not None:
+        if max_ips == 0:
+            # 0 means remove per-user limit (use global)
+            updates['max_ips'] = None
+        else:
+            updates['max_ips'] = int(max_ips)
         
     try:
         if updates:
@@ -112,6 +119,7 @@ if __name__ == "__main__":
     parser.add_argument("--blocked", type=str_to_bool, help="Set blocked status (true/false).")
     parser.add_argument("--unlimited", dest="unlimited_user", type=str_to_bool, help="Set unlimited user status for IP limits (true/false).")
     parser.add_argument("--note", help="New note for the user. To clear the note, provide an empty string.")
+    parser.add_argument("--max-ips", dest="max_ips", type=int, help="Max concurrent IPs for this user. Use 0 to remove and use global limit.")
 
     args = parser.parse_args()
 
@@ -124,5 +132,6 @@ if __name__ == "__main__":
         creation_date=args.creation_date,
         blocked=args.blocked,
         unlimited_user=args.unlimited_user,
-        note=args.note
+        note=args.note,
+        max_ips=args.max_ips
     ))

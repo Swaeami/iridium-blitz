@@ -263,6 +263,13 @@ $(function () {
         const formData = new FormData(this);
         const jsonData = Object.fromEntries(formData.entries());
         jsonData.unlimited = jsonData.unlimited === 'on';
+        
+        // Handle max_ips - convert to int or null
+        if (jsonData.max_ips !== undefined && jsonData.max_ips !== '') {
+            jsonData.max_ips = parseInt(jsonData.max_ips);
+        } else {
+            delete jsonData.max_ips;
+        }
 
         $.ajax({
             url: url,
@@ -315,6 +322,12 @@ $(function () {
             .done(userData => {
                 passwordInput.val(userData.password || '');
                 validatePassword('#editPassword', '#editPasswordError');
+                // Set max_ips if present
+                if (userData.max_ips !== null && userData.max_ips !== undefined) {
+                    $("#editMaxIps").val(userData.max_ips);
+                } else {
+                    $("#editMaxIps").val('');
+                }
             })
             .fail(() => {
                 passwordInput.val("").attr("placeholder", "Failed to load");
@@ -338,6 +351,13 @@ $(function () {
         const jsonData = Object.fromEntries(formData.entries());
         jsonData.blocked = jsonData.blocked === 'on';
         jsonData.unlimited_ip = jsonData.unlimited_ip === 'on';
+        
+        // Handle max_ips - convert to int or null (0 means use global)
+        if (jsonData.max_ips !== undefined && jsonData.max_ips !== '') {
+            jsonData.max_ips = parseInt(jsonData.max_ips);
+        } else {
+            delete jsonData.max_ips;
+        }
 
         $.ajax({
             url: url,

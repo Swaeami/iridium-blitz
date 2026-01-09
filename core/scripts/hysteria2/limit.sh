@@ -122,13 +122,25 @@ check_expired_blocks() {
 check_ip_limit() {
     local username="$1"
     
+    # Get user's individual max_ips or fall back to global MAX_IPS
+    local user_max_ips
+    user_max_ips=$(mongosh "$DB_NAME" --quiet --eval "
+        var user = db.users.findOne({_id: '$username'}, {_id: 0, max_ips: 1});
+        (user && user.max_ips != null) ? user.max_ips : $MAX_IPS;
+    ")
+    
+    # Ensure we have a valid number
+    if ! [[ "$user_max_ips" =~ ^[0-9]+$ ]]; then
+        user_max_ips=$MAX_IPS
+    fi
+    
     local ip_count
     ip_count=$(mongosh "$DB_NAME" --quiet --eval "
         db.getCollection('$CONNECTIONS_COLLECTION').findOne({_id: '$username'})?.ips?.length || 0;
     ")
 
-    if (( ip_count > MAX_IPS )); then
-        log_message "WARN" "User $username has $ip_count IPs (max: $MAX_IPS) - blocking all IPs"
+    if (( ip_count > user_max_ips )); then
+        log_message "WARN" "User $username has $ip_count IPs (max: $user_max_ips) - blocking all IPs"
         block_all_user_ips "$username"
     fi
 }

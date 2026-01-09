@@ -16,6 +16,7 @@ class UserInfoResponse(BaseModel):
     upload_bytes: Optional[int] = None
     download_bytes: Optional[int] = None
     online_count: int = 0
+    max_ips: Optional[int] = Field(None, description="Per-user IP limit. None means use global limit.")
 
 
 class UserListResponse(RootModel):
@@ -32,6 +33,7 @@ class AddUserInputBody(BaseModel):
     creation_date: Optional[str] = None
     unlimited: bool = False
     note: Optional[str] = None
+    max_ips: Optional[int] = Field(None, description="Per-user IP limit. None means use global limit.")
 
     @field_validator('username')
     def validate_username(cls, v):
@@ -65,6 +67,7 @@ class EditUserInputBody(BaseModel):
     blocked: Optional[bool] = Field(None, description="Whether the user is blocked.")
     unlimited_ip: Optional[bool] = Field(None, description="Whether the user has unlimited IP access.")
     note: Optional[str] = Field(None, description="A note for the user.")
+    max_ips: Optional[int] = Field(None, description="Per-user IP limit. Use 0 to reset to global limit.")
 
     @field_validator('new_username')
     def validate_new_username(cls, v):

@@ -396,6 +396,16 @@
                                     <input type="text" class="form-control" id="addNote" name="note">
                                 </div>
                             </div>
+                            <div class="form-group requires-iplimit-service" style="display: none;">
+                                <label for="addMaxIps">IP Limit (per user)</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-network-wired"></i></span>
+                                    </div>
+                                    <input type="number" class="form-control" id="addMaxIps" name="max_ips" min="1" placeholder="Leave empty for global limit">
+                                </div>
+                                <small class="form-text text-muted">Leave empty to use global limit</small>
+                            </div>
                             <div class="form-check mb-3 requires-iplimit-service" style="display: none;">
                                 <input type="checkbox" class="form-check-input" id="addUnlimited" name="unlimited">
                                 <label class="form-check-label" for="addUnlimited">
@@ -539,6 +549,16 @@
                             <textarea class="form-control" id="editNote" name="note" rows="3"></textarea>
                         </div>
                     </div>
+                    <div class="form-group requires-iplimit-service" style="display: none;">
+                        <label for="editMaxIps">IP Limit (per user)</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-network-wired"></i></span>
+                            </div>
+                            <input type="number" class="form-control" id="editMaxIps" name="max_ips" min="0" placeholder="0 = use global limit">
+                        </div>
+                        <small class="form-text text-muted">Leave empty or set 0 to use global limit</small>
+                    </div>
                     <div class="form-check">
                         <input type="checkbox" class="form-check-input" id="editBlocked" name="blocked">
                         <label class="form-check-label" for="editBlocked">
@@ -616,5 +636,5 @@
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ url_for('assets', path='js/users.js') }}?v=1.0.19"></script>
+<script src="{{ url_for('assets', path='js/users.js') }}?v=1.0.20"></script>
 {% endblock %}

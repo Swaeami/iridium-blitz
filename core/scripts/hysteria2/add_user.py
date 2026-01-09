@@ -9,9 +9,9 @@ import string
 from datetime import datetime
 from db.database import db
 
-def add_user(username, traffic_gb, expiration_days, password=None, unlimited_user=False, note=None, creation_date=None):
+def add_user(username, traffic_gb, expiration_days, password=None, unlimited_user=False, note=None, creation_date=None, max_ips=None):
     if not username or not traffic_gb or not expiration_days:
-        print(f"Usage: {sys.argv[0]} <username> <traffic_limit_GB> <expiration_days> [password] [unlimited_user (true/false)] [note] [creation_date]")
+        print(f"Usage: {sys.argv[0]} <username> <traffic_limit_GB> <expiration_days> [password] [unlimited_user (true/false)] [note] [creation_date] [max_ips]")
         return 1
 
     if db is None:
@@ -50,6 +50,9 @@ def add_user(username, traffic_gb, expiration_days, password=None, unlimited_use
             "status": "On-hold"
         }
         
+        if max_ips is not None:
+            user_data["max_ips"] = int(max_ips)
+        
         if note:
             user_data["note"] = note
             
@@ -77,8 +80,8 @@ def add_user(username, traffic_gb, expiration_days, password=None, unlimited_use
         return 1
 
 if __name__ == "__main__":
-    if len(sys.argv) < 4 or len(sys.argv) > 8:
-        print(f"Usage: {sys.argv[0]} <username> <traffic_limit_GB> <expiration_days> [password] [unlimited_user (true/false)] [note] [creation_date]")
+    if len(sys.argv) < 4 or len(sys.argv) > 9:
+        print(f"Usage: {sys.argv[0]} <username> <traffic_limit_GB> <expiration_days> [password] [unlimited_user (true/false)] [note] [creation_date] [max_ips]")
         sys.exit(1)
 
     username = sys.argv[1]
@@ -89,6 +92,7 @@ if __name__ == "__main__":
     unlimited_user = unlimited_user_str.lower() == 'true'
     note = sys.argv[6] if len(sys.argv) > 6 and sys.argv[6] else None
     creation_date = sys.argv[7] if len(sys.argv) > 7 and sys.argv[7] else None
+    max_ips = int(sys.argv[8]) if len(sys.argv) > 8 and sys.argv[8] else None
 
-    exit_code = add_user(username, traffic_gb, expiration_days, password, unlimited_user, note, creation_date)
+    exit_code = add_user(username, traffic_gb, expiration_days, password, unlimited_user, note, creation_date, max_ips)
     sys.exit(exit_code)

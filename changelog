@@ -1,12 +1,18 @@
-## Iridium 1.0.19 - Service Management Improvements
+## Iridium 1.0.20 - Per-User IP Limits
 
 ### Added
-- Restart buttons for all services on Dashboard (Telegram Bot, IP Limit, NormalSub)
-- API endpoints for restarting Telegram Bot, IP Limit, and NormalSub services
+- **Per-user IP limit**: Each user can now have their own IP limit
+- New `max_ips` field in user creation and editing forms
+- Per-user limit stored in MongoDB, checked by IP Limit service
+- If no per-user limit set, global limit is used as fallback
 
 ### Changed
-- Subscription Service: Domain/Port fields now hidden when service is running
-- Shows info message instead of config inputs when NormalSub is active
+- Updated `limit.sh` to check per-user `max_ips` from database
+- Updated `add_user.py` and `edit_user.py` to support `max_ips` parameter
+- Updated API schemas and endpoints for `max_ips` support
+- Updated UI forms to include IP limit field (visible when IP Limit service is running)
 
-### Fixed
-- Unified restart button handling across all services
+### Technical
+- `max_ips: null` or not set = use global MAX_IPS
+- `max_ips: 0` in edit = reset to global limit
+- `max_ips: N` = user-specific limit of N concurrent IPs

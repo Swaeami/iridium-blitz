@@ -304,7 +304,7 @@ def get_user(username: str) -> dict[str, Any] | None:
         return json.loads(res)
 
 
-def add_user(username: str, traffic_limit: int, expiration_days: int, password: str | None, creation_date: str | None, unlimited: bool, note: str | None):
+def add_user(username: str, traffic_limit: int, expiration_days: int, password: str | None, creation_date: str | None, unlimited: bool, note: str | None, max_ips: int | None = None):
     '''
     Adds a new user with the given parameters, respecting positional argument requirements.
     '''
@@ -324,6 +324,12 @@ def add_user(username: str, traffic_limit: int, expiration_days: int, password: 
         if not unlimited: command.append('false')
         if not note: command.append('')
         command.append(creation_date)
+    
+    if max_ips is not None:
+        if not unlimited: command.append('false')
+        if not note: command.append('')
+        if not creation_date: command.append('')
+        command.append(str(max_ips))
         
     run_cmd(command)
 
@@ -346,7 +352,7 @@ def bulk_user_add(traffic_gb: float, expiration_days: int, count: int, prefix: s
         
     run_cmd(command)
 
-def edit_user(username: str, new_username: str | None, new_password: str | None, new_traffic_limit: int | None, new_expiration_days: int | None, renew_password: bool, renew_creation_date: bool, blocked: bool | None, unlimited_ip: bool | None, note: str | None):
+def edit_user(username: str, new_username: str | None, new_password: str | None, new_traffic_limit: int | None, new_expiration_days: int | None, renew_password: bool, renew_creation_date: bool, blocked: bool | None, unlimited_ip: bool | None, note: str | None, max_ips: int | None = None):
     '''
     Edits an existing user's details by calling the new edit_user.py script with named flags.
     '''
@@ -389,6 +395,9 @@ def edit_user(username: str, new_username: str | None, new_password: str | None,
 
     if note is not None:
         command_args.extend(['--note', note])
+    
+    if max_ips is not None:
+        command_args.extend(['--max-ips', str(max_ips)])
 
     run_cmd(command_args)
 
