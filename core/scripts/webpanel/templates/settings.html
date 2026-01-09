@@ -264,16 +264,24 @@
                         </div>
                         <div class="card-body">
                             <form id="normal_sub_service_form">
-                                <div class="row g-3">
-                                    <div class="col-md-8">
-                                        <label for='normal_domain' class="form-label">Domain</label>
-                                        <input type='text' class='form-control' id='normal_domain' placeholder='sub.example.com'>
-                                        <div class="invalid-feedback">Please enter a valid domain.</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for='normal_port' class="form-label">Port</label>
-                                        <input type='text' class='form-control' id='normal_port' placeholder='8080'>
-                                        <div class="invalid-feedback">Invalid port.</div>
+                                <!-- Running state info -->
+                                <div id="normal_sub_running_info" class="alert alert-success mb-3" style="display: none;">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    NormalSub service is running. You can stop it or configure its subpath.
+                                </div>
+                                <!-- Config inputs (hidden when running) -->
+                                <div id="normal_sub_config_inputs">
+                                    <div class="row g-3">
+                                        <div class="col-md-8">
+                                            <label for='normal_domain' class="form-label">Domain</label>
+                                            <input type='text' class='form-control' id='normal_domain' placeholder='sub.example.com'>
+                                            <div class="invalid-feedback">Please enter a valid domain.</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for='normal_port' class="form-label">Port</label>
+                                            <input type='text' class='form-control' id='normal_port' placeholder='8080'>
+                                            <div class="invalid-feedback">Invalid port.</div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="d-flex gap-2 mt-3">
@@ -726,5 +734,5 @@
 
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ url_for('assets', path='js/settings.js') }}?v=1.0.18"></script>
+<script src="{{ url_for('assets', path='js/settings.js') }}?v=1.0.19"></script>
 {% endblock %}

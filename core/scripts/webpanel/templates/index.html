@@ -21,6 +21,9 @@
          data-server-status-url="{{ url_for('server_status_api') }}" 
          data-services-status-url="{{ url_for('server_services_status_api') }}"
          data-restart-hysteria-url="{{ url_for('restart_service') }}"
+         data-restart-telegram-url="{{ url_for('telegram_restart_api') }}"
+         data-restart-iplimit-url="{{ url_for('restart_ip_limit_api') }}"
+         data-restart-normalsub-url="{{ url_for('normal_sub_restart_api') }}"
          data-version-url="{{ url_for('get_version_info') }}" 
          data-check-version-url="{{ url_for('check_version_info') }}">
     
@@ -265,6 +268,9 @@
                         <div class="icon">
                             <i class="fab fa-telegram"></i>
                         </div>
+                        <a href="#" id="restart-telegrambot-btn" class="small-box-footer" style="display: none;">
+                            Restart Service <i class="fas fa-sync-alt ms-1"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
@@ -276,6 +282,9 @@
                         <div class="icon">
                             <i class="fas fa-shield-alt"></i>
                         </div>
+                        <a href="#" id="restart-iplimit-btn" class="small-box-footer" style="display: none;">
+                            Restart Service <i class="fas fa-sync-alt ms-1"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
@@ -287,6 +296,9 @@
                         <div class="icon">
                             <i class="fas fa-link"></i>
                         </div>
+                        <a href="#" id="restart-normalsub-btn" class="small-box-footer" style="display: none;">
+                            Restart Service <i class="fas fa-sync-alt ms-1"></i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -296,5 +308,5 @@
 {% endblock %}
 
 {% block javascripts %}
-<script src="{{ url_for('assets', path='js/index.js') }}?v=1.0.18"></script>
+<script src="{{ url_for('assets', path='js/index.js') }}?v=1.0.19"></script>
 {% endblock %}

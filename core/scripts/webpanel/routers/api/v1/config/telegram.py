@@ -40,6 +40,21 @@ async def telegram_stop_api():
         raise HTTPException(status_code=400, detail=f'Error: {str(e)}')
 
 
+@router.post('/restart', response_model=DetailResponse, summary='Restart Telegram Bot')
+async def telegram_restart_api():
+    """
+    Restarts the Telegram bot service.
+
+    Returns:
+        DetailResponse: The response containing the result of the action.
+    """
+    try:
+        cli_api.restart_telegram_bot()
+        return DetailResponse(detail='Telegram bot restarted successfully.')
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f'Error: {str(e)}')
+
+
 @router.get('/backup-interval', response_model=BackupIntervalResponse, summary='Get Telegram Bot Backup Interval')
 async def telegram_get_interval_api():
     """

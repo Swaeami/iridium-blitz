@@ -52,6 +52,24 @@ async def normal_sub_stop_api():
         raise HTTPException(status_code=400, detail=f'Error: {str(e)}')
 
 
+@router.post('/restart', response_model=DetailResponse, summary='Restart NormalSub')
+async def normal_sub_restart_api():
+    """
+    Restarts the NormalSub service.
+
+    Returns:
+        DetailResponse: A response object containing a success message.
+
+    Raises:
+        HTTPException: If there is an error restarting the service.
+    """
+    try:
+        cli_api.restart_normalsub()
+        return DetailResponse(detail='Normalsub restarted successfully.')
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f'Error: {str(e)}')
+
+
 @router.put('/edit_subpath', response_model=DetailResponse, summary='Edit NormalSub Subpath')
 async def normal_sub_edit_subpath_api(body: EditSubPathInputBody):
     """

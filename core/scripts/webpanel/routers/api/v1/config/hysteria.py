@@ -351,6 +351,16 @@ async def stop_ip_limit_api():
     except Exception as e:
         raise HTTPException(status_code=400, detail=f'Error stopping IP Limiter: {str(e)}')
 
+
+@router.post('/ip-limit/restart', response_model=DetailResponse, summary='Restart IP Limiter Service')
+async def restart_ip_limit_api():
+    """Restarts the IP Limiter service."""
+    try:
+        cli_api.restart_ip_limiter()
+        return DetailResponse(detail='IP Limiter service restarted successfully.')
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f'Error restarting IP Limiter: {str(e)}')
+
 @router.post('/ip-limit/clean', response_model=DetailResponse, summary='Clean IP Limiter Database')
 async def clean_ip_limit_api():
     """Cleans the IP Limiter database and unblocks all IPs."""

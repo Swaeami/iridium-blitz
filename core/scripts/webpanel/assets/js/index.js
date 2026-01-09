@@ -80,6 +80,20 @@ function updateServiceBox(serviceName, status) {
             }
         }
     }
+    
+    // Show restart buttons for other services when they're running
+    if (serviceName === 'telegrambot') {
+        const restartBtn = document.getElementById('restart-telegrambot-btn');
+        if (restartBtn) restartBtn.style.display = status ? 'block' : 'none';
+    }
+    if (serviceName === 'iplimit') {
+        const restartBtn = document.getElementById('restart-iplimit-btn');
+        if (restartBtn) restartBtn.style.display = status ? 'block' : 'none';
+    }
+    if (serviceName === 'normalsub') {
+        const restartBtn = document.getElementById('restart-normalsub-btn');
+        if (restartBtn) restartBtn.style.display = status ? 'block' : 'none';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -98,31 +112,44 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleIpBtn.querySelector('i').classList.toggle('fa-eye-slash');
     });
 
-    const restartBtn = document.getElementById('restart-hysteria2-btn');
-    const restartUrl = document.querySelector('.content').dataset.restartHysteriaUrl;
-    restartBtn.addEventListener('click', function(e) {
-        e.preventDefault();
+    // Generic restart handler function
+    function setupRestartButton(btnId, urlKey) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
         
-        restartBtn.innerHTML = 'Restarting... <i class="fas fa-sync-alt fa-spin ml-1"></i>';
-        restartBtn.style.pointerEvents = 'none';
+        const url = document.querySelector('.content').dataset[urlKey];
+        if (!url) return;
+        
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            btn.innerHTML = 'Restarting... <i class="fas fa-sync-alt fa-spin ms-1"></i>';
+            btn.style.pointerEvents = 'none';
 
-        fetch(restartUrl, { method: 'POST' })
-            .then(response => {
-                if (!response.ok) return response.json().then(err => { throw new Error(err.detail || 'Unknown error'); });
-                return response.json();
-            })
-            .then(data => {
-                Swal.fire({ icon: 'success', title: data.detail, toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
-                setTimeout(updateServiceStatuses, 1000);
-            })
-            .catch(error => {
-                Swal.fire({ icon: 'error', title: `Failed to restart: ${error.message}`, toast: true, position: 'top-end', timer: 4000, showConfirmButton: false });
-            })
-            .finally(() => {
-                restartBtn.innerHTML = 'Restart Service <i class="fas fa-sync-alt ml-1"></i>';
-                restartBtn.style.pointerEvents = 'auto';
-            });
-    });
+            fetch(url, { method: 'POST' })
+                .then(response => {
+                    if (!response.ok) return response.json().then(err => { throw new Error(err.detail || 'Unknown error'); });
+                    return response.json();
+                })
+                .then(data => {
+                    showToast('success', data.detail);
+                    setTimeout(updateServiceStatuses, 1000);
+                })
+                .catch(error => {
+                    showToast('error', `Failed to restart: ${error.message}`);
+                })
+                .finally(() => {
+                    btn.innerHTML = 'Restart Service <i class="fas fa-sync-alt ms-1"></i>';
+                    btn.style.pointerEvents = 'auto';
+                });
+        });
+    }
+    
+    // Setup restart buttons for all services
+    setupRestartButton('restart-hysteria2-btn', 'restartHysteriaUrl');
+    setupRestartButton('restart-telegrambot-btn', 'restartTelegramUrl');
+    setupRestartButton('restart-iplimit-btn', 'restartIplimitUrl');
+    setupRestartButton('restart-normalsub-btn', 'restartNormalsubUrl');
 
     const versionUrl = $('.content').data('version-url');
     $.ajax({

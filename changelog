@@ -1,10 +1,12 @@
-## Iridium 1.0.18 - External Nodes Table UI Improvements
+## Iridium 1.0.19 - Service Management Improvements
+
+### Added
+- Restart buttons for all services on Dashboard (Telegram Bot, IP Limit, NormalSub)
+- API endpoints for restarting Telegram Bot, IP Limit, and NormalSub services
 
 ### Changed
-- Simplified External Nodes table: removed OBFS, Insecure, PIN SHA256 columns
-- Added compact badges (OBFS, Insecure, Pinned) in the Name column
-- Added horizontal scroll for tables on smaller screens
-- Improved table responsiveness
+- Subscription Service: Domain/Port fields now hidden when service is running
+- Shows info message instead of config inputs when NormalSub is active
 
 ### Fixed
-- Table no longer overflows on narrow screens
+- Unified restart button handling across all services

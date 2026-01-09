@@ -688,26 +688,24 @@ $(document).ready(function () {
                 }
 
             } else if (serviceKey === "hysteria_normal_sub") {
-                const $normalForm = $("#normal_sub_service_form");
-                const $normalFormGroups = $normalForm.find(".form-group");
                 const $normalStartBtn = $("#normal_start");
                 const $normalStopBtn = $("#normal_stop");
                 const $normalSubConfigTabLi = $(".normal-sub-config-tab-li");
+                const $configInputs = $("#normal_sub_config_inputs");
+                const $runningInfo = $("#normal_sub_running_info");
 
                 if (isRunning) {
-                    $normalFormGroups.hide();
+                    $configInputs.hide();
+                    $runningInfo.show();
                     $normalStartBtn.hide();
                     $normalStopBtn.show();
-                    if ($normalForm.find(".alert-info").length === 0) {
-                        $normalForm.prepend(`<div class='alert alert-info'>NormalSub service is running. You can stop it or configure its subpath.</div>`);
-                    }
                     $normalSubConfigTabLi.show();
                     fetchNormalSubPath();
                 } else {
-                    $normalFormGroups.show();
+                    $configInputs.show();
+                    $runningInfo.hide();
                     $normalStartBtn.show();
                     $normalStopBtn.hide();
-                    $normalForm.find(".alert-info").remove();
                     $normalSubConfigTabLi.hide();
                     if ($('#normal-sub-config-link-tab').hasClass('active')) {
                         $('#normal-tab').tab('show');

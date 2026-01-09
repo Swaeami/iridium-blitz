@@ -780,6 +780,21 @@ def stop_normalsub():
     run_cmd(['bash', Command.INSTALL_NORMALSUB.value, 'stop'])
 
 
+def restart_normalsub():
+    '''Restarts NormalSub service.'''
+    run_cmd(['systemctl', 'restart', 'hysteria-normal-sub.service'])
+
+
+def restart_telegram_bot():
+    '''Restarts Telegram Bot service.'''
+    run_cmd(['systemctl', 'restart', 'hysteria-telegram-bot.service'])
+
+
+def restart_ip_limiter():
+    '''Restarts IP Limiter service.'''
+    run_cmd(['systemctl', 'restart', 'hysteria-ip-limit.service'])
+
+
 def start_webpanel(domain: str, port: int, admin_username: str, admin_password: str, expiration_minutes: int, debug: bool, decoy_path: str):
     '''Starts WebPanel.'''
     if not domain or not port or not admin_username or not admin_password or not expiration_minutes:
