@@ -45,7 +45,6 @@ def create_app() -> FastAPI:
     app.include_router(routers.login.router, prefix='', tags=['Web - Authentication'])
     app.include_router(routers.settings.router, prefix='/settings', tags=['Web - Settings'])
     app.include_router(routers.user.router, prefix='/users', tags=['Web - User Management'])
-    app.include_router(routers.shop.router, prefix='/shop', tags=['Web - Shop'])
     app.include_router(routers.api.v1.api_v1_router, prefix='/api/v1')
 
     setup_openapi_schema(app)

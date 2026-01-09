@@ -73,29 +73,47 @@ def shop_admin_menu(message):
 @bot.message_handler(func=lambda message: is_admin(message.from_user.id) and message.text == '📋 Тарифы')
 def tariffs_menu(message):
     """List all tariffs"""
+    show_tariffs_list(message.chat.id)
+
+
+def show_tariffs_list(chat_id, message_id=None):
+    """Display tariffs list with inline buttons"""
     tariffs = shop_db.get_all_tariffs()
     
     if not tariffs:
         text = "📋 *Тарифы*\n\nНет созданных тарифов."
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("➕ Добавить", callback_data="add_tariff"))
     else:
         text = "📋 *Тарифы:*\n\n"
-        for t in tariffs:
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        
+        for i, t in enumerate(tariffs):
             status = "✅" if t.get("is_active", True) else "❌"
             if t["type"] == "traffic":
-                desc = f"{t['traffic_gb']} GB"
+                desc = f"{t.get('traffic_gb', 0)} GB"
             else:
                 desc = f"{t.get('days', 0)} дней"
             
-            stars = f" / {t['price_stars']}⭐" if t.get('price_stars') else ""
-            text += f"{status} *{t['name']}* — {desc} — {t['price']}₽{stars}\n"
+            stars = f" / {t.get('price_stars', 0)}⭐" if t.get('price_stars') else ""
+            text += f"{i+1}. {status} *{t['name']}* — {desc}{stars}\n"
+            
+            # Add management buttons for each tariff
+            tariff_id = str(t['_id'])
+            markup.row(
+                types.InlineKeyboardButton(f"✏️ {t['name']}", callback_data=f"edit_tariff:{tariff_id}"),
+                types.InlineKeyboardButton("🗑️", callback_data=f"delete_tariff:{tariff_id}")
+            )
+        
+        markup.row(
+            types.InlineKeyboardButton("➕ Добавить", callback_data="add_tariff"),
+            types.InlineKeyboardButton("🔄 Обновить", callback_data="refresh_tariffs")
+        )
     
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    markup.add(
-        types.InlineKeyboardButton("➕ Добавить", callback_data="add_tariff"),
-        types.InlineKeyboardButton("🔄 Обновить", callback_data="refresh_tariffs")
-    )
-    
-    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=markup)
+    if message_id:
+        bot.edit_message_text(text, chat_id, message_id, parse_mode="Markdown", reply_markup=markup)
+    else:
+        bot.send_message(chat_id, text, parse_mode="Markdown", reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data == "add_tariff")
@@ -152,35 +170,161 @@ def process_tariff_creation(message, tariff_type):
         bot.reply_to(message, f"❌ Ошибка: {e}", reply_markup=shop_admin_keyboard())
 
 
+@bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data == "refresh_tariffs")
+def refresh_tariffs_callback(call):
+    """Refresh tariffs list"""
+    show_tariffs_list(call.message.chat.id, call.message.message_id)
+    bot.answer_callback_query(call.id, "Обновлено")
+
+
+@bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data.startswith("delete_tariff:"))
+def delete_tariff_callback(call):
+    """Delete tariff confirmation"""
+    tariff_id = call.data.split(":")[1]
+    tariff = shop_db.get_tariff(tariff_id)
+    
+    if not tariff:
+        bot.answer_callback_query(call.id, "❌ Тариф не найден", show_alert=True)
+        return
+    
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        types.InlineKeyboardButton("✅ Да, удалить", callback_data=f"confirm_del_tariff:{tariff_id}"),
+        types.InlineKeyboardButton("❌ Отмена", callback_data="cancel_del_tariff")
+    )
+    
+    bot.edit_message_text(
+        f"🗑️ *Удалить тариф?*\n\n{tariff['name']}",
+        call.message.chat.id, call.message.message_id,
+        parse_mode="Markdown",
+        reply_markup=markup
+    )
+
+
+@bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data.startswith("confirm_del_tariff:"))
+def confirm_delete_tariff_callback(call):
+    """Confirm tariff deletion"""
+    tariff_id = call.data.split(":")[1]
+    
+    if shop_db.delete_tariff(tariff_id):
+        bot.answer_callback_query(call.id, "✅ Тариф удалён")
+    else:
+        bot.answer_callback_query(call.id, "❌ Ошибка удаления", show_alert=True)
+    
+    show_tariffs_list(call.message.chat.id, call.message.message_id)
+
+
+@bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data == "cancel_del_tariff")
+def cancel_delete_tariff_callback(call):
+    """Cancel tariff deletion"""
+    show_tariffs_list(call.message.chat.id, call.message.message_id)
+    bot.answer_callback_query(call.id)
+
+
+@bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data.startswith("edit_tariff:"))
+def edit_tariff_callback(call):
+    """Edit tariff menu"""
+    tariff_id = call.data.split(":")[1]
+    tariff = shop_db.get_tariff(tariff_id)
+    
+    if not tariff:
+        bot.answer_callback_query(call.id, "❌ Тариф не найден", show_alert=True)
+        return
+    
+    if tariff["type"] == "traffic":
+        desc = f"{tariff.get('traffic_gb', 0)} GB"
+    else:
+        desc = f"{tariff.get('days', 0)} дней"
+    
+    text = (
+        f"✏️ *Редактирование тарифа*\n\n"
+        f"📋 Название: {tariff['name']}\n"
+        f"📦 Значение: {desc}\n"
+        f"💰 Цена: {tariff.get('price', 0)}₽\n"
+        f"⭐ Звёзды: {tariff.get('price_stars', 'не задано')}\n\n"
+        f"Введите новую цену в звёздах (только число):"
+    )
+    
+    bot.edit_message_text(
+        text, call.message.chat.id, call.message.message_id,
+        parse_mode="Markdown"
+    )
+    bot.register_next_step_handler(call.message, process_tariff_edit, tariff_id)
+
+
+def process_tariff_edit(message, tariff_id):
+    """Process tariff edit"""
+    try:
+        new_price_stars = int(message.text.strip())
+        
+        # Update tariff
+        from bson import ObjectId
+        shop_db.tariffs.update_one(
+            {"_id": ObjectId(tariff_id)},
+            {"$set": {"price_stars": new_price_stars}}
+        )
+        
+        bot.reply_to(message, f"✅ Цена обновлена: {new_price_stars}⭐", reply_markup=shop_admin_keyboard())
+        
+    except ValueError:
+        bot.reply_to(message, "❌ Введите число", reply_markup=shop_admin_keyboard())
+    except Exception as e:
+        bot.reply_to(message, f"❌ Ошибка: {e}", reply_markup=shop_admin_keyboard())
+
+
+@bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data == "tariff_cancel")
+def tariff_cancel_callback(call):
+    """Cancel tariff creation"""
+    show_tariffs_list(call.message.chat.id, call.message.message_id)
+    bot.answer_callback_query(call.id)
+
+
 # ==================== PROMO CODES ====================
 
 @bot.message_handler(func=lambda message: is_admin(message.from_user.id) and message.text == '🎁 Промокоды')
 def promos_menu(message):
     """List all promo codes"""
+    show_promos_list(message.chat.id)
+
+
+def show_promos_list(chat_id, message_id=None):
+    """Display promos list with inline buttons"""
     promos = shop_db.get_all_promos()
     
     if not promos:
         text = "🎁 *Промокоды*\n\nНет созданных промокодов."
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("➕ Создать", callback_data="add_promo"))
     else:
         text = "🎁 *Промокоды:*\n\n"
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        
         for p in promos:
             status = "✅" if p.get("is_active", True) else "❌"
             type_text = {
                 "discount": f"скидка {p['value']}%",
-                "free_period": f"+{p['value']} дней",
-                "extra_traffic": f"+{p['value']} GB"
+                "free_period": f"+{int(p['value'])} дней",
+                "extra_traffic": f"+{int(p['value'])} GB"
             }.get(p["type"], "бонус")
             
-            uses = f"{p['uses_count']}/{p['max_uses']}"
+            uses = f"{p.get('uses_count', 0)}/{p.get('max_uses', 0)}"
             text += f"{status} `{p['code']}` — {type_text} ({uses})\n"
+            
+            # Add delete button for each promo
+            markup.row(
+                types.InlineKeyboardButton(f"📋 {p['code']}", callback_data=f"view_promo:{p['code']}"),
+                types.InlineKeyboardButton("🗑️", callback_data=f"delete_promo:{p['code']}")
+            )
+        
+        markup.row(
+            types.InlineKeyboardButton("➕ Создать", callback_data="add_promo"),
+            types.InlineKeyboardButton("🔄 Обновить", callback_data="refresh_promos")
+        )
     
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    markup.add(
-        types.InlineKeyboardButton("➕ Создать", callback_data="add_promo"),
-        types.InlineKeyboardButton("🔄 Обновить", callback_data="refresh_promos")
-    )
-    
-    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=markup)
+    if message_id:
+        bot.edit_message_text(text, chat_id, message_id, parse_mode="Markdown", reply_markup=markup)
+    else:
+        bot.send_message(chat_id, text, parse_mode="Markdown", reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data == "add_promo")
@@ -270,10 +414,85 @@ def process_promo_creation(message, promo_type):
 @bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data == "promo_cancel")
 def promo_cancel_callback(call):
     """Cancel promo creation"""
-    bot.edit_message_text(
-        "Отменено",
-        call.message.chat.id, call.message.message_id
+    show_promos_list(call.message.chat.id, call.message.message_id)
+    bot.answer_callback_query(call.id)
+
+
+@bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data == "refresh_promos")
+def refresh_promos_callback(call):
+    """Refresh promos list"""
+    show_promos_list(call.message.chat.id, call.message.message_id)
+    bot.answer_callback_query(call.id, "Обновлено")
+
+
+@bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data.startswith("view_promo:"))
+def view_promo_callback(call):
+    """View promo details"""
+    code = call.data.split(":")[1]
+    is_valid, msg, promo = shop_db.validate_promo(code)
+    
+    if not promo:
+        bot.answer_callback_query(call.id, "❌ Промокод не найден", show_alert=True)
+        return
+    
+    type_text = {
+        "discount": f"скидка {promo['value']}%",
+        "free_period": f"+{int(promo['value'])} дней",
+        "extra_traffic": f"+{int(promo['value'])} GB"
+    }.get(promo["type"], "бонус")
+    
+    status = "✅ Активен" if promo.get("is_active", True) else "❌ Деактивирован"
+    
+    text = (
+        f"🎁 *Промокод: {code}*\n\n"
+        f"📋 Тип: {type_text}\n"
+        f"🔢 Использований: {promo.get('uses_count', 0)}/{promo.get('max_uses', 0)}\n"
+        f"📊 Статус: {status}\n"
     )
+    
+    if promo.get('expires_at'):
+        text += f"⏰ Истекает: {promo['expires_at'].strftime('%Y-%m-%d')}\n"
+    
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("◀️ Назад", callback_data="refresh_promos"))
+    
+    bot.edit_message_text(
+        text, call.message.chat.id, call.message.message_id,
+        parse_mode="Markdown",
+        reply_markup=markup
+    )
+
+
+@bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data.startswith("delete_promo:"))
+def delete_promo_callback(call):
+    """Delete promo confirmation"""
+    code = call.data.split(":")[1]
+    
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        types.InlineKeyboardButton("✅ Да, удалить", callback_data=f"confirm_del_promo:{code}"),
+        types.InlineKeyboardButton("❌ Отмена", callback_data="refresh_promos")
+    )
+    
+    bot.edit_message_text(
+        f"🗑️ *Удалить промокод?*\n\n`{code}`",
+        call.message.chat.id, call.message.message_id,
+        parse_mode="Markdown",
+        reply_markup=markup
+    )
+
+
+@bot.callback_query_handler(func=lambda call: is_admin(call.from_user.id) and call.data.startswith("confirm_del_promo:"))
+def confirm_delete_promo_callback(call):
+    """Confirm promo deletion"""
+    code = call.data.split(":")[1]
+    
+    if shop_db.deactivate_promo(code):
+        bot.answer_callback_query(call.id, "✅ Промокод удалён")
+    else:
+        bot.answer_callback_query(call.id, "❌ Ошибка удаления", show_alert=True)
+    
+    show_promos_list(call.message.chat.id, call.message.message_id)
 
 
 # ==================== CUSTOMERS ====================

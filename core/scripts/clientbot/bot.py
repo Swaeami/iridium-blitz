@@ -37,10 +37,7 @@ def load_config():
     config_path = "/etc/hysteria/.clientbot.env"
     config = {
         "BOT_TOKEN": None,
-        "YOOKASSA_SHOP_ID": None,
-        "YOOKASSA_SECRET_KEY": None,
         "SUPPORT_USERNAME": None,
-        "RETURN_URL": "https://t.me",  # Default return URL after payment
         "TRIAL_DAYS": 3,
         "TRIAL_TRAFFIC_GB": 999999,  # Essentially unlimited
     }
@@ -59,10 +56,7 @@ def load_config():
 
 CONFIG = load_config()
 bot = telebot.TeleBot(CONFIG["BOT_TOKEN"]) if CONFIG["BOT_TOKEN"] else None
-payment_manager = PaymentManager(
-    CONFIG.get("YOOKASSA_SHOP_ID"),
-    CONFIG.get("YOOKASSA_SECRET_KEY")
-)
+payment_manager = PaymentManager()
 
 
 # ==================== HELPERS ====================
@@ -334,7 +328,95 @@ def process_promo_code(message):
         )
         return
     
-    # Show promo info
+    customer = get_or_create_customer(message)
+    
+    # Handle free_period promo - apply immediately
+    if promo["type"] == "free_period":
+        days = int(promo["value"])
+        
+        # Check if user has subscription
+        if customer.get("vpn_username"):
+            # Extend existing subscription
+            user = vpn_db.get_user(customer["vpn_username"])
+            if user:
+                current_days = user.get("expiration_days", 0)
+                vpn_db.update_user(customer["vpn_username"], {"expiration_days": current_days + days})
+                shop_db.use_promo(code)
+                
+                text = (
+                    f"✅ *Промокод активирован!*\n\n"
+                    f"🎁 +{days} дней к подписке\n"
+                    f"📅 Всего теперь: {current_days + days} дней\n\n"
+                    f"Ваша подписка продлена!"
+                )
+                bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+                return
+        
+        # No subscription - create new one for N days
+        vpn_username = generate_vpn_username(customer["telegram_id"])
+        password = generate_vpn_password()
+        
+        try:
+            user_data = {
+                "username": vpn_username,
+                "password": password,
+                "max_download_bytes": 999999 * 1073741824,  # Unlimited traffic
+                "expiration_days": days,
+                "blocked": False,
+                "status": "Active",
+                "account_creation_date": datetime.now().strftime("%Y-%m-%d")
+            }
+            vpn_db.add_user(user_data)
+            shop_db.update_customer(customer["telegram_id"], {"vpn_username": vpn_username})
+            shop_db.use_promo(code)
+            
+            text = (
+                f"✅ *Промокод активирован!*\n\n"
+                f"🎁 Подписка на {days} дней создана!\n"
+                f"🔑 Логин: `{vpn_username}`\n\n"
+                f"Перейдите в «👤 Мой профиль» для получения ссылки."
+            )
+            bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+            return
+        except Exception as e:
+            print(f"Error creating user from promo: {e}")
+            bot.send_message(message.chat.id, "❌ Ошибка активации промокода", reply_markup=main_menu_keyboard())
+            return
+    
+    # Handle extra_traffic promo - apply immediately if has subscription
+    if promo["type"] == "extra_traffic":
+        traffic_gb = int(promo["value"])
+        
+        if customer.get("vpn_username"):
+            user = vpn_db.get_user(customer["vpn_username"])
+            if user:
+                current_traffic = user.get("max_download_bytes", 0)
+                vpn_db.update_user(customer["vpn_username"], {
+                    "max_download_bytes": current_traffic + (traffic_gb * 1073741824)
+                })
+                shop_db.use_promo(code)
+                
+                text = (
+                    f"✅ *Промокод активирован!*\n\n"
+                    f"🎁 +{traffic_gb} GB к подписке\n\n"
+                    f"Ваш трафик увеличен!"
+                )
+                bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+                return
+        
+        # No subscription - save for later use
+        shop_db.update_customer(customer["telegram_id"], {"pending_promo": code})
+        text = (
+            f"✅ *Промокод сохранён!*\n\n"
+            f"🎁 +{traffic_gb} GB трафика\n\n"
+            f"Промокод будет применён при покупке подписки."
+        )
+        bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+        return
+    
+    # Discount promo - save for purchase
+    shop_db.update_customer(customer["telegram_id"], {"pending_promo": code})
+    
     promo_type_text = {
         "discount": f"Скидка {promo['value']}%",
         "free_period": f"+{promo['value']} дней бесплатно",
@@ -342,14 +424,12 @@ def process_promo_code(message):
     }.get(promo["type"], "Бонус")
     
     text = (
-        f"✅ *Промокод активен!*\n\n"
+        f"✅ *Промокод сохранён!*\n\n"
         f"🎁 {promo_type_text}\n"
         f"📝 {promo.get('description', '')}\n\n"
         f"Промокод будет применён при покупке."
     )
     
-    # Store promo in user session (temporary)
-    # In production, you'd want to store this in database or cache
     bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
 
 
@@ -520,88 +600,65 @@ def trial_callback(call):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("pay:"))
 def payment_callback(call):
-    """Handle payment method selection"""
+    """Handle payment method selection - Telegram Stars only"""
     parts = call.data.split(":")
-    method = parts[1]  # stars or yookassa
+    method = parts[1]  # stars
     tariff_id = parts[2]
+    
+    if method != "stars":
+        bot.answer_callback_query(call.id, "❌ Метод оплаты недоступен", show_alert=True)
+        return
     
     tariff = shop_db.get_tariff(tariff_id)
     if not tariff:
         bot.answer_callback_query(call.id, "Тариф не найден", show_alert=True)
         return
     
+    if not tariff.get("price_stars"):
+        bot.answer_callback_query(call.id, "❌ Тариф не настроен для оплаты звёздами", show_alert=True)
+        return
+    
     customer = shop_db.get_customer(call.from_user.id)
     if not customer:
         customer = shop_db.create_customer(call.from_user.id, call.from_user.username)
+    
+    # Check for pending promo and calculate final price
+    final_price = tariff["price_stars"]
+    promo_code = customer.get("pending_promo")
+    
+    if promo_code:
+        is_valid, msg, promo = shop_db.validate_promo(promo_code)
+        if is_valid and promo["type"] == "discount":
+            discount = int(promo["value"])
+            final_price = int(final_price * (100 - discount) / 100)
     
     # Create payment record
     payment = shop_db.create_payment(
         customer_id=customer["telegram_id"],
         tariff_id=tariff_id,
-        amount=tariff["price"],
-        payment_method=method
+        amount=final_price,
+        payment_method="stars"
     )
     
-    if method == "stars":
-        # Create Telegram Stars invoice
-        success = payment_manager.create_stars_invoice(
-            bot=bot,
-            chat_id=call.message.chat.id,
-            title=f"Подписка: {tariff['name']}",
-            description=f"Iridium VPN - {tariff['name']}",
-            payload=f"{payment['_id']}:{tariff_id}",
-            amount=tariff["price_stars"]
-        )
-        
-        if not success:
-            bot.answer_callback_query(call.id, "❌ Ошибка создания платежа", show_alert=True)
-            return
-        
-        bot.answer_callback_query(call.id)
-        
-    elif method == "yookassa":
-        # Create YooKassa payment
-        payment_data = payment_manager.create_yookassa_payment(
-            amount=tariff["price"],
-            description=f"Iridium VPN - {tariff['name']}",
-            return_url=CONFIG.get("RETURN_URL", "https://t.me"),
-            metadata={
-                "payment_id": str(payment["_id"]),
-                "tariff_id": tariff_id,
-                "customer_id": customer["telegram_id"]
-            }
-        )
-        
-        if not payment_data:
-            bot.answer_callback_query(call.id, "❌ Ошибка создания платежа", show_alert=True)
-            return
-        
-        # Update payment with external ID
-        shop_db.update_payment(payment["_id"], {"external_id": payment_data["payment_id"]})
-        
-        # Send payment link
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(
-            "💳 Перейти к оплате",
-            url=payment_data["confirmation_url"]
-        ))
-        markup.add(types.InlineKeyboardButton(
-            "✅ Я оплатил",
-            callback_data=f"check_payment:{payment['_id']}"
-        ))
-        
-        text = (
-            f"💳 *Оплата через ЮKassa*\n\n"
-            f"Сумма: {tariff['price']}₽\n\n"
-            f"Нажмите кнопку ниже для оплаты.\n"
-            f"После оплаты нажмите «✅ Я оплатил»."
-        )
-        
-        bot.edit_message_text(
-            text, call.message.chat.id, call.message.message_id,
-            parse_mode="Markdown",
-            reply_markup=markup
-        )
+    # Store promo code in payment if present
+    if promo_code:
+        shop_db.update_payment(payment["_id"], {"promo_code": promo_code})
+    
+    # Create Telegram Stars invoice
+    success = payment_manager.create_stars_invoice(
+        bot=bot,
+        chat_id=call.message.chat.id,
+        title=f"Подписка: {tariff['name']}",
+        description=f"Iridium VPN - {tariff['name']}",
+        payload=f"{payment['_id']}:{tariff_id}",
+        amount=final_price
+    )
+    
+    if not success:
+        bot.answer_callback_query(call.id, "❌ Ошибка создания платежа", show_alert=True)
+        return
+    
+    bot.answer_callback_query(call.id)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("check_payment:"))
@@ -683,6 +740,117 @@ def profile_action_callback(call):
         bot.answer_callback_query(call.id)
 
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith("apply_promo:"))
+def apply_promo_callback(call):
+    """Handle promo code application during purchase"""
+    tariff_id = call.data.split(":")[1]
+    
+    # Store tariff_id for later
+    customer = shop_db.get_customer(call.from_user.id)
+    if customer:
+        shop_db.update_customer(call.from_user.id, {"pending_tariff": tariff_id})
+    
+    text = "🎁 Введите промокод:"
+    bot.edit_message_text(text, call.message.chat.id, call.message.message_id)
+    bot.register_next_step_handler(call.message, process_promo_for_purchase)
+
+
+def process_promo_for_purchase(message):
+    """Process promo code for a specific purchase"""
+    code = message.text.strip().upper()
+    customer = shop_db.get_customer(message.from_user.id)
+    
+    if not customer:
+        bot.send_message(message.chat.id, "❌ Ошибка", reply_markup=main_menu_keyboard())
+        return
+    
+    tariff_id = customer.get("pending_tariff")
+    if not tariff_id:
+        bot.send_message(message.chat.id, "❌ Тариф не выбран", reply_markup=main_menu_keyboard())
+        return
+    
+    is_valid, msg, promo = shop_db.validate_promo(code)
+    
+    if not is_valid:
+        bot.send_message(message.chat.id, f"❌ {msg}", reply_markup=main_menu_keyboard())
+        return
+    
+    # Store promo for use at payment
+    shop_db.update_customer(message.from_user.id, {"pending_promo": code})
+    
+    tariff = shop_db.get_tariff(tariff_id)
+    if not tariff:
+        bot.send_message(message.chat.id, "❌ Тариф не найден", reply_markup=main_menu_keyboard())
+        return
+    
+    # Calculate discount if applicable
+    final_price = tariff.get("price_stars", 0)
+    bonus_text = ""
+    
+    if promo["type"] == "discount":
+        discount = int(promo["value"])
+        final_price = int(final_price * (100 - discount) / 100)
+        bonus_text = f"💸 Скидка: {discount}%"
+    elif promo["type"] == "free_period":
+        bonus_text = f"🎁 +{int(promo['value'])} дней бесплатно"
+    elif promo["type"] == "extra_traffic":
+        bonus_text = f"🎁 +{int(promo['value'])} GB трафика"
+    
+    text = (
+        f"✅ *Промокод применён!*\n\n"
+        f"📋 Тариф: {tariff['name']}\n"
+        f"{bonus_text}\n"
+        f"💰 К оплате: {final_price}⭐\n\n"
+        f"Продолжить оплату?"
+    )
+    
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        types.InlineKeyboardButton(f"⭐ Оплатить {final_price} Stars", callback_data=f"pay:stars:{tariff_id}"),
+        types.InlineKeyboardButton("◀️ Назад", callback_data="back:tariff_type")
+    )
+    
+    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "buy")
+def buy_inline_callback(call):
+    """Handle buy button from profile"""
+    buy_subscription_handler(call.message)
+    bot.answer_callback_query(call.id)
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "support:faq")
+def support_faq_callback(call):
+    """Handle FAQ button"""
+    text = (
+        "📖 *FAQ / Часто задаваемые вопросы*\n\n"
+        "*Как подключиться?*\n"
+        "1. Скачайте приложение (Hiddify, V2rayNG, Streisand)\n"
+        "2. Получите ссылку в разделе «Мой профиль»\n"
+        "3. Добавьте ссылку в приложение\n\n"
+        "*Какие приложения использовать?*\n"
+        "• iOS: Streisand, Shadowrocket\n"
+        "• Android: Hiddify, V2rayNG\n"
+        "• Windows/Mac: Hiddify, Nekoray\n\n"
+        "*Не работает VPN?*\n"
+        "Попробуйте переключить сервер или свяжитесь с поддержкой."
+    )
+    
+    bot.edit_message_text(
+        text, call.message.chat.id, call.message.message_id,
+        parse_mode="Markdown",
+        reply_markup=back_keyboard("back:support")
+    )
+    bot.answer_callback_query(call.id)
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "noop")
+def noop_callback(call):
+    """Handle no-operation callback"""
+    bot.answer_callback_query(call.id, "Эта функция недоступна", show_alert=True)
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith("back:"))
 def back_callback(call):
     """Handle back navigation"""
@@ -711,6 +879,18 @@ def back_callback(call):
             text, call.message.chat.id, call.message.message_id,
             parse_mode="Markdown",
             reply_markup=markup
+        )
+    elif destination == "support":
+        support_username = CONFIG.get("SUPPORT_USERNAME")
+        text = (
+            "💬 *Поддержка*\n\n"
+            "Если у вас возникли вопросы или проблемы, "
+            "свяжитесь с нашей поддержкой."
+        )
+        bot.edit_message_text(
+            text, call.message.chat.id, call.message.message_id,
+            parse_mode="Markdown",
+            reply_markup=support_keyboard(support_username)
         )
 
 

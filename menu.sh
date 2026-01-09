@@ -1086,6 +1086,173 @@ ip_limit_handler() {
     done
 }
 
+manage_tariffs_menu() {
+    while true; do
+        clear
+        echo -e "${IRIDIUM}${BOLD}  📋 Manage Tariffs${NC}\n"
+        
+        # List tariffs
+        echo -e "${gray}Current Tariffs:${NC}"
+        python3 $CLI_PATH tariff list 2>/dev/null || echo "  No tariffs found"
+        echo ""
+        
+        print_section "Actions"
+        echo -e "${green}1.${NC} Add New Tariff"
+        echo -e "${yellow}2.${NC} Delete Tariff"
+        echo -e "${cyan}3.${NC} Refresh List"
+        print_line
+        echo "0. Back"
+        print_line
+        read -p "Choose an option: " option
+
+        case $option in
+            1)
+                echo ""
+                read -e -p "Tariff Name (e.g. 'VPN Premium'): " name
+                if [ -z "$name" ]; then
+                    echo "Name cannot be empty."
+                    read -p "Press Enter..."
+                    continue
+                fi
+                echo "Tariff Type:"
+                echo "  1) Unlimited traffic (time-based)"
+                echo "  2) Limited traffic"
+                read -e -p "Choose type [1/2]: " type_choice
+                if [ "$type_choice" = "2" ]; then
+                    tariff_type="traffic"
+                    read -e -p "Traffic limit (GB): " traffic_gb
+                else
+                    tariff_type="time"
+                    traffic_gb=""
+                fi
+                echo ""
+                echo "Enter prices in Telegram Stars:"
+                read -e -p "1 month price ⭐: " price_1m
+                read -e -p "3 months price ⭐ (optional): " price_3m
+                read -e -p "6 months price ⭐ (optional): " price_6m
+                read -e -p "12 months price ⭐ (optional): " price_12m
+                
+                if [ -z "$price_1m" ]; then
+                    echo "Price for 1 month is required."
+                    read -p "Press Enter..."
+                    continue
+                fi
+                
+                # Use default price for legacy compatibility
+                cmd="python3 $CLI_PATH tariff add -n '$name' -t $tariff_type -p 0 --price-stars $price_1m"
+                [ -n "$traffic_gb" ] && cmd="$cmd --traffic-gb $traffic_gb"
+                eval $cmd
+                echo ""
+                read -p "Press Enter to continue..."
+                ;;
+            2)
+                echo ""
+                read -e -p "Enter Tariff ID to delete: " tariff_id
+                if [ -n "$tariff_id" ]; then
+                    read -p "Are you sure? (y/n): " confirm
+                    if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
+                        python3 $CLI_PATH tariff delete -i "$tariff_id"
+                    fi
+                fi
+                read -p "Press Enter to continue..."
+                ;;
+            3)
+                # Just refresh - loop will re-display
+                ;;
+            0)
+                break
+                ;;
+            *)
+                echo "Invalid option."
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+manage_promos_menu() {
+    while true; do
+        clear
+        echo -e "${IRIDIUM}${BOLD}  🎁 Manage Promo Codes${NC}\n"
+        
+        # List promos
+        echo -e "${gray}Current Promo Codes:${NC}"
+        python3 $CLI_PATH promo list 2>/dev/null || echo "  No promo codes found"
+        echo ""
+        
+        print_section "Actions"
+        echo -e "${green}1.${NC} Add New Promo Code"
+        echo -e "${red}2.${NC} Delete Promo Code"
+        echo -e "${cyan}3.${NC} Refresh List"
+        print_line
+        echo "0. Back"
+        print_line
+        read -p "Choose an option: " option
+
+        case $option in
+            1)
+                echo ""
+                read -e -p "Promo Code (leave empty for auto): " code
+                echo "Promo Type:"
+                echo "  1) Discount (%)"
+                echo "  2) Free Period (days)"
+                echo "  3) Extra Traffic (GB)"
+                read -e -p "Choose type [1/2/3]: " ptype
+                case $ptype in
+                    1) 
+                        promo_type="discount"
+                        read -e -p "Discount percentage (1-100): " value
+                        ;;
+                    2) 
+                        promo_type="free_period"
+                        read -e -p "Free days: " value
+                        ;;
+                    3) 
+                        promo_type="extra_traffic"
+                        read -e -p "Extra traffic (GB): " value
+                        ;;
+                    *) 
+                        echo "Invalid type"
+                        read -p "Press Enter..."
+                        continue
+                        ;;
+                esac
+                read -e -p "Max Uses (default: 100): " max_uses
+                max_uses=${max_uses:-100}
+                read -e -p "Expire in days (0 = never): " expire
+                
+                cmd="python3 $CLI_PATH promo add -t $promo_type -v $value -m $max_uses"
+                [ -n "$code" ] && cmd="$cmd -c '$code'"
+                [ -n "$expire" ] && [ "$expire" != "0" ] && cmd="$cmd -e $expire"
+                eval $cmd
+                echo ""
+                read -p "Press Enter to continue..."
+                ;;
+            2)
+                echo ""
+                read -e -p "Enter Promo Code to delete: " promo_code
+                if [ -n "$promo_code" ]; then
+                    read -p "Are you sure? (y/n): " confirm
+                    if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
+                        python3 $CLI_PATH promo delete -c "$promo_code"
+                    fi
+                fi
+                read -p "Press Enter to continue..."
+                ;;
+            3)
+                # Just refresh - loop will re-display
+                ;;
+            0)
+                break
+                ;;
+            *)
+                echo "Invalid option."
+                sleep 1
+                ;;
+        esac
+    done
+}
+
 client_bot_handler() {
     while true; do
         clear
@@ -1096,11 +1263,9 @@ client_bot_handler() {
         echo -e "${yellow}3.${NC} Restart Client Bot"
         echo -e "${cyan}4.${NC} Check Status"
         print_section "Management"
-        echo -e "${green}5.${NC} Add Tariff"
-        echo -e "${cyan}6.${NC} List Tariffs"
-        echo -e "${green}7.${NC} Add Promo Code"
-        echo -e "${cyan}8.${NC} List Promo Codes"
-        echo -e "${cyan}9.${NC} Shop Statistics"
+        echo -e "${green}5.${NC} Manage Tariffs"
+        echo -e "${green}6.${NC} Manage Promo Codes"
+        echo -e "${cyan}7.${NC} Shop Statistics"
         print_line
         echo "0. Back"
         print_line
@@ -1116,8 +1281,6 @@ client_bot_handler() {
                         echo "Token cannot be empty."
                         continue
                     fi
-                    read -e -p "YooKassa Shop ID (optional): " yookassa_id
-                    read -e -p "YooKassa Secret Key (optional): " yookassa_secret
                     read -e -p "Support Username (optional, e.g. @admin): " support
                     read -e -p "Trial Days (default: 3): " trial_days
                     trial_days=${trial_days:-3}
@@ -1125,8 +1288,6 @@ client_bot_handler() {
                     trial_traffic=${trial_traffic:-999999}
                     
                     python3 $CLI_PATH client-bot start -t "$token" \
-                        --yookassa-shop-id "$yookassa_id" \
-                        --yookassa-secret "$yookassa_secret" \
                         --support "$support" \
                         --trial-days "$trial_days" \
                         --trial-traffic "$trial_traffic"
@@ -1143,68 +1304,17 @@ client_bot_handler() {
                 ;;
             4)
                 python3 $CLI_PATH client-bot status
-                wait_seconds 3
+                read -p "Press Enter to continue..."
                 ;;
             5)
-                read -e -p "Tariff Name (e.g. '100 GB'): " name
-                echo "Tariff Type:"
-                echo "  1) Traffic (unlimited time)"
-                echo "  2) Time (unlimited traffic)"
-                read -e -p "Choose type [1/2]: " type_choice
-                if [ "$type_choice" = "1" ]; then
-                    tariff_type="traffic"
-                    read -e -p "Traffic limit (GB): " traffic_gb
-                    days_opt=""
-                else
-                    tariff_type="time"
-                    read -e -p "Duration (days): " days
-                    traffic_gb=""
-                fi
-                read -e -p "Price (rubles): " price
-                read -e -p "Price in Stars (optional): " stars
-                
-                cmd="python3 $CLI_PATH tariff add -n '$name' -t $tariff_type -p $price"
-                [ -n "$traffic_gb" ] && cmd="$cmd --traffic-gb $traffic_gb"
-                [ -n "$days" ] && cmd="$cmd --days $days"
-                [ -n "$stars" ] && cmd="$cmd --price-stars $stars"
-                eval $cmd
-                wait_seconds 2
+                manage_tariffs_menu
                 ;;
             6)
-                python3 $CLI_PATH tariff list
-                wait_seconds 3
+                manage_promos_menu
                 ;;
             7)
-                read -e -p "Promo Code (leave empty for auto): " code
-                echo "Promo Type:"
-                echo "  1) Discount (%)"
-                echo "  2) Free Period (days)"
-                echo "  3) Extra Traffic (GB)"
-                read -e -p "Choose type [1/2/3]: " ptype
-                case $ptype in
-                    1) promo_type="discount" ;;
-                    2) promo_type="free_period" ;;
-                    3) promo_type="extra_traffic" ;;
-                    *) echo "Invalid type"; continue ;;
-                esac
-                read -e -p "Value: " value
-                read -e -p "Max Uses (default: 100): " max_uses
-                max_uses=${max_uses:-100}
-                read -e -p "Expire in days (0 = never): " expire
-                
-                cmd="python3 $CLI_PATH promo add -t $promo_type -v $value -m $max_uses"
-                [ -n "$code" ] && cmd="$cmd -c '$code'"
-                [ -n "$expire" ] && [ "$expire" != "0" ] && cmd="$cmd -e $expire"
-                eval $cmd
-                wait_seconds 2
-                ;;
-            8)
-                python3 $CLI_PATH promo list
-                wait_seconds 3
-                ;;
-            9)
                 python3 $CLI_PATH shop-stats
-                wait_seconds 3
+                read -p "Press Enter to continue..."
                 ;;
             0)
                 break

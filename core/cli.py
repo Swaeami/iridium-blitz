@@ -861,15 +861,13 @@ def client_bot():
 
 @client_bot.command('start')
 @click.option('--token', '-t', required=True, help='Telegram Bot Token')
-@click.option('--yookassa-shop-id', '-ys', required=False, default='', help='YooKassa Shop ID (optional)')
-@click.option('--yookassa-secret', '-yk', required=False, default='', help='YooKassa Secret Key (optional)')
 @click.option('--support', '-s', required=False, default='', help='Support Telegram username (optional)')
 @click.option('--trial-days', '-td', type=int, default=3, help='Trial period days (default: 3)')
 @click.option('--trial-traffic', '-tt', type=int, default=999999, help='Trial traffic GB (default: unlimited)')
-def start_client_bot(token: str, yookassa_shop_id: str, yookassa_secret: str, support: str, trial_days: int, trial_traffic: int):
+def start_client_bot(token: str, support: str, trial_days: int, trial_traffic: int):
     """Start the client bot service."""
     try:
-        cli_api.start_client_bot(token, yookassa_shop_id, yookassa_secret, support, trial_days, trial_traffic)
+        cli_api.start_client_bot(token, support, trial_days, trial_traffic)
         click.echo('Client bot started successfully.')
     except Exception as e:
         click.echo(f'{e}', err=True)

@@ -24,8 +24,6 @@
          data-restart-telegram-url="{{ url_for('telegram_restart_api') }}"
          data-restart-iplimit-url="{{ url_for('restart_ip_limit_api') }}"
          data-restart-normalsub-url="{{ url_for('normal_sub_restart_api') }}"
-         data-restart-clientbot-url="{{ url_for('restart_clientbot') }}"
-         data-clientbot-status-url="{{ url_for('get_clientbot_status') }}"
          data-version-url="{{ url_for('get_version_info') }}" 
          data-check-version-url="{{ url_for('check_version_info') }}">
     
@@ -299,20 +297,6 @@
                             <i class="fas fa-link"></i>
                         </div>
                         <a href="#" id="restart-normalsub-btn" class="small-box-footer" style="display: none;">
-                            Restart Service <i class="fas fa-sync-alt ms-1"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-6">
-                    <div class="small-box" id="clientbot-status-box">
-                        <div class="inner">
-                            <h3 id="clientbot-status">--</h3>
-                            <p>Client Bot</p>
-                        </div>
-                        <div class="icon">
-                            <i class="fas fa-store"></i>
-                        </div>
-                        <a href="#" id="restart-clientbot-btn" class="small-box-footer" style="display: none;">
                             Restart Service <i class="fas fa-sync-alt ms-1"></i>
                         </a>
                     </div>

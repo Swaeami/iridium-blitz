@@ -58,25 +58,25 @@ def tariffs_keyboard(tariffs: List[Dict], tariff_type: str) -> types.InlineKeybo
 
 
 def payment_method_keyboard(tariff_id: str, price_rub: float, price_stars: int = None) -> types.InlineKeyboardMarkup:
-    """Payment method selection"""
+    """Payment method selection - Telegram Stars only"""
     markup = types.InlineKeyboardMarkup(row_width=1)
     
-    # YooKassa (always available)
-    markup.add(types.InlineKeyboardButton(
-        f"💳 Оплатить {price_rub}₽",
-        callback_data=f"pay:yookassa:{tariff_id}"
-    ))
-    
-    # Telegram Stars (if price set)
+    # Telegram Stars
     if price_stars:
         markup.add(types.InlineKeyboardButton(
             f"⭐ Оплатить {price_stars} Stars",
             callback_data=f"pay:stars:{tariff_id}"
         ))
+    else:
+        # Fallback if no stars price set
+        markup.add(types.InlineKeyboardButton(
+            "❌ Тариф недоступен для оплаты",
+            callback_data="noop"
+        ))
     
     markup.add(
-        types.InlineKeyboardButton("🎁 Есть промокод", callback_data=f"promo:{tariff_id}"),
-        types.InlineKeyboardButton("◀️ Назад", callback_data="back:tariffs")
+        types.InlineKeyboardButton("🎁 Применить промокод", callback_data=f"apply_promo:{tariff_id}"),
+        types.InlineKeyboardButton("◀️ Назад", callback_data="back:tariff_type")
     )
     return markup
 

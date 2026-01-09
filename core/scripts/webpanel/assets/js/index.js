@@ -36,26 +36,8 @@ function updateServiceStatuses() {
             updateServiceBox('telegrambot', data.hysteria_telegram_bot);
             updateServiceBox('iplimit', data.hysteria_iplimit);
             updateServiceBox('normalsub', data.hysteria_normal_sub);
-            
-            // Fetch client bot status separately
-            fetchClientBotStatus();
         })
         .catch(error => console.error('Error fetching service statuses:', error));
-}
-
-function fetchClientBotStatus() {
-    const statusUrl = $('.content').data('clientbot-status-url');
-    if (!statusUrl) return;
-    
-    fetch(statusUrl)
-        .then(response => response.json())
-        .then(data => {
-            updateServiceBox('clientbot', data.is_running);
-        })
-        .catch(error => {
-            console.error('Error fetching client bot status:', error);
-            updateServiceBox('clientbot', false);
-        });
 }
 
 function updateServiceBox(serviceName, status) {
@@ -110,10 +92,6 @@ function updateServiceBox(serviceName, status) {
     }
     if (serviceName === 'normalsub') {
         const restartBtn = document.getElementById('restart-normalsub-btn');
-        if (restartBtn) restartBtn.style.display = status ? 'block' : 'none';
-    }
-    if (serviceName === 'clientbot') {
-        const restartBtn = document.getElementById('restart-clientbot-btn');
         if (restartBtn) restartBtn.style.display = status ? 'block' : 'none';
     }
 }
@@ -172,7 +150,6 @@ document.addEventListener('DOMContentLoaded', function () {
     setupRestartButton('restart-telegrambot-btn', 'restartTelegramUrl');
     setupRestartButton('restart-iplimit-btn', 'restartIplimitUrl');
     setupRestartButton('restart-normalsub-btn', 'restartNormalsubUrl');
-    setupRestartButton('restart-clientbot-btn', 'restartClientbotUrl');
 
     const versionUrl = $('.content').data('version-url');
     $.ajax({

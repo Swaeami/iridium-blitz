@@ -991,16 +991,12 @@ CLIENTBOT_ENV_FILE = '/etc/hysteria/.clientbot.env'
 CLIENTBOT_SERVICE = 'hysteria-client-bot.service'
 
 
-def start_client_bot(token: str, yookassa_shop_id: str = '', yookassa_secret: str = '', 
-                     support: str = '', trial_days: int = 3, trial_traffic: int = 999999):
+def start_client_bot(token: str, support: str = '', trial_days: int = 3, trial_traffic: int = 999999):
     '''Starts the client bot service.'''
     # Write config
     content = f"""# Iridium Client Bot Configuration
 BOT_TOKEN={token}
-YOOKASSA_SHOP_ID={yookassa_shop_id}
-YOOKASSA_SECRET_KEY={yookassa_secret}
 SUPPORT_USERNAME={support}
-RETURN_URL=https://t.me
 TRIAL_DAYS={trial_days}
 TRIAL_TRAFFIC_GB={trial_traffic}
 """
@@ -1048,7 +1044,6 @@ def get_client_bot_status() -> dict | None:
     config = {
         'is_running': is_running,
         'bot_token': '',
-        'yookassa_configured': False,
         'trial_days': 3,
         'trial_traffic_gb': 999999
     }
@@ -1056,7 +1051,6 @@ def get_client_bot_status() -> dict | None:
     if os.path.exists(CLIENTBOT_ENV_FILE):
         env_vars = dotenv_values(CLIENTBOT_ENV_FILE)
         config['bot_token'] = '***' if env_vars.get('BOT_TOKEN') else ''
-        config['yookassa_configured'] = bool(env_vars.get('YOOKASSA_SHOP_ID'))
         config['trial_days'] = int(env_vars.get('TRIAL_DAYS', 3))
         config['trial_traffic_gb'] = int(env_vars.get('TRIAL_TRAFFIC_GB', 999999))
     
