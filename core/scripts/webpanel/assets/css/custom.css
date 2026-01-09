@@ -1206,84 +1206,111 @@ form .btn-primary {
 /*                SETTINGS PAGE                       */
 /* ================================================== */
 
-/* Settings main tabs - horizontal scrollable on mobile */
-.settings-tabs {
+/* Settings page container */
+.settings-page {
+  padding: 0;
+}
+
+/* Settings navigation wrapper */
+.settings-nav-wrapper {
+  background: var(--ir-bg-card);
+  border: 1px solid var(--ir-border);
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+/* Settings navigation - horizontal scrollable */
+.settings-nav {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   padding: 0.75rem 1rem;
-  background: var(--ir-bg-elevated);
-  border-radius: var(--radius) var(--radius) 0 0;
-  border-bottom: 1px solid var(--ir-border);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  background: transparent;
 }
 
-.settings-tabs::-webkit-scrollbar {
+.settings-nav::-webkit-scrollbar {
   display: none;
 }
 
-.settings-tabs .nav-link {
+.settings-nav .nav-item {
+  flex-shrink: 0;
+}
+
+.settings-nav .nav-link {
   white-space: nowrap;
-  padding: 0.6rem 1rem;
+  padding: 0.65rem 1.1rem;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ir-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all var(--transition);
 }
 
-.settings-tabs .nav-link i {
-  font-size: 0.9rem;
+.settings-nav .nav-link:hover {
+  color: var(--ir-text);
+  background: var(--ir-bg-elevated);
 }
 
-.settings-tabs .nav-link.active {
+.settings-nav .nav-link i {
+  font-size: 1rem;
+}
+
+.settings-nav .nav-link.active {
   background: var(--ir-gradient);
   color: white;
-  border: none;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
 /* Settings content area */
 .settings-content {
-  padding: 1.5rem;
+  padding: 0;
 }
 
-/* Settings section card */
-.settings-section {
-  background: var(--ir-bg-card);
+.settings-content .tab-pane {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Settings form section inside cards */
+.settings-form-section {
+  background: var(--ir-bg-elevated);
   border: 1px solid var(--ir-border);
-  border-radius: var(--radius);
-  margin-bottom: 1.25rem;
-}
-
-.settings-section-header {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--ir-border);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.settings-section-header i {
-  font-size: 1.1rem;
-  color: var(--ir-primary);
-}
-
-.settings-section-header h3 {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--ir-text);
-}
-
-.settings-section-body {
+  border-radius: var(--radius-sm);
   padding: 1.25rem;
 }
 
-.settings-section-body p {
-  color: var(--ir-text-secondary);
+.settings-form-section h6 {
+  color: var(--ir-text);
+  font-weight: 600;
+  font-size: 0.9rem;
   margin-bottom: 1rem;
+}
+
+.settings-form-section h6 i {
+  color: var(--ir-primary);
+}
+
+/* Settings status box */
+.settings-status-box {
+  background: var(--ir-bg-elevated);
+  border: 1px solid var(--ir-border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
   font-size: 0.875rem;
+  color: var(--ir-text-secondary);
 }
 
 /* Form groups with better spacing */
@@ -1365,6 +1392,48 @@ form .btn-primary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
+}
+
+/* Purple color for icon */
+.text-purple {
+  color: var(--ir-accent) !important;
+}
+
+/* Legacy support for old tabs inside settings */
+.settings-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--ir-bg-elevated);
+  border-radius: var(--radius) var(--radius) 0 0;
+  border-bottom: 1px solid var(--ir-border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.settings-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-tabs .nav-link {
+  white-space: nowrap;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.settings-tabs .nav-link i {
+  font-size: 0.9rem;
+}
+
+.settings-tabs .nav-link.active {
+  background: var(--ir-gradient);
+  color: white;
+  border: none;
 }
 
 /* ================================================== */

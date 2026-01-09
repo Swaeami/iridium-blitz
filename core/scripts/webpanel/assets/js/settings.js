@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    const contentSection = document.querySelector('.content');
+    const contentSection = document.querySelector('.settings-page') || document.querySelector('.content');
 
     const API_URLS = {
         serverServicesStatus: contentSection.dataset.serverServicesStatusUrl,

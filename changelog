@@ -1,5 +1,19 @@
-## Iridium 1.0.11 - Layout Fix
+## Iridium 1.0.12 - Settings Page Redesign
 
-### Fixed
-- Reverted dashboard layout changes that broke spacing
-- Added small gap between info-box label and value (0.2rem → 0.4rem)
+### New Features
+- Complete settings page redesign with modern UX
+- Horizontal scrollable navigation tabs
+- Grouped settings into logical categories:
+  - **Network**: Server IP, Connection Labels, External Nodes
+  - **Subscriptions**: Service control, Path config, Extra proxies
+  - **Telegram**: Bot configuration
+  - **Security**: IP Limit + Decoy Site (combined)
+  - **WARP**: Cloudflare WARP configuration
+  - **Backup**: Create and restore backups
+
+### Improvements
+- Removed nested sub-tabs for cleaner navigation
+- Collapsible "Add Node" form
+- Better card-based layout
+- Consistent form styling across all sections
+- Improved mobile responsiveness
