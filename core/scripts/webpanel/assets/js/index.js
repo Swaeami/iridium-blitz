@@ -94,11 +94,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 return response.json();
             })
             .then(data => {
-                Swal.fire({ icon: 'success', title: 'Success', text: data.detail, timer: 2000, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: data.detail, toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
                 setTimeout(updateServiceStatuses, 1000);
             })
             .catch(error => {
-                Swal.fire({ icon: 'error', title: 'Error', text: `Failed to restart Hysteria2: ${error.message}` });
+                Swal.fire({ icon: 'error', title: `Failed to restart: ${error.message}`, toast: true, position: 'top-end', timer: 4000, showConfirmButton: false });
             })
             .finally(() => {
                 restartBtn.innerHTML = 'Restart Service <i class="fas fa-sync-alt ml-1"></i>';

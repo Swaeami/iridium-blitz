@@ -1,3 +1,55 @@
+# ✨ **Iridium 1.0.4 - UI Refinements & Subscription Name**
+
+*Released: 2026-01-09*
+
+## 🆕 New Features
+
+* **Subscription Name**: Added customizable subscription name setting (replaces hardcoded "Hysteria2" in sub links)
+
+## 🎨 Design Changes
+
+* **Unified Button Styling**: 
+  - All action buttons now use purple gradient (previously green)
+  - Delete/stop buttons now have red gradient
+  - Only two button types: purple (primary) and red (danger)
+* **Table Borders**: Fixed white borders in users table - now uses dark theme borders
+* **Dashboard Grouping**: Reorganized dashboard into logical groups:
+  - System Resources (CPU, RAM, Uptime, Connections)
+  - Network Information (Speed, IPs, Version)
+  - Service Status (with purple glow for active services)
+* **Service Status Cards**: 
+  - Active services: purple gradient glow
+  - Inactive services: muted gray style
+
+---
+
+# 🛠️ **Iridium 1.0.3 - Bug Fixes & UX Improvements**
+
+*Released: 2026-01-09*
+
+## 🐛 Bug Fixes
+
+* **Config Editor**: Fixed config not loading on Config tab (selector fix)
+* **QR Code Button**: Fixed QR code button not working on Users page (Bootstrap 5 migration)
+* **Bootstrap 5 Migration**: Updated all `data-toggle` attributes to `data-bs-toggle`
+
+## ✨ UX Improvements
+
+* **Toast Notifications**: Replaced all modal alerts with toast notifications for less intrusive feedback
+* **Overlay Sidebar**: Sidebar now hovers over content instead of pushing it
+  - Collapsed by default (shows only icons)
+  - Expands on hover
+  - Mobile: hidden by default, slides in when toggled
+* **Smoother Animations**: Improved sidebar and notification transitions
+
+## 🎨 Visual Changes
+
+* Sidebar width reduced when collapsed (70px) for more content space
+* Brand text and nav labels fade in on sidebar hover
+* Added backdrop overlay for mobile sidebar
+
+---
+
 # 🎨 **Iridium 1.0.2 - UI Polish**
 
 *Released: 2026-01-09*
@@ -27,7 +79,7 @@
 * 🎨 **Complete UI Redesign**: Modern dark theme with glassmorphism effects
 * 🏷️ **Connection Labels**: Customize IPv4/IPv6 connection names (no more hardcoded labels)
 * ✏️ **Edit Nodes**: Edit external nodes after adding (name, IP, port, SNI, OBFS, etc.)
-* 🌈 **New Branding**: Renamed from Blitz to IridiumGo
+* 🌈 **New Branding**: Renamed from Blitz to Iridium
 
 ## 🎯 UI/UX Improvements
 

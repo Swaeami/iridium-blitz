@@ -153,14 +153,14 @@ async def edit_node(body: EditNodeBody):
 @router.get('/labels', response_model=ConnectionLabelsResponse, summary='Get Connection Labels')
 async def get_connection_labels():
     """
-    Retrieves the custom connection labels for IPv4 and IPv6.
+    Retrieves the custom connection labels for IPv4, IPv6 and subscription name.
 
     Returns:
-        ConnectionLabelsResponse: Current labels for IPv4 and IPv6 connections.
+        ConnectionLabelsResponse: Current labels for IPv4, IPv6 connections and subscription name.
     """
     try:
-        ipv4_label, ipv6_label = cli_api.get_connection_labels()
-        return ConnectionLabelsResponse(ipv4_label=ipv4_label, ipv6_label=ipv6_label)
+        ipv4_label, ipv6_label, sub_name = cli_api.get_connection_labels()
+        return ConnectionLabelsResponse(ipv4_label=ipv4_label, ipv6_label=ipv6_label, sub_name=sub_name)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f'Error: {str(e)}')
 
@@ -168,13 +168,13 @@ async def get_connection_labels():
 @router.post('/labels', response_model=DetailResponse, summary='Edit Connection Labels')
 async def edit_connection_labels(body: ConnectionLabelsBody):
     """
-    Edits the custom connection labels for IPv4 and IPv6.
+    Edits the custom connection labels for IPv4, IPv6 and subscription name.
 
     Args:
         body: Request body containing the new labels.
     """
     try:
-        cli_api.edit_connection_labels(body.ipv4_label, body.ipv6_label)
+        cli_api.edit_connection_labels(body.ipv4_label, body.ipv6_label, body.sub_name)
         return DetailResponse(detail='Connection labels updated successfully.')
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

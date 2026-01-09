@@ -224,22 +224,27 @@
                             
                                 <div class="card card-outline card-info mt-4">
                                     <div class="card-header">
-                                        <h3 class="card-title">Connection Labels</h3>
+                                        <h3 class="card-title">Connection & Subscription Labels</h3>
                                     </div>
                                     <div class="card-body">
-                                        <p class="text-muted">Customize the display names for your connections in user URIs.</p>
+                                        <p class="text-muted">Customize the display names for your connections and subscription links.</p>
                                         <form id="labels_form">
                                             <div class="form-row">
-                                                <div class="form-group col-md-6">
-                                                    <label for="ipv4_label">IPv4 Connection Label:</label>
+                                                <div class="form-group col-md-4">
+                                                    <label for="ipv4_label">IPv4 Label:</label>
                                                     <input type="text" class="form-control" id="ipv4_label" placeholder="e.g., Main Server">
                                                 </div>
-                                                <div class="form-group col-md-6">
-                                                    <label for="ipv6_label">IPv6 Connection Label:</label>
+                                                <div class="form-group col-md-4">
+                                                    <label for="ipv6_label">IPv6 Label:</label>
                                                     <input type="text" class="form-control" id="ipv6_label" placeholder="e.g., Backup Server">
                                                 </div>
+                                                <div class="form-group col-md-4">
+                                                    <label for="sub_name">Subscription Name:</label>
+                                                    <input type="text" class="form-control" id="sub_name" placeholder="e.g., MyVPN">
+                                                    <small class="form-text text-muted">Name shown in subscription links (default: Hysteria2)</small>
+                                                </div>
                                             </div>
-                                            <button id="labels_save" type="button" class="btn btn-info">
+                                            <button id="labels_save" type="button" class="btn btn-primary">
                                                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
                                                 Save Labels
                                             </button>

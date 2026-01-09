@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const mainContent = document.querySelector('.content-wrapper > div');
+    const mainContent = document.querySelector('.page-content > div') || document.querySelector('[data-get-file-url]');
     const GET_FILE_URL = mainContent.dataset.getFileUrl;
     const SET_FILE_URL = mainContent.dataset.setFileUrl;
 
@@ -12,51 +12,52 @@ document.addEventListener('DOMContentLoaded', function () {
         onChange: validateJson
     });
 
+    // Toast helper
+    function showToast(type, message) {
+        Swal.fire({
+            icon: type,
+            title: message,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    }
+
     function validateJson() {
         try {
             editor.get();
             updateSaveButton(true);
-            hideErrorMessage();
         } catch (error) {
             updateSaveButton(false);
-            showErrorMessage("Invalid JSON! Please correct the errors.");
         }
     }
 
     function updateSaveButton(isValid) {
         saveButton.disabled = !isValid;
         saveButton.style.cursor = isValid ? "pointer" : "not-allowed";
-        saveButton.style.setProperty('background-color', isValid ? "#28a745" : "#ccc", 'important');
-        saveButton.style.setProperty('color', isValid ? "#fff" : "#666", 'important');
-    }
-
-    function showErrorMessage(message) {
-        Swal.fire({
-            title: "Error",
-            text: message,
-            icon: "error",
-            showConfirmButton: false,
-            timer: 5000,
-            position: 'top-right',
-            toast: true,
-            showClass: { popup: 'animate__animated animate__fadeInDown' },
-            hideClass: { popup: 'animate__animated animate__fadeOutUp' }
-        });
-    }
-
-    function hideErrorMessage() {
-        Swal.close();
+        saveButton.style.setProperty('background-color', isValid ? "#10b981" : "#374151", 'important');
+        saveButton.style.setProperty('color', isValid ? "#fff" : "#6b7280", 'important');
     }
 
     function saveJson() {
         Swal.fire({
-            title: 'Are you sure?',
-            text: 'Do you want to save the changes?',
-            icon: 'warning',
+            title: 'Save changes?',
+            text: 'This will update the configuration file.',
+            icon: 'question',
             showCancelButton: true,
-            confirmButtonText: 'Yes, save it!',
+            confirmButtonText: 'Save',
             cancelButtonText: 'Cancel',
-            reverseButtons: true
+            reverseButtons: true,
+            customClass: {
+                confirmButton: 'btn btn-primary',
+                cancelButton: 'btn btn-secondary'
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 fetch(SET_FILE_URL, {
@@ -65,10 +66,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     body: JSON.stringify(editor.get())
                 })
                 .then(() => {
-                    Swal.fire('Saved!', 'Your changes have been saved.', 'success');
+                    showToast('success', 'Configuration saved!');
                 })
                 .catch(error => {
-                    Swal.fire('Error!', 'There was an error saving your data.', 'error');
+                    showToast('error', 'Failed to save configuration');
                     console.error("Error saving JSON:", error);
                 });
             }
@@ -80,10 +81,10 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.json())
             .then(json => {
                 editor.set(json);
-                Swal.fire('Success!', 'Your JSON has been loaded.', 'success');
+                showToast('success', 'Configuration loaded');
             })
             .catch(error => {
-                Swal.fire('Error!', 'There was an error loading your JSON.', 'error');
+                showToast('error', 'Failed to load configuration');
                 console.error("Error loading JSON:", error);
             });
     }

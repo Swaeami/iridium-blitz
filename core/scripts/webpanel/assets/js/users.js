@@ -19,6 +19,23 @@ $(function () {
     let searchTimeout = null;
     const PRACTICAL_MAX_DAYS = 36500;
 
+    // Toast helper
+    function toast(type, message, timer = 3000) {
+        Swal.fire({
+            icon: type,
+            title: message,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: timer,
+            timerProgressBar: true,
+            didOpen: (t) => {
+                t.addEventListener('mouseenter', Swal.stopTimer);
+                t.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+    }
+
     function setCookie(name, value, days) {
         let expires = "";
         if (days) {
@@ -121,7 +138,7 @@ $(function () {
                 $userTotalCount.text(resultCount);
             },
             error: function () {
-                Swal.fire("Error!", "An error occurred during search.", "error");
+                toast('error', 'Search failed');
                 $userTableBody.html('<tr><td colspan="14" class="text-center p-4 text-danger">Search failed to load.</td></tr>');
             },
             complete: function () {
@@ -152,7 +169,7 @@ $(function () {
                 checkIpLimitServiceStatus();
             },
             error: function () {
-                Swal.fire("Error!", "Could not restore the user list.", "error");
+                toast('error', 'Failed to load users');
                 $userTableBody.html('<tr><td colspan="14" class="text-center p-4 text-danger">Failed to load users. Please refresh the page.</td></tr>');
             },
             complete: function () {
@@ -200,24 +217,18 @@ $(function () {
     $("#deleteSelected").on("click", function () {
         const selectedUsers = $(".user-checkbox:checked").map((_, el) => $(el).val()).get();
         if (selectedUsers.length === 0) {
-            return Swal.fire("Warning!", "Please select at least one user to delete.", "warning");
+            return toast('warning', 'Select at least one user');
         }
         Swal.fire({
-            title: "Are you sure?",
-            html: `This will delete: <b>${selectedUsers.join(", ")}</b>.<br>This action cannot be undone!`,
+            title: "Delete users?",
+            html: `<small>This will delete: <b>${selectedUsers.join(", ")}</b></small>`,
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#d33",
-            confirmButtonText: "Yes, delete them!",
+            confirmButtonColor: "#ef4444",
+            confirmButtonText: "Delete",
+            cancelButtonText: "Cancel"
         }).then((result) => {
             if (!result.isConfirmed) return;
-
-            Swal.fire({
-                title: 'Deleting...',
-                text: 'Please wait',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
 
             if (selectedUsers.length > 1) {
                 $.ajax({
@@ -226,16 +237,13 @@ $(function () {
                     contentType: "application/json",
                     data: JSON.stringify({ usernames: selectedUsers })
                 })
-                .done(() => Swal.fire("Success!", "Selected users have been deleted.", "success").then(() => refreshUserList()))
-                .fail((err) => Swal.fire("Error!", err.responseJSON?.detail || "An error occurred while deleting users.", "error"));
+                .done(() => { toast('success', 'Users deleted'); refreshUserList(); })
+                .fail((err) => toast('error', err.responseJSON?.detail || 'Delete failed'));
             } else {
                 const singleUrl = REMOVE_USER_URL_TEMPLATE.replace('U', selectedUsers[0]);
-                $.ajax({
-                    url: singleUrl,
-                    method: "DELETE"
-                })
-                .done(() => Swal.fire("Success!", "The user has been deleted.", "success").then(() => refreshUserList()))
-                .fail((err) => Swal.fire("Error!", err.responseJSON?.detail || "An error occurred while deleting the user.", "error"));
+                $.ajax({ url: singleUrl, method: "DELETE" })
+                .done(() => { toast('success', 'User deleted'); refreshUserList(); })
+                .fail((err) => toast('error', err.responseJSON?.detail || 'Delete failed'));
             }
         });
     });
@@ -249,15 +257,7 @@ $(function () {
         
         const formData = new FormData(this);
         const jsonData = Object.fromEntries(formData.entries());
-
         jsonData.unlimited = jsonData.unlimited === 'on';
-
-        Swal.fire({
-            title: 'Adding...',
-            text: 'Please wait',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
 
         $.ajax({
             url: url,
@@ -267,9 +267,10 @@ $(function () {
         })
         .done(res => {
             $('#addUserModal').modal('hide');
-            Swal.fire("Success!", res.detail, "success").then(() => refreshUserList());
+            toast('success', res.detail || 'User added');
+            refreshUserList();
         })
-        .fail(err => Swal.fire("Error!", err.responseJSON?.detail || "An error occurred.", "error"))
+        .fail(err => toast('error', err.responseJSON?.detail || 'Failed to add user'))
         .always(() => button.prop('disabled', false));
     });
 
@@ -311,7 +312,7 @@ $(function () {
                 validatePassword('#editPassword', '#editPasswordError');
             })
             .fail(() => {
-                passwordInput.val("").attr("placeholder", "Failed to load password");
+                passwordInput.val("").attr("placeholder", "Failed to load");
             })
             .always(() => {
                 passwordInput.prop("disabled", false);
@@ -333,13 +334,6 @@ $(function () {
         jsonData.blocked = jsonData.blocked === 'on';
         jsonData.unlimited_ip = jsonData.unlimited_ip === 'on';
 
-        Swal.fire({
-            title: 'Updating...',
-            text: 'Please wait',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
-
         $.ajax({
             url: url,
             method: "PATCH",
@@ -348,9 +342,10 @@ $(function () {
         })
         .done(res => {
             $('#editUserModal').modal('hide');
-            Swal.fire("Success!", res.detail, "success").then(() => refreshUserList());
+            toast('success', res.detail || 'User updated');
+            refreshUserList();
         })
-        .fail(err => Swal.fire("Error!", err.responseJSON?.detail, "error"))
+        .fail(err => toast('error', err.responseJSON?.detail || 'Update failed'))
         .always(() => button.prop('disabled', false));
     });
 
@@ -362,28 +357,22 @@ $(function () {
         const urlTemplate = isDelete ? REMOVE_USER_URL_TEMPLATE : RESET_USER_URL_TEMPLATE;
 
         Swal.fire({
-            title: `Are you sure you want to ${action}?`,
-            html: `This will ${action} user <b>${username}</b>.`,
+            title: `${action.charAt(0).toUpperCase() + action.slice(1)} user?`,
+            html: `<small>User: <b>${username}</b></small>`,
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#d33",
-            confirmButtonText: `Yes, ${action} it!`,
+            confirmButtonColor: isDelete ? "#ef4444" : "#f59e0b",
+            confirmButtonText: action.charAt(0).toUpperCase() + action.slice(1),
+            cancelButtonText: "Cancel"
         }).then((result) => {
             if (!result.isConfirmed) return;
-
-            Swal.fire({
-                title: `${action.charAt(0).toUpperCase() + action.slice(1)}ing...`,
-                text: 'Please wait',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
 
             $.ajax({
                 url: urlTemplate.replace("U", encodeURIComponent(username)),
                 method: isDelete ? "DELETE" : "GET",
             })
-            .done(res => Swal.fire("Success!", res.detail, "success").then(() => refreshUserList()))
-            .fail(() => Swal.fire("Error!", `Failed to ${action} user.`, "error"));
+            .done(res => { toast('success', res.detail || `User ${action}ed`); refreshUserList(); })
+            .fail(() => toast('error', `Failed to ${action} user`));
         });
     });
 
@@ -391,6 +380,7 @@ $(function () {
         const username = $(event.relatedTarget).data("username");
         const qrcodesContainer = $("#qrcodesContainer").empty();
         const url = USER_URI_URL_TEMPLATE.replace("U", encodeURIComponent(username));
+        
         $.getJSON(url, response => {
             [
                 { type: "IPv4", link: response.ipv4 },
@@ -402,18 +392,18 @@ $(function () {
                 const card = $(`<div class="card d-inline-block m-2"><div class="card-body"><div id="${qrId}" class="mx-auto" style="cursor: pointer;"></div><div class="mt-2 text-center small text-muted font-weight-bold">${config.type}</div></div></div>`);
                 qrcodesContainer.append(card);
                 new QRCodeStyling({ width: 200, height: 200, data: config.link, margin: 2 }).append(document.getElementById(qrId));
-                card.on("click", () => navigator.clipboard.writeText(config.link).then(() => Swal.fire({ icon: "success", title: `${config.type} link copied!`, showConfirmButton: false, timer: 1200 })));
+                card.on("click", () => {
+                    navigator.clipboard.writeText(config.link).then(() => toast('success', `${config.type} link copied!`, 1500));
+                });
             });
-        }).fail(() => Swal.fire("Error!", "Failed to fetch user configuration.", "error"));
+        }).fail(() => toast('error', 'Failed to fetch user config'));
     });
     
     $("#showSelectedLinks").on("click", function () {
         const selectedUsers = $(".user-checkbox:checked").map((_, el) => $(el).val()).get();
         if (selectedUsers.length === 0) {
-            return Swal.fire("Warning!", "Please select at least one user.", "warning");
+            return toast('warning', 'Select at least one user');
         }
-
-        Swal.fire({ title: 'Fetching links...', text: 'Please wait.', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         
         $.ajax({
             url: BULK_URI_URL,
@@ -421,14 +411,13 @@ $(function () {
             contentType: 'application/json',
             data: JSON.stringify({ usernames: selectedUsers }),
         }).done(results => {
-            Swal.close();
             cachedUserData = results;
             
             const fetchedCount = results.length;
             const failedCount = selectedUsers.length - fetchedCount;
             
             if (failedCount > 0) {
-               Swal.fire('Warning', `Could not fetch info for ${failedCount} user(s), but others were successful.`, 'warning');
+               toast('warning', `Could not fetch ${failedCount} user(s)`);
             }
             
             if (fetchedCount > 0) {
@@ -445,9 +434,9 @@ $(function () {
                 $("#linksTextarea").val('');
                 $("#showLinksModal").modal("show");
             } else {
-               Swal.fire('Error', `Could not fetch info for any of the selected users.`, 'error');
+               toast('error', 'Could not fetch any user info');
             }
-        }).fail(() => Swal.fire('Error!', 'An error occurred while fetching the links.', 'error'));
+        }).fail(() => toast('error', 'Failed to fetch links'));
     });
 
     $("#extractLinksButton").on("click", function () {
@@ -460,21 +449,11 @@ $(function () {
         };
 
         cachedUserData.forEach(user => {
-            if (linkTypes.ipv4 && user.ipv4) {
-                allLinks.push(user.ipv4);
-            }
-            if (linkTypes.ipv6 && user.ipv6) {
-                allLinks.push(user.ipv6);
-            }
-            if (linkTypes.normal_sub && user.normal_sub) {
-                allLinks.push(user.normal_sub);
-            }
+            if (linkTypes.ipv4 && user.ipv4) allLinks.push(user.ipv4);
+            if (linkTypes.ipv6 && user.ipv6) allLinks.push(user.ipv6);
+            if (linkTypes.normal_sub && user.normal_sub) allLinks.push(user.normal_sub);
             if (linkTypes.nodes && user.nodes && user.nodes.length > 0) {
-                user.nodes.forEach(node => {
-                    if (node.uri) {
-                        allLinks.push(node.uri);
-                    }
-                });
+                user.nodes.forEach(node => { if (node.uri) allLinks.push(node.uri); });
             }
         });
 
@@ -484,10 +463,9 @@ $(function () {
     $("#copyExtractedLinksButton").on("click", () => {
         const links = $("#linksTextarea").val();
         if (!links) {
-            return Swal.fire({ icon: "info", title: "Nothing to copy!", text: "Please extract some links first.", showConfirmButton: false, timer: 1500 });
+            return toast('info', 'Extract some links first');
         }
-        navigator.clipboard.writeText(links)
-            .then(() => Swal.fire({ icon: "success", title: "Links copied!", showConfirmButton: false, timer: 1200 }));
+        navigator.clipboard.writeText(links).then(() => toast('success', 'Links copied!', 1500));
     });
 
     $('#userTable').on('click', '.toggle-details-btn', function() {
@@ -496,12 +474,7 @@ $(function () {
         const detailsRow = $this.closest('tr.user-main-row').next('tr.user-details-row');
 
         detailsRow.toggle();
-
-        if (detailsRow.is(':visible')) {
-            icon.removeClass('fa-plus').addClass('fa-minus');
-        } else {
-            icon.removeClass('fa-minus').addClass('fa-plus');
-        }
+        icon.toggleClass('fa-plus fa-minus');
     });
     
     $('#addUserModal').on('show.bs.modal', function () {
@@ -512,7 +485,8 @@ $(function () {
         Object.assign(document.getElementById('addBulkTrafficLimit'), {value: 30});
         Object.assign(document.getElementById('addBulkExpirationDays'), {value: 30});
         $('#addSubmitButton, #addBulkSubmitButton').prop('disabled', true);
-        $('#addUserModal a[data-toggle="tab"]').first().tab('show');
+        const firstTab = document.querySelector('#addUserModal a[data-bs-toggle="tab"]');
+        if (firstTab) new bootstrap.Tab(firstTab).show();
     });
 
     $("#searchButton").on("click", performSearch);
@@ -546,5 +520,8 @@ $(function () {
     
     initializeLimitSelector();
     checkIpLimitServiceStatus();
-    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Initialize Bootstrap 5 tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
 });

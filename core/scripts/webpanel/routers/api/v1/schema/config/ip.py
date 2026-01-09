@@ -147,8 +147,9 @@ class EditNodeBody(BaseModel):
 class ConnectionLabelsBody(BaseModel):
     ipv4_label: Optional[str] = None
     ipv6_label: Optional[str] = None
+    sub_name: Optional[str] = None
 
-    @field_validator('ipv4_label', 'ipv6_label', mode='before')
+    @field_validator('ipv4_label', 'ipv6_label', 'sub_name', mode='before')
     def strip_labels(cls, v: str | None):
         if v is None:
             return None
@@ -159,6 +160,7 @@ class ConnectionLabelsBody(BaseModel):
 class ConnectionLabelsResponse(BaseModel):
     ipv4_label: str
     ipv6_label: str
+    sub_name: str
 
 
 NodeListResponse = list[Node]

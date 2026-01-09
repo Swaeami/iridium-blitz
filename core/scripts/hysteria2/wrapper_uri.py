@@ -35,10 +35,11 @@ def load_env_file(env_file: str) -> Dict[str, str]:
 
 
 def get_connection_labels(env_vars: Dict[str, str]) -> tuple:
-    """Get custom connection labels or defaults"""
+    """Get custom connection labels and subscription name or defaults"""
     ipv4_label = env_vars.get('IPV4_LABEL', 'IPv4')
     ipv6_label = env_vars.get('IPV6_LABEL', 'IPv6')
-    return ipv4_label, ipv6_label
+    sub_name = env_vars.get('SUB_NAME', 'Hysteria2')
+    return ipv4_label, ipv6_label, sub_name
 
 def generate_uri(username: str, auth_password: str, ip: str, port: str, 
                  uri_params: Dict[str, str], ip_version: int, fragment_tag: str) -> str:
@@ -81,7 +82,7 @@ def process_users(target_usernames: List[str]) -> List[Dict[str, Any]]:
     
     ip4 = hy2_env.get('IP4')
     ip6 = hy2_env.get('IP6')
-    ipv4_label, ipv6_label = get_connection_labels(hy2_env)
+    ipv4_label, ipv6_label, sub_name = get_connection_labels(hy2_env)
     ns_domain, ns_port, ns_subpath = ns_env.get('HYSTERIA_DOMAIN'), ns_env.get('HYSTERIA_PORT'), ns_env.get('SUBPATH')
 
     results = []
@@ -125,7 +126,7 @@ def process_users(target_usernames: List[str]) -> List[Dict[str, Any]]:
             user_output["nodes"].append({"name": node_name, "uri": uri})
         
         if ns_domain and ns_port and ns_subpath:
-            user_output["normal_sub"] = f"https://{ns_domain}:{ns_port}/{ns_subpath}/{auth_password}#Hysteria2"
+            user_output["normal_sub"] = f"https://{ns_domain}:{ns_port}/{ns_subpath}/{auth_password}#{sub_name}"
 
         results.append(user_output)
         

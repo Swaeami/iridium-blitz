@@ -131,6 +131,19 @@ $(document).ready(function () {
         });
     }
 
+    // Toast helper
+    function toast(type, message, timer = 3000) {
+        Swal.fire({
+            icon: type,
+            title: message,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: timer,
+            timerProgressBar: true
+        });
+    }
+
     function sendRequest(url, type, data, successMessage, buttonSelector, showReload = true, postSuccessCallback = null) {
         $.ajax({
             url: url,
@@ -144,15 +157,12 @@ $(document).ready(function () {
                 }
             },
             success: function (response) {
-                Swal.fire("Success!", successMessage, "success").then(() => {
-                    if (showReload) {
-                        location.reload();
-                    } else {
-                        if (postSuccessCallback) {
-                            postSuccessCallback(response);
-                        }
-                    }
-                });
+                toast('success', successMessage);
+                if (showReload) {
+                    setTimeout(() => location.reload(), 1000);
+                } else if (postSuccessCallback) {
+                    postSuccessCallback(response);
+                }
             },
             error: function (xhr, status, error) {
                 let errorMessage = "An unexpected error occurred.";
@@ -173,7 +183,7 @@ $(document).ready(function () {
                         errorMessage = userMessage;
                     }
                 }
-                Swal.fire("Error!", errorMessage, "error");
+                toast('error', errorMessage, 5000);
                 console.error("AJAX Error:", status, error, xhr.responseText);
             },
             complete: function() {
@@ -247,7 +257,7 @@ $(document).ready(function () {
             },
             error: function (xhr, status, error) {
                 console.error("Failed to fetch service status:", error, xhr.responseText);
-                 Swal.fire("Error!", "Could not fetch service statuses.", "error");
+                toast('error', "Could not fetch service statuses.");
             }
         });
 
@@ -272,7 +282,7 @@ $(document).ready(function () {
                 renderNodes(nodes);
             },
             error: function(xhr) {
-                Swal.fire("Error!", "Failed to fetch external nodes list.", "error");
+                toast('error', "Failed to fetch nodes");
                 console.error("Error fetching nodes:", xhr.responseText);
             }
         });
@@ -448,11 +458,13 @@ $(document).ready(function () {
             success: function (data) {
                 $("#ipv4_label").val(data.ipv4_label || 'IPv4');
                 $("#ipv6_label").val(data.ipv6_label || 'IPv6');
+                $("#sub_name").val(data.sub_name || 'Hysteria2');
             },
             error: function(xhr, status, error) {
                 console.error("Failed to fetch connection labels:", error);
                 $("#ipv4_label").val('IPv4');
                 $("#ipv6_label").val('IPv6');
+                $("#sub_name").val('Hysteria2');
             }
         });
     }
@@ -460,22 +472,24 @@ $(document).ready(function () {
     function saveConnectionLabels() {
         const ipv4Label = $("#ipv4_label").val().trim();
         const ipv6Label = $("#ipv6_label").val().trim();
+        const subName = $("#sub_name").val().trim();
 
-        if (!ipv4Label && !ipv6Label) {
-            Swal.fire("Error!", "At least one label must be provided.", "error");
+        if (!ipv4Label && !ipv6Label && !subName) {
+            toast('error', "At least one field required");
             return;
         }
 
         const data = {};
         if (ipv4Label) data.ipv4_label = ipv4Label;
         if (ipv6Label) data.ipv6_label = ipv6Label;
+        if (subName) data.sub_name = subName;
 
-        confirmAction("update connection labels", function () {
+        confirmAction("update labels", function () {
             sendRequest(
                 API_URLS.editLabels,
                 "POST",
                 data,
-                "Connection labels updated successfully!",
+                "Labels updated successfully!",
                 "#labels_save",
                 false,
                 fetchConnectionLabels
@@ -491,7 +505,7 @@ $(document).ready(function () {
                 renderExtraConfigs(configs);
             },
             error: function(xhr) {
-                Swal.fire("Error!", "Failed to fetch extra configurations.", "error");
+                toast('error', "Failed to fetch extra configs");
                 console.error("Error fetching extra configs:", xhr.responseText);
             }
         });
@@ -848,7 +862,7 @@ $(document).ready(function () {
         let backupInterval = $("#telegram_backup_interval").val();
 
         if (!backupInterval) {
-             Swal.fire("Error!", "Backup interval cannot be empty.", "error");
+            toast('error', "Backup interval required");
             return;
         }
 
@@ -914,7 +928,7 @@ $(document).ready(function () {
 
     function downloadBackup() {
         window.location.href = API_URLS.backup;
-         Swal.fire("Starting Download", "Your backup download should start shortly.", "info");
+        toast('info', "Download starting...");
     }
 
     function uploadBackup() {
@@ -922,12 +936,12 @@ $(document).ready(function () {
         var file = fileInput.files[0];
 
         if (!file) {
-            Swal.fire("Error!", "Please select a file to upload.", "error");
+            toast('error', "Please select a file");
             return;
         }
         if (!file.name.toLowerCase().endsWith('.zip')) {
-           Swal.fire("Error!", "Only .zip files are allowed for restore.", "error");
-           return;
+            toast('error', "Only .zip files allowed");
+            return;
         }
 
         confirmAction(`restore the system from the selected backup file (${file.name})`, function() {
@@ -967,9 +981,8 @@ $(document).ready(function () {
                     progressBar.classList.add('bg-success');
                     statusDiv.innerText = 'Backup restored successfully! Reloading page...';
                     statusDiv.className = 'mt-2 text-success';
-                    Swal.fire("Success!", "Backup restored successfully!", "success").then(() => {
-                            location.reload();
-                    });
+                    toast('success', 'Backup restored!');
+                    setTimeout(() => location.reload(), 1500);
                     console.log("Restore Success:", response);
                 },
                 error: function(xhr, status, error) {
@@ -977,7 +990,7 @@ $(document).ready(function () {
                     let detail = (xhr.responseJSON && xhr.responseJSON.detail) ? xhr.responseJSON.detail : 'Check console for details.';
                     statusDiv.innerText = `Error restoring backup: ${detail}`;
                     statusDiv.className = 'mt-2 text-danger';
-                    Swal.fire("Error!", `Failed to restore backup. ${detail}`, "error");
+                    toast('error', `Restore failed: ${detail}`, 5000);
                     console.error("Restore Error:", status, error, xhr.responseText);
                 },
                 complete: function() {
@@ -1067,12 +1080,12 @@ $(document).ready(function () {
                     if ($("#warp_config_form").length > 0) {
                        $("#warp_config_form")[0].reset();
                     }
-                    Swal.fire("Info", "WARP service might not be fully configured. Please try reinstalling if issues persist.", "info");
+                    toast('info', "WARP not configured. Try reinstalling.");
                 } else {
                      if ($("#warp_config_form").length > 0) {
                        $("#warp_config_form")[0].reset();
                     }
-                     Swal.fire("Warning", "Could not load current WARP configuration values. Please check manually or re-save.", "warning");
+                    toast('warning', "Could not load WARP config");
                 }
             }
         });

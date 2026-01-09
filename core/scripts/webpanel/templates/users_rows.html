@@ -51,15 +51,15 @@
             {% endif %}
         </td>
         <td class="d-none d-md-table-cell text-nowrap">
-            <a href="#" class="config-link" data-toggle="modal" data-target="#qrcodeModal"
+            <a href="#" class="config-link" data-bs-toggle="modal" data-bs-target="#qrcodeModal"
                 data-username="{{ user.username }}">
                 <i class="fas fa-qrcode"></i>
             </a>
         </td>
         <td class="d-none d-md-table-cell text-nowrap">
             <button type="button" class="btn btn-sm btn-info edit-user"
-                data-user="{{ user.username }}" data-toggle="modal"
-                data-target="#editUserModal">
+                data-user="{{ user.username }}" data-bs-toggle="modal"
+                data-bs-target="#editUserModal">
                 <i class="fas fa-edit"></i>
             </button>
             <button type="button" class="btn btn-sm btn-warning reset-user"
@@ -122,13 +122,13 @@
                 </p>
                 <div class="mt-2">
                     <strong>Configs:</strong>
-                    <a href="#" class="btn btn-sm btn-outline-secondary config-link" data-toggle="modal" data-target="#qrcodeModal" data-username="{{ user.username }}">
+                    <a href="#" class="btn btn-sm btn-outline-secondary config-link" data-bs-toggle="modal" data-bs-target="#qrcodeModal" data-username="{{ user.username }}">
                         <i class="fas fa-qrcode"></i> Show
                     </a>
                 </div>
                 <div class="mt-2 user-details-actions">
                     <strong>Actions:</strong>
-                    <button type="button" class="btn btn-sm btn-info edit-user" data-user="{{ user.username }}" data-toggle="modal" data-target="#editUserModal">
+                    <button type="button" class="btn btn-sm btn-info edit-user" data-user="{{ user.username }}" data-bs-toggle="modal" data-bs-target="#editUserModal">
                         <i class="fas fa-edit"></i> Edit
                     </button>
                     <button type="button" class="btn btn-sm btn-warning reset-user" data-user="{{ user.username }}">

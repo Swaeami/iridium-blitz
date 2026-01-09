@@ -45,6 +45,11 @@ def load_hysteria2_ips() -> Tuple[str, str, str]:
     sni = env_vars.get('SNI', '')
     return ip4, ip6, sni
 
+def get_sub_name() -> str:
+    """Get custom subscription name or default"""
+    env_vars = load_hysteria2_env()
+    return env_vars.get('SUB_NAME', 'Hysteria2')
+
 def get_singbox_domain_and_port() -> Tuple[str, str]:
     env_vars = load_env_file(SINGBOX_ENV)
     domain = env_vars.get('HYSTERIA_DOMAIN', '')
@@ -198,15 +203,17 @@ def show_uri(args: argparse.Namespace) -> None:
             )
             display_uri_and_qr(uri, f"Node: {node_name} (IPv{ip_v})", args, terminal_width)
 
+    sub_name = get_sub_name()
+    
     if args.singbox and is_service_active("hysteria-singbox.service"):
         domain, port = get_singbox_domain_and_port()
         if domain and port:
-            print(f"\nSingbox Sublink:\nhttps://{domain}:{port}/sub/singbox/{args.username}/{args.ip_version}#Hysteria2\n")
+            print(f"\nSingbox Sublink:\nhttps://{domain}:{port}/sub/singbox/{args.username}/{args.ip_version}#{sub_name}\n")
     
     if args.normalsub and is_service_active("hysteria-normal-sub.service"):
         domain, port, subpath = get_normalsub_domain_and_port()
         if domain and port:
-            print(f"\nNormal-SUB Sublink:\nhttps://{domain}:{port}/{subpath}/{auth_password}#Hysteria2\n")
+            print(f"\nNormal-SUB Sublink:\nhttps://{domain}:{port}/{subpath}/{auth_password}#{sub_name}\n")
 
 def main():
     parser = argparse.ArgumentParser(description="Hysteria2 URI Generator")

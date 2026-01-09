@@ -488,23 +488,24 @@ def get_ip_address() -> tuple[str | None, str | None]:
     return env_vars.get('IP4'), env_vars.get('IP6')
 
 
-def get_connection_labels() -> tuple[str, str]:
+def get_connection_labels() -> tuple[str, str, str]:
     '''
-    Retrieves the connection labels from the .configs.env file.
-    Returns default values ("IPv4", "IPv6") if not set.
+    Retrieves the connection labels and subscription name from the .configs.env file.
+    Returns default values ("IPv4", "IPv6", "Hysteria2") if not set.
     '''
     env_vars = dotenv_values(CONFIG_ENV_FILE)
     ipv4_label = env_vars.get('IPV4_LABEL', 'IPv4')
     ipv6_label = env_vars.get('IPV6_LABEL', 'IPv6')
-    return ipv4_label, ipv6_label
+    sub_name = env_vars.get('SUB_NAME', 'Hysteria2')
+    return ipv4_label, ipv6_label, sub_name
 
 
-def edit_connection_labels(ipv4_label: str | None, ipv6_label: str | None):
+def edit_connection_labels(ipv4_label: str | None, ipv6_label: str | None, sub_name: str | None = None):
     '''
-    Edits the connection labels in the .configs.env file.
+    Edits the connection labels and subscription name in the .configs.env file.
     '''
-    if not ipv4_label and not ipv6_label:
-        raise InvalidInputError('Error: At least one label must be provided.')
+    if not ipv4_label and not ipv6_label and not sub_name:
+        raise InvalidInputError('Error: At least one field must be provided.')
     
     # Read existing env file
     env_vars = {}
@@ -516,6 +517,8 @@ def edit_connection_labels(ipv4_label: str | None, ipv6_label: str | None):
         env_vars['IPV4_LABEL'] = ipv4_label
     if ipv6_label:
         env_vars['IPV6_LABEL'] = ipv6_label
+    if sub_name:
+        env_vars['SUB_NAME'] = sub_name
     
     # Write back to file
     with open(CONFIG_ENV_FILE, 'w') as f:

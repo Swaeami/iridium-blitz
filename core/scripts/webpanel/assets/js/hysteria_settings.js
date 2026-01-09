@@ -43,6 +43,19 @@ $(document).ready(function () {
         });
     }
 
+    // Toast helper
+    function toast(type, message, timer = 3000) {
+        Swal.fire({
+            icon: type,
+            title: message,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: timer,
+            timerProgressBar: true
+        });
+    }
+
     function sendRequest(url, type, data, successMessage, buttonSelector, showReload = true, postSuccessCallback = null) {
         $.ajax({
             url: url,
@@ -57,13 +70,12 @@ $(document).ready(function () {
             },
             success: function (response) {
                 const message = typeof response.detail === 'string' ? response.detail : successMessage;
-                Swal.fire("Success!", message, "success").then(() => {
-                    if (showReload && !postSuccessCallback) {
-                        location.reload();
-                    } else if (postSuccessCallback) {
-                        postSuccessCallback(response);
-                    }
-                });
+                toast('success', message);
+                if (showReload && !postSuccessCallback) {
+                    setTimeout(() => location.reload(), 1000);
+                } else if (postSuccessCallback) {
+                    postSuccessCallback(response);
+                }
             },
             error: function (xhr, status, error) {
                 let errorMessage = "An unexpected error occurred.";
@@ -84,7 +96,7 @@ $(document).ready(function () {
                         errorMessage = userMessage;
                     }
                 }
-                Swal.fire("Error!", errorMessage, "error");
+                toast('error', errorMessage, 5000);
             },
             complete: function() {
                 if (buttonSelector) {
