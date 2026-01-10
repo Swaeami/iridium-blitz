@@ -152,8 +152,12 @@ class ShopDatabase:
         return result.modified_count > 0
     
     def delete_tariff(self, tariff_id) -> bool:
-        """Delete tariff (soft delete - just deactivate)"""
-        return self.update_tariff(tariff_id, {"is_active": False})
+        """Delete tariff permanently"""
+        from bson.objectid import ObjectId
+        if isinstance(tariff_id, str):
+            tariff_id = ObjectId(tariff_id)
+        result = self.tariffs.delete_one({"_id": tariff_id})
+        return result.deleted_count > 0
     
     def reorder_tariff(self, tariff_id, new_order: int) -> bool:
         """Change tariff display order"""

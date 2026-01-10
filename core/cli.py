@@ -927,14 +927,15 @@ def add_tariff(name: str, days: int, price_stars: int):
 
 @tariff.command('list')
 def list_tariffs():
-    """List all tariffs (sorted by display order)."""
+    """List all active tariffs (sorted by display order)."""
     try:
         tariffs = cli_api.list_tariffs()
+        # Filter only active tariffs
+        tariffs = [t for t in tariffs if t.get('is_active', True)]
         if tariffs:
             click.echo('\n📋 Тарифы (в порядке отображения):\n')
             for i, t in enumerate(tariffs, 1):
-                status = '✅' if t.get('is_active') else '❌'
-                click.echo(f"  {i}. {status} {t.get('name')} — {t.get('days', 0)} дней — {t.get('price_stars', 0)}⭐  [ID: {t.get('_id')}]")
+                click.echo(f"  {i}. {t.get('name')} — {t.get('days', 0)} дней — {t.get('price_stars', 0)}⭐  [ID: {t.get('_id')}]")
             click.echo()
         else:
             click.echo('Нет тарифов.')
