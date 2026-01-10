@@ -1,6 +1,5 @@
-Iridium 1.0.47 - Subscription Deletion Handling
+Iridium 1.0.48 - Traffic Stats Fix
 
 🔧 Fixed:
-- Client bot now handles deleted subscriptions gracefully
-- If subscription deleted from admin panel, customer sees normal "no subscription" menu
-- Auto-resets customer state when VPN user no longer exists
+- Added missing `get_traffic_stats` method to Hysteria2Client
+- Fixed error when deleting users via admin bot

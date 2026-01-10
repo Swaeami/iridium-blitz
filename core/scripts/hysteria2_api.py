@@ -93,6 +93,23 @@ class Hysteria2Client:
         except Exception as e:
             raise Hysteria2Error(f"Failed to get traffic: {e}")
     
+    def get_traffic_stats(self, clear: bool = False) -> Dict[str, dict]:
+        """
+        Get traffic statistics for all users with optional clear.
+        
+        Args:
+            clear: If True, clears the traffic stats after retrieval
+            
+        Returns:
+            Dict mapping username to traffic stats
+        """
+        try:
+            params = {'clear': 'true'} if clear else {}
+            response = self._request('GET', '/traffic', params=params)
+            return response.json()
+        except Exception as e:
+            raise Hysteria2Error(f"Failed to get traffic stats: {e}")
+    
     def kick_clients(self, usernames: List[str]) -> bool:
         """
         Kick (disconnect) specified clients.
