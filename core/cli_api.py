@@ -1057,8 +1057,8 @@ def get_client_bot_status() -> dict | None:
     return config
 
 
-def add_tariff(name: str, days: int, price_stars: int) -> dict:
-    '''Adds a new time-based tariff (unlimited traffic).'''
+def add_tariff(name: str, days: int, price_rub: int) -> dict:
+    '''Adds a new time-based tariff (unlimited traffic). Price in rubles.'''
     import sys
     sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
     from db.shop_database import shop_db
@@ -1066,7 +1066,7 @@ def add_tariff(name: str, days: int, price_stars: int) -> dict:
     if not shop_db:
         raise CommandExecutionError("Database not available")
     
-    result = shop_db.create_tariff(name, days, price_stars)
+    result = shop_db.create_tariff(name, days, price_rub)
     result['_id'] = str(result['_id'])
     return result
 
@@ -1099,8 +1099,8 @@ def delete_tariff(tariff_id: str):
         raise CommandExecutionError("Tariff not found")
 
 
-def edit_tariff(tariff_id: str, name: str = None, days: int = None, price_stars: int = None):
-    '''Updates tariff properties.'''
+def edit_tariff(tariff_id: str, name: str = None, days: int = None, price_rub: int = None):
+    '''Updates tariff properties. Price in rubles.'''
     import sys
     sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
     from db.shop_database import shop_db
@@ -1113,8 +1113,8 @@ def edit_tariff(tariff_id: str, name: str = None, days: int = None, price_stars:
         updates['name'] = name
     if days:
         updates['days'] = days
-    if price_stars:
-        updates['price_stars'] = price_stars
+    if price_rub:
+        updates['price_rub'] = price_rub
     
     if not updates:
         raise CommandExecutionError("No updates specified")

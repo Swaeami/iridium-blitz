@@ -915,12 +915,13 @@ def tariff():
 @tariff.command('add')
 @click.option('--name', '-n', required=True, help='Tariff name (e.g., "1 месяц")')
 @click.option('--days', '-d', required=True, type=int, help='Duration in days')
-@click.option('--price-stars', '-ps', required=True, type=int, help='Price in Telegram Stars')
-def add_tariff(name: str, days: int, price_stars: int):
-    """Add a new time-based tariff (unlimited traffic)."""
+@click.option('--price-rub', '-pr', required=True, type=int, help='Price in rubles (stars = rub × 1.5)')
+def add_tariff(name: str, days: int, price_rub: int):
+    """Add a new time-based tariff (unlimited traffic). Price in rubles."""
     try:
-        result = cli_api.add_tariff(name, days, price_stars)
-        click.echo(f'✅ Тариф "{name}" создан: {days} дней за {price_stars}⭐')
+        result = cli_api.add_tariff(name, days, price_rub)
+        stars = int(price_rub * 1.5)
+        click.echo(f'✅ Тариф "{name}" создан: {days} дней за {price_rub}₽ ({stars}⭐)')
     except Exception as e:
         click.echo(f'{e}', err=True)
 
@@ -935,7 +936,9 @@ def list_tariffs():
         if tariffs:
             click.echo('\n📋 Тарифы (в порядке отображения):\n')
             for i, t in enumerate(tariffs, 1):
-                click.echo(f"  {i}. {t.get('name')} — {t.get('days', 0)} дней — {t.get('price_stars', 0)}⭐  [ID: {t.get('_id')}]")
+                price_rub = t.get('price_rub', 0)
+                stars = int(price_rub * 1.5)
+                click.echo(f"  {i}. {t.get('name')} — {t.get('days', 0)} дней — {price_rub}₽ ({stars}⭐)  [ID: {t.get('_id')}]")
             click.echo()
         else:
             click.echo('Нет тарифов.')
@@ -958,11 +961,11 @@ def delete_tariff(tariff_id: str):
 @click.option('--id', '-i', 'tariff_id', required=True, help='Tariff ID')
 @click.option('--name', '-n', help='New name')
 @click.option('--days', '-d', type=int, help='New duration in days')
-@click.option('--price-stars', '-ps', type=int, help='New price in Stars')
-def edit_tariff(tariff_id: str, name: str, days: int, price_stars: int):
-    """Edit tariff properties."""
+@click.option('--price-rub', '-pr', type=int, help='New price in rubles')
+def edit_tariff(tariff_id: str, name: str, days: int, price_rub: int):
+    """Edit tariff properties. Price in rubles."""
     try:
-        cli_api.edit_tariff(tariff_id, name, days, price_stars)
+        cli_api.edit_tariff(tariff_id, name, days, price_rub)
         click.echo('✅ Тариф обновлён.')
     except Exception as e:
         click.echo(f'{e}', err=True)

@@ -1121,14 +1121,14 @@ manage_tariffs_menu() {
                     read -p "Press Enter..."
                     continue
                 fi
-                read -e -p "Price in Stars ⭐: " price_stars
-                if [ -z "$price_stars" ]; then
+                read -e -p "Price in rubles ₽ (stars = rub × 1.5): " price_rub
+                if [ -z "$price_rub" ]; then
                     echo "Price cannot be empty."
                     read -p "Press Enter..."
                     continue
                 fi
                 
-                python3 $CLI_PATH tariff add -n "$name" -d "$days" -ps "$price_stars"
+                python3 $CLI_PATH tariff add -n "$name" -d "$days" -pr "$price_rub"
                 echo ""
                 read -p "Press Enter to continue..."
                 ;;
@@ -1136,14 +1136,14 @@ manage_tariffs_menu() {
                 echo ""
                 read -e -p "Enter Tariff ID to edit: " tariff_id
                 if [ -n "$tariff_id" ]; then
-                    read -e -p "New name (leave empty to skip): " new_name
-                    read -e -p "New days (leave empty to skip): " new_days
-                    read -e -p "New price in Stars (leave empty to skip): " new_price
+                    read -e -p "New name (empty = skip): " new_name
+                    read -e -p "New days (empty = skip): " new_days
+                    read -e -p "New price in rubles (empty = skip): " new_price
                     
                     cmd="python3 $CLI_PATH tariff edit -i '$tariff_id'"
                     [ -n "$new_name" ] && cmd="$cmd -n '$new_name'"
                     [ -n "$new_days" ] && cmd="$cmd -d $new_days"
-                    [ -n "$new_price" ] && cmd="$cmd -ps $new_price"
+                    [ -n "$new_price" ] && cmd="$cmd -pr $new_price"
                     eval $cmd
                 fi
                 read -p "Press Enter to continue..."
@@ -1247,17 +1247,17 @@ manage_promos_menu() {
                         ;;
                 esac
                 
-                read -e -p "Max Uses (default: 100): " max_uses
+                read -e -p "Max Uses (empty = unlimited): " max_uses
                 max_uses=${max_uses:-100}
                 read -e -p "For specific user (@username, empty = all): " for_user
                 read -e -p "Max IPs/devices (empty = unlimited): " max_ips
-                read -e -p "Expire in days (0 = never): " expire
+                read -e -p "Expire in days (empty = never): " expire
                 
                 cmd="python3 $CLI_PATH promo add -t $promo_type -v $value -m $max_uses"
                 [ -n "$code" ] && cmd="$cmd -c '$code'"
                 [ -n "$for_user" ] && cmd="$cmd -u '$for_user'"
                 [ -n "$max_ips" ] && cmd="$cmd -i $max_ips"
-                [ -n "$expire" ] && [ "$expire" != "0" ] && cmd="$cmd -e $expire"
+                [ -n "$expire" ] && cmd="$cmd -e $expire"
                 eval $cmd
                 echo ""
                 read -p "Press Enter to continue..."

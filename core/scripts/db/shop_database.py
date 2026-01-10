@@ -109,12 +109,13 @@ class ShopDatabase:
         self,
         name: str,
         days: int,  # Subscription duration in days
-        price_stars: int,  # Telegram Stars price
+        price_rub: int,  # Price in rubles (stars = rub * 1.5)
         is_active: bool = True,
         order: int = 0  # Display order (lower = first)
     ) -> Dict:
         """
         Create a time-based tariff (unlimited traffic)
+        Price stored in rubles, stars calculated on the fly as rub * 1.5
         """
         # Get max order if not specified
         if order == 0:
@@ -124,7 +125,7 @@ class ShopDatabase:
         tariff = {
             "name": name,
             "days": days,
-            "price_stars": price_stars,
+            "price_rub": price_rub,
             "is_active": is_active,
             "order": order,
             "created_at": datetime.utcnow()

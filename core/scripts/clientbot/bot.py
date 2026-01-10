@@ -61,6 +61,16 @@ payment_manager = PaymentManager()
 
 # ==================== HELPERS ====================
 
+def rub_to_stars(price_rub: int) -> int:
+    """Convert price from rubles to Telegram Stars (1.5x multiplier)"""
+    return int(price_rub * 1.5)
+
+
+def get_tariff_stars(tariff: dict) -> int:
+    """Get tariff price in stars (calculated from rubles)"""
+    return rub_to_stars(tariff.get("price_rub", 0))
+
+
 def generate_vpn_password(length: int = 32) -> str:
     """Generate random VPN password"""
     alphabet = string.ascii_letters + string.digits
@@ -208,7 +218,8 @@ def buy_subscription_handler(message):
     for t in tariffs:
         days = t.get("days", 30)
         period = format_days(days)
-        text += f"• *{t['name']}* — {period} — {t['price_stars']}⭐\n"
+        stars = get_tariff_stars(t)
+        text += f"• *{t['name']}* — {period} — {stars}⭐\n"
     
     # Check if trial available
     trial_text = ""
@@ -492,7 +503,8 @@ def tariff_select_callback(call):
     
     # Check for pending promo
     promo_code = customer.get("pending_promo")
-    final_price = tariff["price_stars"]
+    base_price = get_tariff_stars(tariff)
+    final_price = base_price
     promo_text = ""
     
     if promo_code:
@@ -501,8 +513,8 @@ def tariff_select_callback(call):
         )
         if is_valid and promo["type"] == "discount":
             discount = int(promo["value"])
-            final_price = int(final_price * (100 - discount) / 100)
-            promo_text = f"🎁 Скидка {discount}%: -{tariff['price_stars'] - final_price}⭐\n"
+            final_price = int(base_price * (100 - discount) / 100)
+            promo_text = f"🎁 Скидка {discount}%: -{base_price - final_price}⭐\n"
     
     period = format_days(tariff.get("days", 30))
     
@@ -533,14 +545,15 @@ def payment_callback(call):
         bot.answer_callback_query(call.id, "Тариф не найден", show_alert=True)
         return
     
-    if not tariff.get("price_stars"):
+    if not tariff.get("price_rub"):
         bot.answer_callback_query(call.id, "❌ Тариф не настроен для оплаты", show_alert=True)
         return
     
     customer = get_or_create_customer_by_id(call.from_user.id, call.from_user.username)
     
-    # Calculate final price with promo
-    final_price = tariff["price_stars"]
+    # Calculate final price with promo (stars = rub * 1.5)
+    base_price = get_tariff_stars(tariff)
+    final_price = base_price
     promo_code = customer.get("pending_promo")
     
     if promo_code:
@@ -549,7 +562,7 @@ def payment_callback(call):
         )
         if is_valid and promo["type"] == "discount":
             discount = int(promo["value"])
-            final_price = int(final_price * (100 - discount) / 100)
+            final_price = int(base_price * (100 - discount) / 100)
     
     # Create payment record
     payment = shop_db.create_payment(
