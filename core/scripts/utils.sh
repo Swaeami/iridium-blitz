@@ -140,13 +140,23 @@ wait_seconds() {
 }
 
 get_system_info() {
-    OS=$(lsb_release -d | awk -F'\t' '{print $2}')
+    OS=$(lsb_release -d 2>/dev/null | awk -F'\t' '{print $2}')
+    [ -z "$OS" ] && OS="Unknown"
     ARCH=$(uname -m)
-    IP_API_DATA=$(curl -s https://ipapi.co/json/ -4)
-    ISP=$(echo "$IP_API_DATA" | jq -r '.org')
-    IP=$(echo "$IP_API_DATA" | jq -r '.ip')
-    CPU=$(top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4 "%"}')
-    RAM=$(free -m | awk 'NR==2{printf "%.2f%%", $3*100/$2 }')
+    
+    IP_API_DATA=$(curl -s --connect-timeout 3 https://ipapi.co/json/ -4 2>/dev/null)
+    if echo "$IP_API_DATA" | jq -e . >/dev/null 2>&1; then
+        ISP=$(echo "$IP_API_DATA" | jq -r '.org // "N/A"' 2>/dev/null)
+        IP=$(echo "$IP_API_DATA" | jq -r '.ip // "N/A"' 2>/dev/null)
+    else
+        ISP="N/A"
+        IP=$(curl -s --connect-timeout 3 -4 ip.sb 2>/dev/null || echo "N/A")
+    fi
+    
+    CPU=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk '{print $2 + $4 "%"}')
+    [ -z "$CPU" ] && CPU="N/A"
+    RAM=$(free -m 2>/dev/null | awk 'NR==2{printf "%.2f%%", $3*100/$2 }')
+    [ -z "$RAM" ] && RAM="N/A"
 }
 
 version_greater_equal() {
