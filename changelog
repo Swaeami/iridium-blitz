@@ -1,21 +1,28 @@
-Iridium 1.0.27 - Shop UX Improvements
+Iridium 1.0.31 - Shop System Overhaul
 
-🔧 Client Bot Section:
-- Token input shows only when bot is stopped
-- After start, shows settings form only (no token)
-- Save settings auto-restarts bot
+🏪 Shop Management:
+- Removed shop from web panel (CLI only now)
+- Removed shop management from admin bot
+- Time-based tariffs only (unlimited traffic)
+- Removed YooKassa, Telegram Stars only
 
-📋 Tariff Modal:
-- Prices for 1, 3, 6, 12 months
-- Traffic limit field only for limited tariffs
-- Unlimited/Limited type selector
+📋 Tariffs:
+- Simplified: name + days + price in stars
+- Display ordering (move up/down)
+- Edit tariff properties
+- Hard delete (complete removal)
 
-🎁 Promo Modal:
-- Dynamic fields based on promo type
-- Discount: % field
-- Free period: days field  
-- Extra traffic: GB field
+🎁 Promo Codes:
+- One user can use each code only once
+- User-specific promos (for_telegram_id)
+- Discount (%) and Free Period (days) types only
+- Hard delete (complete removal)
+- Fixed: free_period promo now creates/extends subscription immediately
+
+💾 Backup:
+- .clientbot.env included in backup
+- Shop data (MongoDB) backed up automatically
 
 🐛 Fixes:
-- Fixed infinite loading issue
-- Section visibility now works correctly
+- Added missing hysteria2_api.py module
+- Fixed ModuleNotFoundError on CLI execution
