@@ -192,32 +192,41 @@ def get_or_create_customer_by_id(telegram_id: int, username: str = None) -> dict
     return customer
 
 
-def create_or_extend_subscription(customer: dict, days: int, max_ips: int = None) -> Optional[str]:
+def create_or_extend_subscription(customer: dict, days: int, max_ips: int = None, is_lifetime: bool = False) -> Optional[str]:
     """Create new subscription or extend existing one"""
     vpn_username = customer.get("vpn_username") or generate_vpn_username(customer["telegram_id"])
     password = generate_vpn_password()
+    
+    # 0 = unlimited in panel
+    effective_days = 0 if is_lifetime else days
+    effective_max_ips = 0 if max_ips is None else max_ips  # 0 = unlimited
     
     try:
         existing = vpn_db.get_user(vpn_username)
         
         if existing:
-            current_days = existing.get("expiration_days", 0)
-            updates = {"expiration_days": current_days + days}
-            if max_ips is not None:
-                updates["max_ips"] = max_ips
+            if is_lifetime:
+                updates = {"expiration_days": 0}  # unlimited
+            else:
+                current_days = existing.get("expiration_days", 0)
+                # If current is unlimited (0), keep it unlimited
+                if current_days == 0:
+                    updates = {}
+                else:
+                    updates = {"expiration_days": current_days + days}
+            updates["max_ips"] = effective_max_ips
             vpn_db.update_user(vpn_username, updates)
         else:
             user_data = {
                 "username": vpn_username,
                 "password": password,
                 "max_download_bytes": 0,  # 0 = unlimited
-                "expiration_days": days,
+                "expiration_days": effective_days,
+                "max_ips": effective_max_ips,  # 0 = unlimited
                 "blocked": False,
                 "status": "Active",
                 "account_creation_date": datetime.now().strftime("%Y-%m-%d")
             }
-            if max_ips is not None:
-                user_data["max_ips"] = max_ips
             vpn_db.add_user(user_data)
         
         shop_db.update_customer(customer["telegram_id"], {"vpn_username": vpn_username})
@@ -302,7 +311,7 @@ def get_subscription_url(vpn_username: str) -> Optional[str]:
 
 def format_days(days: int) -> str:
     """Format days to human readable string"""
-    if days >= 36500:
+    if days == 0 or days >= 36500:
         return "♾️"
     elif days >= 365:
         years = days // 365
@@ -350,9 +359,16 @@ def get_main_menu_text(customer: dict) -> tuple:
     # Get subscription URL
     sub_url = get_subscription_url(vpn_username)
     
-    # Check if subscription expired
+    # Check subscription status
     days_left = info['expiration_days']
-    if days_left <= 0:
+    
+    # 0 = unlimited (lifetime subscription)
+    if days_left == 0:
+        status_emoji = "🟢"
+        status_text = "Активна"
+        days_text = f"Осталось: *♾️*"
+    elif days_left < 0:
+        # Expired (negative means past expiration)
         status_emoji = "🔴"
         status_text = "Подписка истекла"
         days_text = "Продлите для восстановления доступа"
@@ -487,7 +503,7 @@ def process_promo(customer, code, promo):
     
     if promo["type"] == "lifetime":
         max_ips = promo.get("max_ips")
-        vpn_username = create_or_extend_subscription(customer, 36500, max_ips)
+        vpn_username = create_or_extend_subscription(customer, 0, max_ips, is_lifetime=True)
         
         if vpn_username:
             shop_db.use_promo(code, telegram_id)

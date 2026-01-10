@@ -1,6 +1,6 @@
-Iridium 1.0.50 - Bot Restart Resilience
+Iridium 1.0.51 - Unlimited Values Fix
 
 🔧 Fixed:
-- Client bot now handles restarts gracefully
-- Old inline menus continue to work after bot update
-- Added fallback: tries both edit methods, then sends new message if needed
+- Lifetime subscription now shows as Unlimited (0) instead of 36500 days
+- IP limit now correctly shows Unlimited (0) when not specified
+- Fixed subscription status detection for unlimited subscriptions
