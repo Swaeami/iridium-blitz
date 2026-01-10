@@ -7,15 +7,25 @@ from telebot import types
 from typing import List, Dict, Optional
 
 
-def main_menu_keyboard() -> types.InlineKeyboardMarkup:
-    """Main menu inline keyboard"""
+def main_menu_keyboard(has_subscription: bool = False) -> types.InlineKeyboardMarkup:
+    """Main menu inline keyboard - adapts based on subscription status"""
     markup = types.InlineKeyboardMarkup(row_width=1)
-    markup.add(
-        types.InlineKeyboardButton("🛒 Купить подписку", callback_data="menu:buy"),
-        types.InlineKeyboardButton("👤 Мой профиль", callback_data="menu:profile"),
-        types.InlineKeyboardButton("🎁 Ввести промокод", callback_data="menu:promo"),
-        types.InlineKeyboardButton("💬 Поддержка", callback_data="menu:support")
-    )
+    
+    if has_subscription:
+        # User has active subscription - show extend button
+        markup.add(
+            types.InlineKeyboardButton("🔄 Продлить подписку", callback_data="menu:buy"),
+            types.InlineKeyboardButton("🎁 Ввести промокод", callback_data="menu:promo"),
+            types.InlineKeyboardButton("💬 Поддержка", callback_data="menu:support")
+        )
+    else:
+        # No subscription - show buy button
+        markup.add(
+            types.InlineKeyboardButton("🛒 Купить подписку", callback_data="menu:buy"),
+            types.InlineKeyboardButton("🎁 Ввести промокод", callback_data="menu:promo"),
+            types.InlineKeyboardButton("💬 Поддержка", callback_data="menu:support")
+        )
+    
     return markup
 
 
@@ -68,27 +78,10 @@ def confirm_trial_keyboard() -> types.InlineKeyboardMarkup:
     return markup
 
 
-def profile_keyboard(has_subscription: bool = False) -> types.InlineKeyboardMarkup:
-    """Profile actions keyboard"""
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    
-    if has_subscription:
-        markup.add(
-            types.InlineKeyboardButton("📱 Показать QR-код", callback_data="profile:qr"),
-            types.InlineKeyboardButton("📋 Скопировать ссылку", callback_data="profile:link"),
-            types.InlineKeyboardButton("🔄 Продлить подписку", callback_data="menu:buy")
-        )
-    else:
-        markup.add(types.InlineKeyboardButton("🛒 Купить подписку", callback_data="menu:buy"))
-    
-    markup.add(types.InlineKeyboardButton("◀️ Главное меню", callback_data="menu:main"))
-    return markup
-
-
-def profile_back_keyboard() -> types.InlineKeyboardMarkup:
-    """Back to profile button"""
+def back_to_main_keyboard() -> types.InlineKeyboardMarkup:
+    """Simple back to main menu button"""
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("◀️ Назад к профилю", callback_data="menu:profile"))
+    markup.add(types.InlineKeyboardButton("◀️ Главное меню", callback_data="menu:main"))
     return markup
 
 
@@ -121,8 +114,6 @@ def promo_keyboard() -> types.InlineKeyboardMarkup:
 def promo_result_keyboard(success: bool = True) -> types.InlineKeyboardMarkup:
     """After promo activation"""
     markup = types.InlineKeyboardMarkup(row_width=1)
-    if success:
-        markup.add(types.InlineKeyboardButton("👤 Мой профиль", callback_data="menu:profile"))
     markup.add(types.InlineKeyboardButton("◀️ Главное меню", callback_data="menu:main"))
     return markup
 

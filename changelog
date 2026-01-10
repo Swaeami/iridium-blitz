@@ -1,6 +1,9 @@
-Iridium 1.0.39 - Client Bot Link Generation Fix
+Iridium 1.0.40 - Client Bot UX Improvements
 
-🔧 Fixed:
-- Fixed "Error getting link" when generating QR code or subscription link in client bot
-- Subscription link generation now works independently without external module dependencies
-- Improved error handling and logging for link generation
+✨ Improved UX:
+- Simplified navigation: main menu now shows profile info if subscription exists
+- Subscription link displayed directly in main menu (no extra buttons)
+- Removed QR code and copy link buttons
+- Dynamic menu: "Buy subscription" for new users, "Extend subscription" for existing
+- Profile section merged into main menu for subscribers
+- Cleaner interface with fewer navigation steps

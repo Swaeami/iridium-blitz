@@ -3,12 +3,11 @@
 Iridium Client Bot
 Telegram bot for customers to purchase VPN subscriptions
 All navigation via inline buttons - single message editing
+Simplified UX: main menu shows profile if subscription exists
 """
 
 import os
 import sys
-import qrcode
-import io
 import secrets
 import string
 from datetime import datetime
@@ -24,7 +23,7 @@ from db.shop_database import shop_db
 from db.database import db as vpn_db
 from clientbot.utils.keyboards import (
     main_menu_keyboard, tariffs_keyboard, tariff_detail_keyboard,
-    profile_keyboard, profile_back_keyboard, support_keyboard,
+    back_to_main_keyboard, support_keyboard,
     confirm_trial_keyboard, promo_keyboard, promo_result_keyboard, faq_keyboard
 )
 from clientbot.utils.payment import PaymentManager
@@ -297,20 +296,61 @@ def format_days(days: int) -> str:
 
 # ==================== MENU CONTENT ====================
 
-def get_main_menu_text():
-    return (
-        "🌐 *Iridium VPN*\n\n"
-        "Быстрый и безопасный VPN на базе Hysteria2\n\n"
-        "Выберите действие:"
+def get_main_menu_text(customer: dict) -> tuple:
+    """
+    Get main menu text based on subscription status.
+    Returns (text, has_subscription)
+    """
+    vpn_username = customer.get("vpn_username")
+    
+    if not vpn_username:
+        # No subscription - show welcome text
+        text = (
+            "🌐 *Iridium VPN*\n\n"
+            "Быстрый и безопасный VPN на базе Hysteria2\n\n"
+            "Выберите действие:"
+        )
+        return text, False
+    
+    # Has subscription - show profile with link
+    info = get_user_subscription_info(vpn_username)
+    if not info:
+        text = (
+            "🌐 *Iridium VPN*\n\n"
+            "❌ Ошибка получения информации о подписке.\n"
+            "Обратитесь в поддержку."
+        )
+        return text, False
+    
+    # Get subscription link
+    link = get_subscription_link(vpn_username)
+    link_text = f"\n\n📋 *Ссылка для подключения:*\n`{link}`" if link else "\n\n❌ Ошибка получения ссылки"
+    
+    text = (
+        f"🌐 *Iridium VPN*\n\n"
+        f"👤 *Ваш профиль*\n"
+        f"━━━━━━━━━━━━━━━━━\n"
+        f"🔑 Логин: `{info['username']}`\n"
+        f"📊 Использовано: {info['traffic_used_gb']} GB\n"
+        f"⏰ Осталось: {format_days(info['expiration_days'])}\n"
+        f"📶 Статус: {info['status']}"
+        f"{link_text}"
     )
+    
+    return text, True
 
 
 def get_tariffs_text(customer):
+    """Get tariffs selection text"""
     tariffs = shop_db.get_active_tariffs()
     if not tariffs:
         return "😔 К сожалению, нет доступных тарифов.", None
     
-    text = "🛒 *Выберите тариф:*\n\n"
+    # Check if extending or buying new
+    has_sub = customer.get("vpn_username") is not None
+    header = "🔄 *Продление подписки:*" if has_sub else "🛒 *Выберите тариф:*"
+    
+    text = f"{header}\n\n"
     
     for t in tariffs:
         days = t.get("days", 30)
@@ -323,28 +363,6 @@ def get_tariffs_text(customer):
         text += f"\n🎁 Также доступен пробный период на {trial_days} дня!"
     
     return text, tariffs
-
-
-def get_profile_text(customer):
-    if not customer.get("vpn_username"):
-        return (
-            "👤 *Ваш профиль*\n\n"
-            "У вас пока нет активной подписки.\n"
-            "Купите подписку или активируйте пробный период!"
-        ), False
-    
-    info = get_user_subscription_info(customer["vpn_username"])
-    if not info:
-        return "❌ Ошибка получения информации о подписке", False
-    
-    text = (
-        f"👤 *Ваш профиль*\n\n"
-        f"🔑 Логин: `{info['username']}`\n"
-        f"📊 Использовано: {info['traffic_used_gb']} GB\n"
-        f"⏰ Осталось: {format_days(info['expiration_days'])}\n"
-        f"📶 Статус: {info['status']}"
-    )
-    return text, True
 
 
 def get_support_text():
@@ -360,13 +378,14 @@ def get_support_text():
 @bot.message_handler(commands=['start'])
 def start_handler(message):
     """Handle /start command - send main menu"""
-    get_or_create_customer(message)
+    customer = get_or_create_customer(message)
+    text, has_subscription = get_main_menu_text(customer)
     
     bot.send_message(
         message.chat.id,
-        get_main_menu_text(),
+        text,
         parse_mode="Markdown",
-        reply_markup=main_menu_keyboard()
+        reply_markup=main_menu_keyboard(has_subscription=has_subscription)
     )
 
 
@@ -398,7 +417,7 @@ def promo_text_handler(message):
                 reply_markup=promo_result_keyboard(success=False)
             )
         except:
-            bot.send_message(message.chat.id, text, reply_markup=main_menu_keyboard())
+            bot.send_message(message.chat.id, text, reply_markup=back_to_main_keyboard())
         return
     
     # Process promo by type
@@ -411,7 +430,7 @@ def promo_text_handler(message):
             reply_markup=promo_result_keyboard(success=True)
         )
     except:
-        bot.send_message(message.chat.id, result_text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+        bot.send_message(message.chat.id, result_text, parse_mode="Markdown", reply_markup=back_to_main_keyboard())
 
 
 def process_promo(customer, code, promo):
@@ -425,12 +444,11 @@ def process_promo(customer, code, promo):
         if vpn_username:
             shop_db.use_promo(code, telegram_id)
             ips_text = f"📱 Лимит устройств: {max_ips}\n" if max_ips else ""
-            login_text = f"🔑 Ваш логин: `{vpn_username}`\n\n" if not customer.get("vpn_username") else ""
             return (
                 f"✅ *Промокод активирован!*\n\n"
                 f"🎁 Подписка навсегда! ♾️\n"
-                f"{ips_text}{login_text}"
-                f"Перейдите в профиль для получения ссылки."
+                f"{ips_text}\n"
+                f"Вернитесь в главное меню для просмотра ссылки."
             )
         return "❌ Ошибка активации промокода"
     
@@ -443,13 +461,12 @@ def process_promo(customer, code, promo):
             shop_db.use_promo(code, telegram_id)
             info = get_user_subscription_info(vpn_username)
             ips_text = f"📱 Лимит устройств: {max_ips}\n" if max_ips else ""
-            login_text = f"🔑 Ваш логин: `{vpn_username}`\n\n" if not customer.get("vpn_username") else ""
             return (
                 f"✅ *Промокод активирован!*\n\n"
                 f"🎁 +{days} дней подписки\n"
                 f"⏰ Всего осталось: {info['expiration_days']} дней\n"
-                f"{ips_text}{login_text}"
-                f"Перейдите в профиль для получения ссылки."
+                f"{ips_text}\n"
+                f"Вернитесь в главное меню для просмотра ссылки."
             )
         return "❌ Ошибка активации промокода"
     
@@ -473,11 +490,12 @@ def menu_callback(call):
     customer = get_or_create_customer_by_id(call.from_user.id, call.from_user.username)
     
     if action == "main":
+        text, has_subscription = get_main_menu_text(customer)
         bot.edit_message_text(
-            get_main_menu_text(),
+            text,
             call.message.chat.id, call.message.message_id,
             parse_mode="Markdown",
-            reply_markup=main_menu_keyboard()
+            reply_markup=main_menu_keyboard(has_subscription=has_subscription)
         )
     
     elif action == "buy":
@@ -491,16 +509,8 @@ def menu_callback(call):
         else:
             bot.edit_message_text(
                 text, call.message.chat.id, call.message.message_id,
-                reply_markup=main_menu_keyboard()
+                reply_markup=back_to_main_keyboard()
             )
-    
-    elif action == "profile":
-        text, has_sub = get_profile_text(customer)
-        bot.edit_message_text(
-            text, call.message.chat.id, call.message.message_id,
-            parse_mode="Markdown",
-            reply_markup=profile_keyboard(has_subscription=has_sub)
-        )
     
     elif action == "promo":
         waiting_for_promo[call.from_user.id] = call.message.message_id
@@ -573,18 +583,20 @@ def trial_action_callback(call):
     
     shop_db.mark_trial_used(customer["telegram_id"])
     
+    # Refresh customer to get updated vpn_username
+    customer = get_or_create_customer_by_id(call.from_user.id, call.from_user.username)
+    
     text = (
         f"✅ *Пробный период активирован!*\n\n"
-        f"🔑 Логин: `{vpn_username}`\n"
         f"⏰ Срок: {trial_days} дня\n"
         f"📊 Трафик: Безлимит\n\n"
-        f"Перейдите в профиль для получения ссылки."
+        f"Вернитесь в главное меню для просмотра ссылки."
     )
     
     bot.edit_message_text(
         text, call.message.chat.id, call.message.message_id,
         parse_mode="Markdown",
-        reply_markup=profile_back_keyboard()
+        reply_markup=back_to_main_keyboard()
     )
     bot.answer_callback_query(call.id)
 
@@ -686,60 +698,6 @@ def payment_callback(call):
         bot.answer_callback_query(call.id)
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("profile:"))
-def profile_action_callback(call):
-    """Handle profile actions"""
-    action = call.data.split(":")[1]
-    customer = get_or_create_customer_by_id(call.from_user.id, call.from_user.username)
-    
-    vpn_username = customer.get("vpn_username")
-    if not vpn_username:
-        bot.answer_callback_query(call.id, "❌ Нет активной подписки", show_alert=True)
-        return
-    
-    if action == "qr":
-        link = get_subscription_link(vpn_username)
-        if not link:
-            bot.answer_callback_query(call.id, "❌ Ошибка получения ссылки", show_alert=True)
-            return
-        
-        qr = qrcode.QRCode(version=1, box_size=10, border=2)
-        qr.add_data(link)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        
-        bio = io.BytesIO()
-        img.save(bio, format='PNG')
-        bio.seek(0)
-        
-        bot.send_photo(
-            call.message.chat.id,
-            bio,
-            caption="📱 Отсканируйте QR-код в приложении",
-            reply_markup=profile_back_keyboard()
-        )
-        bot.answer_callback_query(call.id)
-    
-    elif action == "link":
-        link = get_subscription_link(vpn_username)
-        if not link:
-            bot.answer_callback_query(call.id, "❌ Ошибка получения ссылки", show_alert=True)
-            return
-        
-        text = (
-            f"📋 *Ваша ссылка подключения:*\n\n"
-            f"`{link}`\n\n"
-            f"Скопируйте и вставьте в приложение."
-        )
-        
-        bot.edit_message_text(
-            text, call.message.chat.id, call.message.message_id,
-            parse_mode="Markdown",
-            reply_markup=profile_back_keyboard()
-        )
-        bot.answer_callback_query(call.id)
-
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith("support:"))
 def support_action_callback(call):
     """Handle support actions"""
@@ -750,7 +708,7 @@ def support_action_callback(call):
             "📖 *FAQ / Инструкция*\n\n"
             "*Как подключиться?*\n"
             "1. Скачайте приложение Hiddify или Streisand\n"
-            "2. В профиле скопируйте ссылку или отсканируйте QR\n"
+            "2. В главном меню скопируйте ссылку\n"
             "3. Добавьте профиль в приложение\n"
             "4. Нажмите «Подключиться»\n\n"
             "*Поддерживаемые платформы:*\n"
@@ -832,16 +790,15 @@ def successful_payment_handler(message):
     
     text = (
         f"✅ *Оплата прошла успешно!*\n\n"
-        f"🔑 Логин: `{vpn_username}`\n"
         f"📅 Тариф: {tariff['name']}\n"
         f"⏰ Срок: {format_days(days)}{extra_text}\n\n"
-        f"Перейдите в профиль для получения ссылки."
+        f"Вернитесь в главное меню для просмотра ссылки."
     )
     
     bot.send_message(
         message.chat.id, text,
         parse_mode="Markdown",
-        reply_markup=profile_back_keyboard()
+        reply_markup=back_to_main_keyboard()
     )
 
 
