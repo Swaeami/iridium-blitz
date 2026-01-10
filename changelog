@@ -1,9 +1,7 @@
-Iridium 1.0.40 - Client Bot UX Improvements
+Iridium 1.0.41 - Subscription URL Integration
 
-✨ Improved UX:
-- Simplified navigation: main menu now shows profile info if subscription exists
-- Subscription link displayed directly in main menu (no extra buttons)
-- Removed QR code and copy link buttons
-- Dynamic menu: "Buy subscription" for new users, "Extend subscription" for existing
-- Profile section merged into main menu for subscribers
-- Cleaner interface with fewer navigation steps
+✨ Changes:
+- Subscription link now uses https:// format (Normal-SUB)
+- Added "Open subscription" button that opens link in app
+- Removed status field from profile display
+- Cleaner profile view with subscription URL

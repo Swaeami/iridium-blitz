@@ -159,64 +159,8 @@ def get_user_subscription_info(vpn_username: str) -> Optional[dict]:
     }
 
 
-def load_hysteria_config() -> Optional[dict]:
-    """Load Hysteria2 configuration files"""
-    try:
-        import json
-        
-        config_file = "/etc/hysteria/config.json"
-        config_env = "/etc/hysteria/.configs.env"
-        
-        # Load main config
-        with open(config_file, 'r') as f:
-            config = json.load(f)
-        
-        # Load env config
-        env_vars = {}
-        if os.path.exists(config_env):
-            with open(config_env, 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#') and '=' in line:
-                        key, value = line.split('=', 1)
-                        env_vars[key] = value
-        
-        return {
-            "config": config,
-            "ip4": env_vars.get("IP4", ""),
-            "ip6": env_vars.get("IP6", ""),
-            "sni": env_vars.get("SNI", ""),
-            "ipv4_label": env_vars.get("IPV4_LABEL", "IPv4"),
-            "ipv6_label": env_vars.get("IPV6_LABEL", "IPv6"),
-        }
-    except Exception as e:
-        print(f"Error loading hysteria config: {e}")
-        return None
-
-
-def generate_hysteria_uri(username: str, password: str, ip: str, port: str,
-                          obfs_password: str, sha256: str, sni: str, 
-                          ip_version: int, insecure: bool, label: str) -> str:
-    """Generate Hysteria2 URI"""
-    ip_part = f"[{ip}]" if ip_version == 6 and ':' in ip else ip
-    uri_base = f"hy2://{username}:{password}@{ip_part}:{port}"
-    
-    params = []
-    if obfs_password:
-        params.append(f"obfs=salamander&obfs-password={obfs_password}")
-    if sha256:
-        params.append(f"pinSHA256={sha256}")
-    if sni:
-        params.append(f"sni={sni}")
-    
-    params.append(f"insecure={'1' if insecure else '0'}")
-    
-    query_string = "&".join(params)
-    return f"{uri_base}?{query_string}#{label}"
-
-
-def get_subscription_link(vpn_username: str, ip_version: int = 4) -> Optional[str]:
-    """Get subscription link for user"""
+def get_subscription_url(vpn_username: str) -> Optional[str]:
+    """Get subscription URL for user (https:// format for apps)"""
     try:
         # Get user from database
         user = vpn_db.get_user(vpn_username)
@@ -224,52 +168,46 @@ def get_subscription_link(vpn_username: str, ip_version: int = 4) -> Optional[st
             print(f"User {vpn_username} not found in database")
             return None
         
-        # Load hysteria config
-        hysteria = load_hysteria_config()
-        if not hysteria:
+        # Load normalsub config
+        normalsub_env = "/etc/hysteria/core/scripts/normalsub/.env"
+        env_vars = {}
+        
+        if os.path.exists(normalsub_env):
+            with open(normalsub_env, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        env_vars[key] = value
+        
+        domain = env_vars.get("HYSTERIA_DOMAIN", "")
+        port = env_vars.get("HYSTERIA_PORT", "")
+        subpath = env_vars.get("SUBPATH", "")
+        
+        if not domain or not port:
+            print("Normal-SUB not configured")
             return None
         
-        config = hysteria["config"]
+        # Get sub name from main config
+        config_env = "/etc/hysteria/.configs.env"
+        sub_name = "Iridium"
         
-        # Extract connection params
-        port = config["listen"].split(":")[-1]
-        sha256 = config.get("tls", {}).get("pinSHA256", "")
-        obfs_password = config.get("obfs", {}).get("salamander", {}).get("password", "")
-        insecure = config.get("tls", {}).get("insecure", True)
+        if os.path.exists(config_env):
+            with open(config_env, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        if key == "SUB_NAME":
+                            sub_name = value
         
-        ip4 = hysteria["ip4"]
-        ip6 = hysteria["ip6"]
-        sni = hysteria["sni"]
-        ipv4_label = hysteria["ipv4_label"]
-        ipv6_label = hysteria["ipv6_label"]
+        # Build subscription URL
+        auth_password = user["password"]
+        url = f"https://{domain}:{port}/{subpath}/{auth_password}"
         
-        # Select IP based on version
-        if ip_version == 4 and ip4 and ip4 != "None":
-            return generate_hysteria_uri(
-                vpn_username, user["password"], ip4, port,
-                obfs_password, sha256, sni, 4, insecure, ipv4_label
-            )
-        elif ip_version == 6 and ip6 and ip6 != "None":
-            return generate_hysteria_uri(
-                vpn_username, user["password"], ip6, port,
-                obfs_password, sha256, sni, 6, insecure, ipv6_label
-            )
-        
-        # Fallback to available IP
-        if ip4 and ip4 != "None":
-            return generate_hysteria_uri(
-                vpn_username, user["password"], ip4, port,
-                obfs_password, sha256, sni, 4, insecure, ipv4_label
-            )
-        elif ip6 and ip6 != "None":
-            return generate_hysteria_uri(
-                vpn_username, user["password"], ip6, port,
-                obfs_password, sha256, sni, 6, insecure, ipv6_label
-            )
-        
-        return None
+        return url
     except Exception as e:
-        print(f"Error getting subscription link: {e}")
+        print(f"Error getting subscription URL: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -299,7 +237,7 @@ def format_days(days: int) -> str:
 def get_main_menu_text(customer: dict) -> tuple:
     """
     Get main menu text based on subscription status.
-    Returns (text, has_subscription)
+    Returns (text, has_subscription, sub_url)
     """
     vpn_username = customer.get("vpn_username")
     
@@ -310,7 +248,7 @@ def get_main_menu_text(customer: dict) -> tuple:
             "Быстрый и безопасный VPN на базе Hysteria2\n\n"
             "Выберите действие:"
         )
-        return text, False
+        return text, False, None
     
     # Has subscription - show profile with link
     info = get_user_subscription_info(vpn_username)
@@ -320,11 +258,11 @@ def get_main_menu_text(customer: dict) -> tuple:
             "❌ Ошибка получения информации о подписке.\n"
             "Обратитесь в поддержку."
         )
-        return text, False
+        return text, False, None
     
-    # Get subscription link
-    link = get_subscription_link(vpn_username)
-    link_text = f"\n\n📋 *Ссылка для подключения:*\n`{link}`" if link else "\n\n❌ Ошибка получения ссылки"
+    # Get subscription URL
+    sub_url = get_subscription_url(vpn_username)
+    link_text = f"\n\n📋 *Ссылка подписки:*\n`{sub_url}`" if sub_url else "\n\n❌ Ошибка получения ссылки"
     
     text = (
         f"🌐 *Iridium VPN*\n\n"
@@ -332,12 +270,11 @@ def get_main_menu_text(customer: dict) -> tuple:
         f"━━━━━━━━━━━━━━━━━\n"
         f"🔑 Логин: `{info['username']}`\n"
         f"📊 Использовано: {info['traffic_used_gb']} GB\n"
-        f"⏰ Осталось: {format_days(info['expiration_days'])}\n"
-        f"📶 Статус: {info['status']}"
+        f"⏰ Осталось: {format_days(info['expiration_days'])}"
         f"{link_text}"
     )
     
-    return text, True
+    return text, True, sub_url
 
 
 def get_tariffs_text(customer):
@@ -379,13 +316,13 @@ def get_support_text():
 def start_handler(message):
     """Handle /start command - send main menu"""
     customer = get_or_create_customer(message)
-    text, has_subscription = get_main_menu_text(customer)
+    text, has_subscription, sub_url = get_main_menu_text(customer)
     
     bot.send_message(
         message.chat.id,
         text,
         parse_mode="Markdown",
-        reply_markup=main_menu_keyboard(has_subscription=has_subscription)
+        reply_markup=main_menu_keyboard(has_subscription=has_subscription, sub_url=sub_url)
     )
 
 
@@ -490,12 +427,12 @@ def menu_callback(call):
     customer = get_or_create_customer_by_id(call.from_user.id, call.from_user.username)
     
     if action == "main":
-        text, has_subscription = get_main_menu_text(customer)
+        text, has_subscription, sub_url = get_main_menu_text(customer)
         bot.edit_message_text(
             text,
             call.message.chat.id, call.message.message_id,
             parse_mode="Markdown",
-            reply_markup=main_menu_keyboard(has_subscription=has_subscription)
+            reply_markup=main_menu_keyboard(has_subscription=has_subscription, sub_url=sub_url)
         )
     
     elif action == "buy":
