@@ -1,11 +1,13 @@
-Iridium 1.0.34 - Lifetime Promos & IP Limits
+Iridium 1.0.35 - Price in Rubles & UX Improvements
 
-🎁 Promo Codes:
-- NEW: Lifetime type (♾️ forever subscription)
-- NEW: Max IPs/devices limit per promo
-- Create promo for @username before they join
-- Improved validation for all promo types
+💰 Tariffs:
+- Price now in rubles (stars = rub × 1.5 auto)
+- Display shows both: 100₽ (150⭐)
 
-🐛 Fixes:
-- Fixed empty value validation in promo creation
-- Fixed jq errors in CLI menu navigation
+🎁 Promo defaults unified:
+- Empty input = default value
+- No more "enter 0 for never"
+
+✨ Input validation:
+- Retry invalid fields instead of restarting
+- Better error messages for each field
