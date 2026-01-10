@@ -1011,21 +1011,11 @@ def promo():
 def add_promo(code: str, promo_type: str, value: float, max_uses: int, expire_days: int, for_user: str, description: str):
     """Create a new promo code."""
     try:
-        telegram_id = None
-        username_display = None
+        username = for_user.lstrip('@') if for_user else None
         
-        if for_user:
-            # Look up user by Telegram username
-            telegram_id = cli_api.get_telegram_id_by_username(for_user)
-            if telegram_id is None:
-                click.echo(f'❌ Пользователь @{for_user.lstrip("@")} не найден в базе клиентов', err=True)
-                click.echo('💡 Пользователь должен сначала написать боту, чтобы появиться в базе', err=True)
-                return
-            username_display = for_user.lstrip('@')
-        
-        result = cli_api.add_promo(code, promo_type, value, max_uses, expire_days, telegram_id, description)
+        result = cli_api.add_promo(code, promo_type, value, max_uses, expire_days, username, description)
         type_text = f"{int(value)}%" if promo_type == 'discount' else f"{int(value)} дней"
-        user_text = f" (для @{username_display})" if username_display else ""
+        user_text = f" (для @{username})" if username else ""
         click.echo(f'✅ Промокод "{result.get("code")}" создан: {type_text}{user_text}')
     except Exception as e:
         click.echo(f'{e}', err=True)
@@ -1043,7 +1033,7 @@ def list_promos():
             for p in promos:
                 type_labels = {'discount': '💸 Скидка', 'free_period': '📅 Дни'}
                 type_label = type_labels.get(p.get('type'), p.get('type'))
-                user_text = f" [для {p.get('for_telegram_id')}]" if p.get('for_telegram_id') else ""
+                user_text = f" [@{p.get('for_telegram_username')}]" if p.get('for_telegram_username') else ""
                 click.echo(f"  {p.get('code')} — {type_label} {int(p.get('value', 0))} — {p.get('uses_count')}/{p.get('max_uses')}{user_text}")
             click.echo()
         else:

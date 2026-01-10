@@ -1147,23 +1147,8 @@ def move_tariff_down(tariff_id: str) -> bool:
     return shop_db.move_tariff_down(tariff_id)
 
 
-def get_telegram_id_by_username(username: str) -> int:
-    '''Look up Telegram ID by username from customer database.'''
-    import sys
-    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
-    from db.shop_database import shop_db
-    
-    if not shop_db:
-        return None
-    
-    customer = shop_db.get_customer_by_telegram_username(username)
-    if customer:
-        return customer.get('telegram_id')
-    return None
-
-
 def add_promo(code: str = None, promo_type: str = 'discount', value: float = 0, 
-              max_uses: int = 100, expire_days: int = None, for_telegram_id: int = None,
+              max_uses: int = 100, expire_days: int = None, for_telegram_username: str = None,
               description: str = '') -> dict:
     '''Creates a new promo code.'''
     import sys
@@ -1178,7 +1163,7 @@ def add_promo(code: str = None, promo_type: str = 'discount', value: float = 0,
     if expire_days and expire_days > 0:
         expires_at = datetime.utcnow() + timedelta(days=expire_days)
     
-    result = shop_db.create_promo(code, promo_type, value, max_uses, None, for_telegram_id, expires_at, description)
+    result = shop_db.create_promo(code, promo_type, value, max_uses, None, for_telegram_username, expires_at, description)
     result['_id'] = str(result['_id'])
     if result.get('expires_at'):
         result['expires_at'] = result['expires_at'].isoformat()

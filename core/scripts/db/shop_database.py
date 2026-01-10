@@ -238,7 +238,7 @@ class ShopDatabase:
         value: float = 0,  # % for discount, days for free_period
         max_uses: int = 1,
         tariff_ids: List[str] = None,  # Applicable tariffs (None = all)
-        for_telegram_id: int = None,  # Specific user only (None = everyone)
+        for_telegram_username: str = None,  # Specific username only (None = everyone)
         expires_at: datetime = None,
         description: str = ""
     ) -> Dict:
@@ -247,10 +247,14 @@ class ShopDatabase:
         promo_type:
             - "discount": value = discount percentage (0-100)
             - "free_period": value = free days to add
-        for_telegram_id: if set, only this user can use the promo
+        for_telegram_username: if set, only this username can use the promo
         """
         if not code:
             code = self.generate_promo_code()
+        
+        # Normalize username (remove @, lowercase)
+        if for_telegram_username:
+            for_telegram_username = for_telegram_username.lstrip('@').lower()
         
         promo = {
             "code": code.upper(),
@@ -260,7 +264,7 @@ class ShopDatabase:
             "uses_count": 0,
             "used_by": [],  # Track telegram IDs who used this code
             "tariff_ids": tariff_ids,  # None means applicable to all
-            "for_telegram_id": for_telegram_id,  # If set, only this user can use
+            "for_telegram_username": for_telegram_username,  # If set, only this username can use
             "expires_at": expires_at,
             "description": description,
             "is_active": True,
@@ -273,7 +277,7 @@ class ShopDatabase:
         """Get promo by code"""
         return self.promos.find_one({"code": code.upper()})
     
-    def validate_promo(self, code: str, telegram_id: int = None, tariff_id: str = None) -> tuple[bool, str, Optional[Dict]]:
+    def validate_promo(self, code: str, telegram_id: int = None, telegram_username: str = None, tariff_id: str = None) -> tuple[bool, str, Optional[Dict]]:
         """
         Validate promo code for a specific user
         Returns: (is_valid, message, promo_data)
@@ -292,9 +296,14 @@ class ShopDatabase:
         if promo["uses_count"] >= promo["max_uses"]:
             return False, "Промокод исчерпан", None
         
-        # Check if promo is for specific user
-        if promo.get("for_telegram_id") and telegram_id:
-            if promo["for_telegram_id"] != telegram_id:
+        # Check if promo is for specific username
+        if promo.get("for_telegram_username"):
+            if not telegram_username:
+                return False, "Промокод недоступен для вас", None
+            # Normalize and compare usernames (case-insensitive)
+            promo_username = promo["for_telegram_username"].lower()
+            user_username = telegram_username.lstrip('@').lower()
+            if promo_username != user_username:
                 return False, "Промокод недоступен для вас", None
         
         # Check if user already used this promo
@@ -327,6 +336,17 @@ class ShopDatabase:
         """Get all promo codes"""
         query = {"is_active": True} if active_only else {}
         return list(self.promos.find(query).sort("created_at", -1))
+    
+    def get_promos_for_username(self, username: str) -> List[Dict]:
+        """Get available promo codes assigned to a specific username"""
+        if not username:
+            return []
+        username = username.lstrip('@').lower()
+        return list(self.promos.find({
+            "for_telegram_username": username,
+            "is_active": True,
+            "$expr": {"$lt": ["$uses_count", "$max_uses"]}
+        }))
     
     def delete_promo(self, code: str) -> bool:
         """Delete promo code permanently"""
