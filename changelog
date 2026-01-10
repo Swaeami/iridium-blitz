@@ -1,28 +1,8 @@
-Iridium 1.0.31 - Shop System Overhaul
-
-🏪 Shop Management:
-- Removed shop from web panel (CLI only now)
-- Removed shop management from admin bot
-- Time-based tariffs only (unlimited traffic)
-- Removed YooKassa, Telegram Stars only
-
-📋 Tariffs:
-- Simplified: name + days + price in stars
-- Display ordering (move up/down)
-- Edit tariff properties
-- Hard delete (complete removal)
-
-🎁 Promo Codes:
-- One user can use each code only once
-- User-specific promos (for_telegram_id)
-- Discount (%) and Free Period (days) types only
-- Hard delete (complete removal)
-- Fixed: free_period promo now creates/extends subscription immediately
-
-💾 Backup:
-- .clientbot.env included in backup
-- Shop data (MongoDB) backed up automatically
+Iridium 1.0.32 - CLI Menu Fixes
 
 🐛 Fixes:
-- Added missing hysteria2_api.py module
-- Fixed ModuleNotFoundError on CLI execution
+- Fixed jq errors appearing when navigating CLI menus
+- Fixed empty IP/ISP display in main menu
+- Added JSON validation before parsing API responses
+- Multiple fallback sources for IP detection (ipapi.co → ip.sb → ifconfig.me)
+- Added connection timeouts to prevent menu hangs
