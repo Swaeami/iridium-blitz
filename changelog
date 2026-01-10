@@ -1,16 +1,10 @@
-Iridium 1.0.36 - Client Bot Inline Navigation
+Iridium 1.0.37 - Subscription Link Fix
 
-🔄 Complete UX overhaul:
-- All navigation via inline buttons
-- Single message editing (no reply keyboards)
-- Clean menu flow with back buttons
+🔗 Fixed:
+- Added get_user_uri() for programmatic link generation
+- Fixed "Error getting link" in client bot
+- QR code and copy link buttons now work
 
-📱 New structure:
-- Main menu → Buy / Profile / Promo / Support
-- Each section edits same message
-- Promo input via text (auto-deletes)
-
-✨ Improvements:
-- QR code sends as photo
-- FAQ section with setup instructions
-- Consistent back navigation everywhere
+📱 Client Bot:
+- Profile shows QR code as photo
+- Copy link shows URI in message
