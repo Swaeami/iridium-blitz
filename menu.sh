@@ -1109,24 +1109,26 @@ manage_tariffs_menu() {
         case $option in
             1)
                 echo ""
-                read -e -p "Tariff Name (e.g. '1 месяц'): " name
-                if [ -z "$name" ]; then
-                    echo "Name cannot be empty."
-                    read -p "Press Enter..."
-                    continue
-                fi
-                read -e -p "Duration (days): " days
-                if [ -z "$days" ]; then
-                    echo "Days cannot be empty."
-                    read -p "Press Enter..."
-                    continue
-                fi
-                read -e -p "Price in rubles ₽ (stars = rub × 1.5): " price_rub
-                if [ -z "$price_rub" ]; then
-                    echo "Price cannot be empty."
-                    read -p "Press Enter..."
-                    continue
-                fi
+                # Name input with retry
+                while true; do
+                    read -e -p "Tariff Name (e.g. '1 месяц'): " name
+                    [ -n "$name" ] && break
+                    echo -e "${red}Name cannot be empty.${NC}"
+                done
+                
+                # Days input with retry
+                while true; do
+                    read -e -p "Duration (days): " days
+                    [[ "$days" =~ ^[0-9]+$ ]] && [ "$days" -gt 0 ] && break
+                    echo -e "${red}Please enter a valid number of days.${NC}"
+                done
+                
+                # Price input with retry
+                while true; do
+                    read -e -p "Price in rubles ₽ (stars = rub × 1.5): " price_rub
+                    [[ "$price_rub" =~ ^[0-9]+$ ]] && [ "$price_rub" -gt 0 ] && break
+                    echo -e "${red}Please enter a valid price.${NC}"
+                done
                 
                 python3 $CLI_PATH tariff add -n "$name" -d "$days" -pr "$price_rub"
                 echo ""
@@ -1209,41 +1211,42 @@ manage_promos_menu() {
         case $option in
             1)
                 echo ""
-                read -e -p "Promo Code (leave empty for auto): " code
-                echo "Promo Type:"
-                echo "  1) Discount (%)"
-                echo "  2) Free Period (days)"
-                echo "  3) Lifetime (forever) ♾️"
-                read -e -p "Choose type [1/2/3]: " ptype
+                read -e -p "Promo Code (empty = auto): " code
+                
+                # Type selection with retry
+                while true; do
+                    echo "Promo Type:"
+                    echo "  1) Discount (%)"
+                    echo "  2) Free Period (days)"
+                    echo "  3) Lifetime (forever) ♾️"
+                    read -e -p "Choose type [1/2/3]: " ptype
+                    case $ptype in
+                        1|2|3) break ;;
+                        *) echo -e "${red}Invalid type. Please enter 1, 2 or 3.${NC}" ;;
+                    esac
+                done
                 
                 value=0
                 case $ptype in
                     1) 
                         promo_type="discount"
-                        read -e -p "Discount percentage (1-100): " value
-                        if [ -z "$value" ] || ! [[ "$value" =~ ^[0-9]+$ ]]; then
-                            echo -e "${red}Error:${NC} Value must be a number"
-                            read -p "Press Enter..."
-                            continue
-                        fi
+                        while true; do
+                            read -e -p "Discount percentage (1-100): " value
+                            [[ "$value" =~ ^[0-9]+$ ]] && [ "$value" -ge 1 ] && [ "$value" -le 100 ] && break
+                            echo -e "${red}Please enter a number from 1 to 100.${NC}"
+                        done
                         ;;
                     2) 
                         promo_type="free_period"
-                        read -e -p "Free days: " value
-                        if [ -z "$value" ] || ! [[ "$value" =~ ^[0-9]+$ ]]; then
-                            echo -e "${red}Error:${NC} Value must be a number"
-                            read -p "Press Enter..."
-                            continue
-                        fi
+                        while true; do
+                            read -e -p "Free days: " value
+                            [[ "$value" =~ ^[0-9]+$ ]] && [ "$value" -gt 0 ] && break
+                            echo -e "${red}Please enter a valid number of days.${NC}"
+                        done
                         ;;
                     3)
                         promo_type="lifetime"
                         value=0
-                        ;;
-                    *) 
-                        echo -e "${red}Invalid type${NC}"
-                        read -p "Press Enter..."
-                        continue
                         ;;
                 esac
                 
