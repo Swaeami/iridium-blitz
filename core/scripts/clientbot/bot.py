@@ -166,7 +166,7 @@ def get_subscription_link(vpn_username: str) -> Optional[str]:
 @bot.message_handler(commands=['start'])
 def start_handler(message):
     """Handle /start command"""
-    customer = get_or_create_customer(message)
+    get_or_create_customer(message)
     
     welcome_text = (
         "👋 *Добро пожаловать в Iridium VPN!*\n\n"
@@ -180,21 +180,6 @@ def start_handler(message):
         parse_mode="Markdown",
         reply_markup=main_menu_keyboard()
     )
-    
-    # Check for personal promo codes
-    username = message.from_user.username
-    if username:
-        personal_promos = shop_db.get_promos_for_username(username)
-        for promo in personal_promos:
-            promo_type_text = f"{int(promo['value'])}% скидка" if promo['type'] == 'discount' else f"{int(promo['value'])} бесплатных дней"
-            bot.send_message(
-                message.chat.id,
-                f"🎁 *У вас есть персональный промокод!*\n\n"
-                f"Код: `{promo['code']}`\n"
-                f"Бонус: {promo_type_text}\n\n"
-                f"Нажмите «🎁 Ввести промокод» чтобы активировать!",
-                parse_mode="Markdown"
-            )
 
 
 @bot.message_handler(func=lambda m: m.text == "🛒 Купить подписку")
