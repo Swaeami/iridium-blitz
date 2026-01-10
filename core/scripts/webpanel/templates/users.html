@@ -116,6 +116,27 @@
         font-size: 0.85rem;
     }
     
+    .users-toolbar .btn-action.btn-refresh {
+        background: var(--ir-bg-elevated);
+        border: 1px solid var(--ir-border);
+        color: var(--ir-text-secondary);
+    }
+    
+    .users-toolbar .btn-action.btn-refresh:hover {
+        background: rgba(34, 197, 94, 0.1);
+        border-color: var(--ir-success);
+        color: var(--ir-success);
+    }
+    
+    .users-toolbar .btn-action.btn-refresh.spinning i {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
     .users-toolbar .btn-action.btn-add {
         background: var(--ir-gradient);
         border: none;
@@ -230,6 +251,9 @@
                     
                     <div class="divider d-none d-md-block"></div>
                     
+                    <button type="button" class="btn-action btn-refresh" id="refreshUsers" title="Refresh & Sync Online Status">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                     <button type="button" class="btn-action btn-add" data-bs-toggle="modal" data-bs-target="#addUserModal" title="Add User">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -636,5 +660,5 @@
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/qr-code-styling/lib/qr-code-styling.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ url_for('assets', path='js/users.js') }}?v=1.0.21"></script>
+<script src="{{ url_for('assets', path='js/users.js') }}?v=1.0.53"></script>
 {% endblock %}

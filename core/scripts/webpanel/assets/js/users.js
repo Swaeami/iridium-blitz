@@ -546,6 +546,28 @@ $(function () {
     initializeLimitSelector();
     checkIpLimitServiceStatus();
     
+    // Refresh users button - sync online status and reload
+    $('#refreshUsers').on('click', function() {
+        const $btn = $(this);
+        $btn.addClass('spinning').prop('disabled', true);
+        
+        $.ajax({
+            url: '/api/v1/users/sync-status',
+            method: 'POST',
+            success: function(response) {
+                toast('success', 'Status synced! Reloading...');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            },
+            error: function(xhr) {
+                const msg = xhr.responseJSON?.detail || 'Failed to sync status';
+                toast('error', msg);
+                $btn.removeClass('spinning').prop('disabled', false);
+            }
+        });
+    });
+    
     // Initialize Bootstrap 5 tooltips
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));

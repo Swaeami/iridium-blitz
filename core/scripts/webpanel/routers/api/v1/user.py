@@ -265,3 +265,18 @@ async def show_user_uri_api(username: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=f'Unexpected error: {str(e)}')
+
+
+@router.post('/sync-status', response_model=DetailResponse)
+async def sync_users_status_api():
+    """
+    Sync online status for all users by running traffic-status.
+    
+    Returns:
+        A DetailResponse with a message indicating the sync was completed.
+    """
+    try:
+        cli_api.traffic_status(display_output=False)
+        return DetailResponse(detail='User statuses synced successfully.')
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f'Error syncing status: {str(e)}')

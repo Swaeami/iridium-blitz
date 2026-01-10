@@ -1,5 +1,5 @@
-Iridium 1.0.53 - Online Status Fix
+Iridium 1.0.54 - Users Page Refresh Button
 
-🔧 Fixed:
-- Fixed online status detection (was calling API twice, second call got empty data)
-- Now builds online status from traffic data in single API call
+✨ Added:
+- Refresh button on Users page to sync online status
+- Clicking refresh syncs status from Hysteria2 API and reloads page
