@@ -96,7 +96,7 @@ def send_message_with_cover(chat_id: int, text: str, reply_markup=None, parse_mo
 
 
 def edit_message_with_cover(chat_id: int, message_id: int, text: str, reply_markup=None, parse_mode: str = "Markdown"):
-    """Edit message - handles both photo and text messages"""
+    """Edit message - handles both photo and text messages with fallback"""
     key = f"{chat_id}:{message_id}"
     cover = CONFIG.get("COVER_IMAGE")
     is_photo = message_has_photo.get(key, False)
@@ -121,7 +121,30 @@ def edit_message_with_cover(chat_id: int, message_id: int, text: str, reply_mark
                 reply_markup=reply_markup
             )
     except Exception as e:
-        print(f"Error editing message: {e}")
+        # Fallback: try the other method (bot may have restarted and lost state)
+        try:
+            if not is_photo and cover:
+                bot.edit_message_caption(
+                    caption=text,
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    parse_mode=parse_mode,
+                    reply_markup=reply_markup
+                )
+                message_has_photo[key] = True
+            else:
+                bot.edit_message_text(
+                    text,
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    parse_mode=parse_mode,
+                    reply_markup=reply_markup
+                )
+                message_has_photo[key] = False
+        except Exception as e2:
+            # Last resort: send new message
+            print(f"Edit failed, sending new message: {e2}")
+            return send_message_with_cover(chat_id, text, reply_markup, parse_mode)
 
 
 # ==================== HELPERS ====================

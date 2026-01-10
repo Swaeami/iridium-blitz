@@ -1,5 +1,6 @@
-Iridium 1.0.49 - Aesthetic Improvements
+Iridium 1.0.50 - Bot Restart Resilience
 
-✨ Improved:
-- Lifetime subscription shows just ♾️ instead of "навсегда ♾️"
-- New users get unlimited traffic (0) instead of 999999 GB
+🔧 Fixed:
+- Client bot now handles restarts gracefully
+- Old inline menus continue to work after bot update
+- Added fallback: tries both edit methods, then sends new message if needed
