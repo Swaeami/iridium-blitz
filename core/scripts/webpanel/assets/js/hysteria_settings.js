@@ -71,11 +71,11 @@ $(document).ready(function () {
             success: function (response) {
                 const message = typeof response.detail === 'string' ? response.detail : successMessage;
                 toast('success', message);
-                if (showReload && !postSuccessCallback) {
+                    if (showReload && !postSuccessCallback) {
                     setTimeout(() => location.reload(), 1000);
-                } else if (postSuccessCallback) {
-                    postSuccessCallback(response);
-                }
+                    } else if (postSuccessCallback) {
+                        postSuccessCallback(response);
+                    }
             },
             error: function (xhr, status, error) {
                 let errorMessage = "An unexpected error occurred.";

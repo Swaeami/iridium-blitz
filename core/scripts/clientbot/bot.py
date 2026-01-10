@@ -244,14 +244,11 @@ def get_main_menu_text(customer: dict) -> tuple:
     if not vpn_username:
         # No subscription - show welcome text
         text = (
-            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
-            "┃    🌐 *IRIDIUM VPN*    ┃\n"
-            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "🌐 *Iridium VPN*\n\n"
             "⚡ Быстрый и безопасный VPN\n"
             "🔒 На базе протокола Hysteria2\n"
             "🌍 Без ограничений по трафику\n\n"
-            "─────────────────────\n"
-            "Выберите действие ниже 👇"
+            "Выберите действие 👇"
         )
         return text, False, None, None
     
@@ -259,9 +256,7 @@ def get_main_menu_text(customer: dict) -> tuple:
     info = get_user_subscription_info(vpn_username)
     if not info:
         text = (
-            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
-            "┃    🌐 *IRIDIUM VPN*    ┃\n"
-            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "🌐 *Iridium VPN*\n\n"
             "❌ Ошибка получения информации.\n"
             "Обратитесь в поддержку."
         )
@@ -285,15 +280,12 @@ def get_main_menu_text(customer: dict) -> tuple:
         status_text = "Активна"
         days_text = f"Осталось: *{format_days(days_left)}*"
     
-    link_text = f"\n📋 *Ссылка подписки:*\n`{sub_url}`" if sub_url else "\n❌ Ссылка недоступна"
+    link_text = f"\n\n📋 *Ссылка подписки:*\n`{sub_url}`" if sub_url else "\n\n❌ Ссылка недоступна"
     
     text = (
-        f"┏━━━━━━━━━━━━━━━━━━━━┓\n"
-        f"┃    🌐 *IRIDIUM VPN*    ┃\n"
-        f"┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        f"🌐 *Iridium VPN*\n\n"
         f"{status_emoji} Статус: *{status_text}*\n"
-        f"⏰ {days_text}\n"
-        f"─────────────────────"
+        f"⏰ {days_text}"
         f"{link_text}"
     )
     
@@ -310,31 +302,19 @@ def get_tariffs_text(customer):
     has_sub = customer.get("vpn_username") is not None
     
     if has_sub:
-        text = (
-            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
-            "┃   🔄 *ПРОДЛЕНИЕ*      ┃\n"
-            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
-            "Дни добавятся к текущей подписке\n"
-            "─────────────────────\n"
-        )
+        text = "🔄 *Продление подписки*\n\nДни добавятся к текущей подписке\n\n"
     else:
-        text = (
-            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
-            "┃    🛒 *ТАРИФЫ*         ┃\n"
-            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
-            "Выберите подходящий тариф\n"
-            "─────────────────────\n"
-        )
+        text = "🛒 *Тарифы*\n\nВыберите подходящий тариф\n\n"
     
     for t in tariffs:
         days = t.get("days", 30)
         period = format_days(days)
         stars = get_tariff_stars(t)
-        text += f"▸ *{t['name']}* — {period} — {stars}⭐\n"
+        text += f"• *{t['name']}* — {period} — {stars}⭐\n"
     
     if not customer.get("trial_used"):
         trial_days = int(CONFIG.get("TRIAL_DAYS", 3))
-        text += f"\n─────────────────────\n🎁 Пробный период: {trial_days} дня бесплатно!"
+        text += f"\n🎁 Пробный период: {trial_days} дня бесплатно!"
     
     return text, tariffs
 
@@ -344,15 +324,12 @@ def get_support_text(vpn_username: str = None):
     login_info = ""
     if vpn_username:
         login_info = (
-            f"\n─────────────────────\n"
-            f"🔑 *Ваш логин:* `{vpn_username}`\n"
+            f"\n\n🔑 *Ваш логин:* `{vpn_username}`\n"
             f"_Укажите при обращении в поддержку_"
         )
     
     return (
-        "┏━━━━━━━━━━━━━━━━━━━━┓\n"
-        "┃    💬 *ПОДДЕРЖКА*     ┃\n"
-        "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        "💬 *Поддержка*\n\n"
         "Возникли вопросы или проблемы?\n"
         "Мы всегда готовы помочь!"
         f"{login_info}"
@@ -503,12 +480,7 @@ def menu_callback(call):
     
     elif action == "promo":
         waiting_for_promo[call.from_user.id] = call.message.message_id
-        text = (
-            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
-            "┃    🎁 *ПРОМОКОД*      ┃\n"
-            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
-            "Отправьте промокод сообщением 👇"
-        )
+        text = "🎁 *Промокод*\n\nОтправьте промокод сообщением 👇"
         bot.edit_message_text(
             text,
             call.message.chat.id, call.message.message_id,
@@ -540,14 +512,11 @@ def trial_callback(call):
     trial_days = int(CONFIG.get("TRIAL_DAYS", 3))
     
     text = (
-        "┏━━━━━━━━━━━━━━━━━━━━┓\n"
-        "┃   🎁 *ПРОБНЫЙ ПЕРИОД* ┃\n"
-        "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        f"🎁 *Пробный период*\n\n"
         f"⏰ Срок: *{trial_days} дня*\n"
         "📊 Трафик: *Безлимит*\n"
-        "💰 Цена: *Бесплатно*\n"
-        "─────────────────────\n"
-        "Активировать пробный период?"
+        "💰 Цена: *Бесплатно*\n\n"
+        "Активировать?"
     )
     
     bot.edit_message_text(
@@ -629,13 +598,10 @@ def tariff_select_callback(call):
     period = format_days(tariff.get("days", 30))
     
     text = (
-        "┏━━━━━━━━━━━━━━━━━━━━┓\n"
-        "┃    🛒 *ОПЛАТА*         ┃\n"
-        "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        f"🛒 *Оплата*\n\n"
         f"📋 Тариф: *{tariff['name']}*\n"
         f"📅 Срок: *{period}*\n"
-        f"{promo_text}"
-        "─────────────────────\n"
+        f"{promo_text}\n"
         f"💰 К оплате: *{final_price}⭐*\n\n"
         "Подтвердить оплату?"
     )
@@ -706,20 +672,16 @@ def support_action_callback(call):
     
     if action == "faq":
         text = (
-            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
-            "┃   📖 *ИНСТРУКЦИЯ*     ┃\n"
-            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "📖 *Инструкция*\n\n"
             "*Как подключиться?*\n"
             "1️⃣ Скачайте приложение\n"
             "2️⃣ Скопируйте ссылку из главного меню\n"
             "3️⃣ Добавьте профиль в приложение\n"
-            "4️⃣ Нажмите «Подключиться»\n"
-            "─────────────────────\n"
+            "4️⃣ Нажмите «Подключиться»\n\n"
             "*📱 Приложения:*\n"
             "• iOS: Streisand, Shadowrocket\n"
             "• Android: Hiddify, NekoBox\n"
-            "• Windows/Mac: Hiddify\n"
-            "─────────────────────\n"
+            "• Windows/Mac: Hiddify\n\n"
             "*❓ Не работает VPN?*\n"
             "Переподключитесь или напишите в поддержку"
         )
