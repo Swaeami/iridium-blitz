@@ -1224,11 +1224,19 @@ manage_promos_menu() {
                         read -e -p "Free days: " value
                         ;;
                     *) 
-                        echo "Invalid type"
+                        echo -e "${red}Invalid type${NC}"
                         read -p "Press Enter..."
                         continue
                         ;;
                 esac
+                
+                # Validate value is not empty and is a number
+                if [ -z "$value" ] || ! [[ "$value" =~ ^[0-9]+$ ]]; then
+                    echo -e "${red}Error:${NC} Value must be a number"
+                    read -p "Press Enter..."
+                    continue
+                fi
+                
                 read -e -p "Max Uses (default: 100): " max_uses
                 max_uses=${max_uses:-100}
                 read -e -p "For specific user (@username, empty = all): " for_user
@@ -1236,7 +1244,7 @@ manage_promos_menu() {
                 
                 cmd="python3 $CLI_PATH promo add -t $promo_type -v $value -m $max_uses"
                 [ -n "$code" ] && cmd="$cmd -c '$code'"
-                [ -n "$for_user" ] && cmd="$cmd -u $for_user"
+                [ -n "$for_user" ] && cmd="$cmd -u '$for_user'"
                 [ -n "$expire" ] && [ "$expire" != "0" ] && cmd="$cmd -e $expire"
                 eval $cmd
                 echo ""
