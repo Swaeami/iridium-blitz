@@ -199,6 +199,7 @@ ALL_SERVICES=(
     hysteria-auth.service
     hysteria-scheduler.service
     hysteria-telegram-bot.service
+    hysteria-client-bot.service
     hysteria-normal-sub.service
     hysteria-caddy-normalsub.service
     hysteria-webpanel.service
@@ -234,6 +235,7 @@ FILES=(
     "$HYSTERIA_INSTALL_DIR/users.json"
     "$HYSTERIA_INSTALL_DIR/config.json"
     "$HYSTERIA_INSTALL_DIR/.configs.env"
+    "$HYSTERIA_INSTALL_DIR/.clientbot.env"
     "$HYSTERIA_INSTALL_DIR/nodes.json"
     "$HYSTERIA_INSTALL_DIR/extra.json"
     "$HYSTERIA_INSTALL_DIR/geosite.dat"
