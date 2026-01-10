@@ -119,11 +119,21 @@ class TrafficManager:
             updates['online_count'] = online_count
 
         if username in live_traffic:
-            updates['upload_bytes'] = user_data.get('upload_bytes', 0) + live_traffic[username].upload_bytes
-            updates['download_bytes'] = user_data.get('download_bytes', 0) + live_traffic[username].download_bytes
+            traffic_data = live_traffic[username]
+            # API returns tx/rx as dict keys
+            tx = traffic_data.get('tx', 0) if isinstance(traffic_data, dict) else getattr(traffic_data, 'tx', 0)
+            rx = traffic_data.get('rx', 0) if isinstance(traffic_data, dict) else getattr(traffic_data, 'rx', 0)
+            updates['upload_bytes'] = user_data.get('upload_bytes', 0) + tx
+            updates['download_bytes'] = user_data.get('download_bytes', 0) + rx
 
         is_activated = "account_creation_date" in user_data
-        has_activity = is_online or (username in live_traffic and (live_traffic[username].upload_bytes > 0 or live_traffic[username].download_bytes > 0))
+        if username in live_traffic:
+            traffic_data = live_traffic[username]
+            tx = traffic_data.get('tx', 0) if isinstance(traffic_data, dict) else getattr(traffic_data, 'tx', 0)
+            rx = traffic_data.get('rx', 0) if isinstance(traffic_data, dict) else getattr(traffic_data, 'rx', 0)
+            has_activity = is_online or (tx > 0 or rx > 0)
+        else:
+            has_activity = is_online
 
         if not is_activated and has_activity:
             updates["account_creation_date"] = self.today_date

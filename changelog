@@ -1,6 +1,5 @@
-Iridium 1.0.51 - Unlimited Values Fix
+Iridium 1.0.52 - Traffic Stats Fix
 
 🔧 Fixed:
-- Lifetime subscription now shows as Unlimited (0) instead of 36500 days
-- IP limit now correctly shows Unlimited (0) when not specified
-- Fixed subscription status detection for unlimited subscriptions
+- Fixed traffic.py to handle API response as dict (tx/rx keys)
+- Online status now updates correctly in web panel
