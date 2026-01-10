@@ -1,13 +1,16 @@
-Iridium 1.0.35 - Price in Rubles & UX Improvements
+Iridium 1.0.36 - Client Bot Inline Navigation
 
-💰 Tariffs:
-- Price now in rubles (stars = rub × 1.5 auto)
-- Display shows both: 100₽ (150⭐)
+🔄 Complete UX overhaul:
+- All navigation via inline buttons
+- Single message editing (no reply keyboards)
+- Clean menu flow with back buttons
 
-🎁 Promo defaults unified:
-- Empty input = default value
-- No more "enter 0 for never"
+📱 New structure:
+- Main menu → Buy / Profile / Promo / Support
+- Each section edits same message
+- Promo input via text (auto-deletes)
 
-✨ Input validation:
-- Retry invalid fields instead of restarting
-- Better error messages for each field
+✨ Improvements:
+- QR code sends as photo
+- FAQ section with setup instructions
+- Consistent back navigation everywhere
