@@ -1,10 +1,6 @@
-Iridium 1.0.37 - Subscription Link Fix
+Iridium 1.0.38 - Upgrade Preservation Fix
 
-🔗 Fixed:
-- Added get_user_uri() for programmatic link generation
-- Fixed "Error getting link" in client bot
-- QR code and copy link buttons now work
-
-📱 Client Bot:
-- Profile shows QR code as photo
-- Copy link shows URI in message
+🔧 Fixed:
+- Client bot config (.clientbot.env) now preserved on upgrade
+- Bot token, support username, trial days all saved
+- Client bot service auto-restarts after upgrade
