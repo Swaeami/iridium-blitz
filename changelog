@@ -1,5 +1,6 @@
-Iridium 1.0.46 - Photo file_id in Admin Bot
+Iridium 1.0.47 - Subscription Deletion Handling
 
-✨ Changes:
-- Moved photo file_id helper to admin bot (not client bot)
-- Send photo to admin bot to get file_id for client bot cover
+🔧 Fixed:
+- Client bot now handles deleted subscriptions gracefully
+- If subscription deleted from admin panel, customer sees normal "no subscription" menu
+- Auto-resets customer state when VPN user no longer exists

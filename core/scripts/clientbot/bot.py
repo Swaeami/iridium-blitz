@@ -305,26 +305,24 @@ def get_main_menu_text(customer: dict) -> tuple:
     """
     vpn_username = customer.get("vpn_username")
     
-    if not vpn_username:
-        # No subscription - show welcome text
-        text = (
-            "🌐 *Iridium VPN*\n\n"
-            "⚡ Быстрый и безопасный VPN\n"
-            "🔒 На базе протокола Hysteria2\n"
-            "🌍 Без ограничений по трафику\n\n"
-            "Выберите действие 👇"
-        )
-        return text, False, None, None
+    # No subscription text
+    no_sub_text = (
+        "🌐 *Iridium VPN*\n\n"
+        "⚡ Быстрый и безопасный VPN\n"
+        "🔒 На базе протокола Hysteria2\n"
+        "🌍 Без ограничений по трафику\n\n"
+        "Выберите действие 👇"
+    )
     
-    # Has subscription - show profile with link
+    if not vpn_username:
+        return no_sub_text, False, None, None
+    
+    # Has subscription - check if still exists in VPN database
     info = get_user_subscription_info(vpn_username)
     if not info:
-        text = (
-            "🌐 *Iridium VPN*\n\n"
-            "❌ Ошибка получения информации.\n"
-            "Обратитесь в поддержку."
-        )
-        return text, False, None, None
+        # User was deleted from admin panel - reset customer state
+        shop_db.update_customer(customer["telegram_id"], {"vpn_username": None})
+        return no_sub_text, False, None, None
     
     # Get subscription URL
     sub_url = get_subscription_url(vpn_username)
