@@ -223,6 +223,56 @@ def show_uri(args: argparse.Namespace) -> None:
         if domain and port:
             print(f"\nNormal-SUB Sublink:\nhttps://{domain}:{port}/{subpath}/{auth_password}#{sub_name}\n")
 
+def get_user_uri(username: str, ip_version: int = 4) -> Optional[str]:
+    """
+    Get Hysteria2 URI for a user (can be called programmatically)
+    Returns URI string or None on error
+    """
+    if db is None:
+        return None
+    
+    user_doc = db.get_user(username)
+    if not user_doc:
+        return None
+    
+    try:
+        with open(CONFIG_FILE, 'r') as f:
+            config = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+    
+    auth_password = user_doc["password"]
+    local_port = config["listen"].split(":")[-1]
+    local_sha256 = config.get("tls", {}).get("pinSHA256", "")
+    local_obfs_password = config.get("obfs", {}).get("salamander", {}).get("password", "")
+    local_insecure = config.get("tls", {}).get("insecure", True)
+    
+    ip4, ip6, local_sni = load_hysteria2_ips()
+    ipv4_label, ipv6_label = get_connection_labels()
+    
+    # Get IP based on version
+    if ip_version == 4 and ip4 and ip4 != "None":
+        uri = generate_uri(username, auth_password, ip4, local_port, 
+                           local_obfs_password, local_sha256, local_sni, 4, local_insecure, ipv4_label)
+        return uri
+    elif ip_version == 6 and ip6 and ip6 != "None":
+        uri = generate_uri(username, auth_password, ip6, local_port, 
+                           local_obfs_password, local_sha256, local_sni, 6, local_insecure, ipv6_label)
+        return uri
+    
+    # Fallback to available IP
+    if ip4 and ip4 != "None":
+        uri = generate_uri(username, auth_password, ip4, local_port, 
+                           local_obfs_password, local_sha256, local_sni, 4, local_insecure, ipv4_label)
+        return uri
+    elif ip6 and ip6 != "None":
+        uri = generate_uri(username, auth_password, ip6, local_port, 
+                           local_obfs_password, local_sha256, local_sni, 6, local_insecure, ipv6_label)
+        return uri
+    
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser(description="Hysteria2 URI Generator")
     parser.add_argument("-u", "--username", help="Username to generate URI for")

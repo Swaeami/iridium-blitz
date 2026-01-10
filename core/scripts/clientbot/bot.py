@@ -163,10 +163,16 @@ def get_user_subscription_info(vpn_username: str) -> Optional[dict]:
 def get_subscription_link(vpn_username: str) -> Optional[str]:
     """Get subscription link for user"""
     try:
+        # Add hysteria2 to path
+        hysteria2_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if hysteria2_path not in sys.path:
+            sys.path.insert(0, hysteria2_path)
+        
         from hysteria2.show_user_uri import get_user_uri
         uri = get_user_uri(vpn_username)
         return uri
-    except:
+    except Exception as e:
+        print(f"Error getting subscription link: {e}")
         return None
 
 
