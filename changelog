@@ -1,6 +1,6 @@
-Iridium 1.0.38 - Upgrade Preservation Fix
+Iridium 1.0.39 - Client Bot Link Generation Fix
 
 🔧 Fixed:
-- Client bot config (.clientbot.env) now preserved on upgrade
-- Bot token, support username, trial days all saved
-- Client bot service auto-restarts after upgrade
+- Fixed "Error getting link" when generating QR code or subscription link in client bot
+- Subscription link generation now works independently without external module dependencies
+- Improved error handling and logging for link generation

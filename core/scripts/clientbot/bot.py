@@ -160,19 +160,119 @@ def get_user_subscription_info(vpn_username: str) -> Optional[dict]:
     }
 
 
-def get_subscription_link(vpn_username: str) -> Optional[str]:
+def load_hysteria_config() -> Optional[dict]:
+    """Load Hysteria2 configuration files"""
+    try:
+        import json
+        
+        config_file = "/etc/hysteria/config.json"
+        config_env = "/etc/hysteria/.configs.env"
+        
+        # Load main config
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        
+        # Load env config
+        env_vars = {}
+        if os.path.exists(config_env):
+            with open(config_env, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, value = line.split('=', 1)
+                        env_vars[key] = value
+        
+        return {
+            "config": config,
+            "ip4": env_vars.get("IP4", ""),
+            "ip6": env_vars.get("IP6", ""),
+            "sni": env_vars.get("SNI", ""),
+            "ipv4_label": env_vars.get("IPV4_LABEL", "IPv4"),
+            "ipv6_label": env_vars.get("IPV6_LABEL", "IPv6"),
+        }
+    except Exception as e:
+        print(f"Error loading hysteria config: {e}")
+        return None
+
+
+def generate_hysteria_uri(username: str, password: str, ip: str, port: str,
+                          obfs_password: str, sha256: str, sni: str, 
+                          ip_version: int, insecure: bool, label: str) -> str:
+    """Generate Hysteria2 URI"""
+    ip_part = f"[{ip}]" if ip_version == 6 and ':' in ip else ip
+    uri_base = f"hy2://{username}:{password}@{ip_part}:{port}"
+    
+    params = []
+    if obfs_password:
+        params.append(f"obfs=salamander&obfs-password={obfs_password}")
+    if sha256:
+        params.append(f"pinSHA256={sha256}")
+    if sni:
+        params.append(f"sni={sni}")
+    
+    params.append(f"insecure={'1' if insecure else '0'}")
+    
+    query_string = "&".join(params)
+    return f"{uri_base}?{query_string}#{label}"
+
+
+def get_subscription_link(vpn_username: str, ip_version: int = 4) -> Optional[str]:
     """Get subscription link for user"""
     try:
-        # Add hysteria2 to path
-        hysteria2_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if hysteria2_path not in sys.path:
-            sys.path.insert(0, hysteria2_path)
+        # Get user from database
+        user = vpn_db.get_user(vpn_username)
+        if not user:
+            print(f"User {vpn_username} not found in database")
+            return None
         
-        from hysteria2.show_user_uri import get_user_uri
-        uri = get_user_uri(vpn_username)
-        return uri
+        # Load hysteria config
+        hysteria = load_hysteria_config()
+        if not hysteria:
+            return None
+        
+        config = hysteria["config"]
+        
+        # Extract connection params
+        port = config["listen"].split(":")[-1]
+        sha256 = config.get("tls", {}).get("pinSHA256", "")
+        obfs_password = config.get("obfs", {}).get("salamander", {}).get("password", "")
+        insecure = config.get("tls", {}).get("insecure", True)
+        
+        ip4 = hysteria["ip4"]
+        ip6 = hysteria["ip6"]
+        sni = hysteria["sni"]
+        ipv4_label = hysteria["ipv4_label"]
+        ipv6_label = hysteria["ipv6_label"]
+        
+        # Select IP based on version
+        if ip_version == 4 and ip4 and ip4 != "None":
+            return generate_hysteria_uri(
+                vpn_username, user["password"], ip4, port,
+                obfs_password, sha256, sni, 4, insecure, ipv4_label
+            )
+        elif ip_version == 6 and ip6 and ip6 != "None":
+            return generate_hysteria_uri(
+                vpn_username, user["password"], ip6, port,
+                obfs_password, sha256, sni, 6, insecure, ipv6_label
+            )
+        
+        # Fallback to available IP
+        if ip4 and ip4 != "None":
+            return generate_hysteria_uri(
+                vpn_username, user["password"], ip4, port,
+                obfs_password, sha256, sni, 4, insecure, ipv4_label
+            )
+        elif ip6 and ip6 != "None":
+            return generate_hysteria_uri(
+                vpn_username, user["password"], ip6, port,
+                obfs_password, sha256, sni, 6, insecure, ipv6_label
+            )
+        
+        return None
     except Exception as e:
         print(f"Error getting subscription link: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
