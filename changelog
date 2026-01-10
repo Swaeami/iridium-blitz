@@ -1,6 +1,11 @@
-Iridium 1.0.43 - Clean UI
+Iridium 1.0.44 - Cover Image Support
 
-✨ Changes:
-- Removed decorative frames and dividers
-- Clean minimalist text formatting
-- Empty lines instead of dividers for spacing
+✨ New feature:
+- Added cover image support for bot messages
+- Set via: python3 runclientbot.py config COVER_IMAGE <url_or_file_id>
+- Supports URL or Telegram file_id
+- Leave empty for text-only messages
+
+🔧 Changes:
+- Removed deprecated YooKassa settings from config
+- Cleaner config file structure

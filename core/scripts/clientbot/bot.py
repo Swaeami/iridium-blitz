@@ -38,6 +38,7 @@ def load_config():
         "BOT_TOKEN": None,
         "SUPPORT_USERNAME": None,
         "TRIAL_DAYS": 3,
+        "COVER_IMAGE": None,  # URL or file_id for message cover image
     }
     
     if os.path.exists(config_path):
@@ -58,6 +59,69 @@ payment_manager = PaymentManager()
 
 # Store users waiting for promo code input
 waiting_for_promo = {}
+
+# Store message types per chat (True = photo, False = text)
+message_has_photo = {}
+
+
+# ==================== MESSAGE HELPERS ====================
+
+def send_message_with_cover(chat_id: int, text: str, reply_markup=None, parse_mode: str = "Markdown"):
+    """Send message with cover image if configured, otherwise plain text"""
+    cover = CONFIG.get("COVER_IMAGE")
+    
+    if cover:
+        try:
+            msg = bot.send_photo(
+                chat_id,
+                photo=cover,
+                caption=text,
+                parse_mode=parse_mode,
+                reply_markup=reply_markup
+            )
+            message_has_photo[f"{chat_id}:{msg.message_id}"] = True
+            return msg
+        except Exception as e:
+            print(f"Error sending photo: {e}")
+    
+    # Fallback to text message
+    msg = bot.send_message(
+        chat_id,
+        text,
+        parse_mode=parse_mode,
+        reply_markup=reply_markup
+    )
+    message_has_photo[f"{chat_id}:{msg.message_id}"] = False
+    return msg
+
+
+def edit_message_with_cover(chat_id: int, message_id: int, text: str, reply_markup=None, parse_mode: str = "Markdown"):
+    """Edit message - handles both photo and text messages"""
+    key = f"{chat_id}:{message_id}"
+    cover = CONFIG.get("COVER_IMAGE")
+    is_photo = message_has_photo.get(key, False)
+    
+    try:
+        if is_photo and cover:
+            # Edit photo message caption
+            bot.edit_message_caption(
+                caption=text,
+                chat_id=chat_id,
+                message_id=message_id,
+                parse_mode=parse_mode,
+                reply_markup=reply_markup
+            )
+        else:
+            # Edit text message
+            bot.edit_message_text(
+                text,
+                chat_id=chat_id,
+                message_id=message_id,
+                parse_mode=parse_mode,
+                reply_markup=reply_markup
+            )
+    except Exception as e:
+        print(f"Error editing message: {e}")
 
 
 # ==================== HELPERS ====================
@@ -344,10 +408,9 @@ def start_handler(message):
     customer = get_or_create_customer(message)
     text, has_subscription, sub_url, vpn_username = get_main_menu_text(customer)
     
-    bot.send_message(
+    send_message_with_cover(
         message.chat.id,
         text,
-        parse_mode="Markdown",
         reply_markup=main_menu_keyboard(has_subscription=has_subscription, sub_url=sub_url)
     )
 
@@ -375,25 +438,26 @@ def promo_text_handler(message):
     if not is_valid:
         text = f"❌ {msg}"
         try:
-            bot.edit_message_text(
-                text, message.chat.id, msg_id,
+            edit_message_with_cover(
+                message.chat.id, msg_id,
+                text,
                 reply_markup=promo_result_keyboard(success=False)
             )
         except:
-            bot.send_message(message.chat.id, text, reply_markup=back_to_main_keyboard())
+            send_message_with_cover(message.chat.id, text, reply_markup=back_to_main_keyboard())
         return
     
     # Process promo by type
     result_text = process_promo(customer, code, promo)
     
     try:
-        bot.edit_message_text(
-            result_text, message.chat.id, msg_id,
-            parse_mode="Markdown",
+        edit_message_with_cover(
+            message.chat.id, msg_id,
+            result_text,
             reply_markup=promo_result_keyboard(success=True)
         )
     except:
-        bot.send_message(message.chat.id, result_text, parse_mode="Markdown", reply_markup=back_to_main_keyboard())
+        send_message_with_cover(message.chat.id, result_text, reply_markup=back_to_main_keyboard())
 
 
 def process_promo(customer, code, promo):
@@ -454,10 +518,9 @@ def menu_callback(call):
     
     if action == "main" or action == "refresh":
         text, has_subscription, sub_url, vpn_username = get_main_menu_text(customer)
-        bot.edit_message_text(
-            text,
+        edit_message_with_cover(
             call.message.chat.id, call.message.message_id,
-            parse_mode="Markdown",
+            text,
             reply_markup=main_menu_keyboard(has_subscription=has_subscription, sub_url=sub_url)
         )
         if action == "refresh":
@@ -467,33 +530,32 @@ def menu_callback(call):
     elif action == "buy":
         text, tariffs = get_tariffs_text(customer)
         if tariffs:
-            bot.edit_message_text(
-                text, call.message.chat.id, call.message.message_id,
-                parse_mode="Markdown",
+            edit_message_with_cover(
+                call.message.chat.id, call.message.message_id,
+                text,
                 reply_markup=tariffs_keyboard(tariffs, show_trial=not customer.get("trial_used"))
             )
         else:
-            bot.edit_message_text(
-                text, call.message.chat.id, call.message.message_id,
+            edit_message_with_cover(
+                call.message.chat.id, call.message.message_id,
+                text,
                 reply_markup=back_to_main_keyboard()
             )
     
     elif action == "promo":
         waiting_for_promo[call.from_user.id] = call.message.message_id
         text = "🎁 *Промокод*\n\nОтправьте промокод сообщением 👇"
-        bot.edit_message_text(
-            text,
+        edit_message_with_cover(
             call.message.chat.id, call.message.message_id,
-            parse_mode="Markdown",
+            text,
             reply_markup=promo_keyboard()
         )
     
     elif action == "support":
         vpn_username = customer.get("vpn_username")
-        bot.edit_message_text(
-            get_support_text(vpn_username),
+        edit_message_with_cover(
             call.message.chat.id, call.message.message_id,
-            parse_mode="Markdown",
+            get_support_text(vpn_username),
             reply_markup=support_keyboard(CONFIG.get("SUPPORT_USERNAME"))
         )
     
@@ -519,9 +581,9 @@ def trial_callback(call):
         "Активировать?"
     )
     
-    bot.edit_message_text(
-        text, call.message.chat.id, call.message.message_id,
-        parse_mode="Markdown",
+    edit_message_with_cover(
+        call.message.chat.id, call.message.message_id,
+        text,
         reply_markup=confirm_trial_keyboard()
     )
     bot.answer_callback_query(call.id)
@@ -561,9 +623,9 @@ def trial_action_callback(call):
         f"Вернитесь в главное меню для просмотра ссылки."
     )
     
-    bot.edit_message_text(
-        text, call.message.chat.id, call.message.message_id,
-        parse_mode="Markdown",
+    edit_message_with_cover(
+        call.message.chat.id, call.message.message_id,
+        text,
         reply_markup=back_to_main_keyboard()
     )
     bot.answer_callback_query(call.id)
@@ -606,9 +668,9 @@ def tariff_select_callback(call):
         "Подтвердить оплату?"
     )
     
-    bot.edit_message_text(
-        text, call.message.chat.id, call.message.message_id,
-        parse_mode="Markdown",
+    edit_message_with_cover(
+        call.message.chat.id, call.message.message_id,
+        text,
         reply_markup=tariff_detail_keyboard(tariff_id, final_price)
     )
     bot.answer_callback_query(call.id)
@@ -686,9 +748,9 @@ def support_action_callback(call):
             "Переподключитесь или напишите в поддержку"
         )
         
-        bot.edit_message_text(
-            text, call.message.chat.id, call.message.message_id,
-            parse_mode="Markdown",
+        edit_message_with_cover(
+            call.message.chat.id, call.message.message_id,
+            text,
             reply_markup=faq_keyboard()
         )
     
@@ -719,7 +781,7 @@ def successful_payment_handler(message):
     payment = shop_db.get_payment(ObjectId(payment_id))
     
     if not payment:
-        bot.send_message(message.chat.id, "❌ Платёж не найден")
+        send_message_with_cover(message.chat.id, "❌ Платёж не найден")
         return
     
     telegram_id = payment["customer_id"]
@@ -729,7 +791,7 @@ def successful_payment_handler(message):
     tariff = shop_db.get_tariff(payment["tariff_id"])
     
     if not customer or not tariff:
-        bot.send_message(message.chat.id, "❌ Ошибка обработки платежа")
+        send_message_with_cover(message.chat.id, "❌ Ошибка обработки платежа")
         return
     
     # Handle promo
@@ -750,7 +812,7 @@ def successful_payment_handler(message):
     vpn_username = create_or_extend_subscription(customer, days)
     
     if not vpn_username:
-        bot.send_message(message.chat.id, "❌ Ошибка создания подписки")
+        send_message_with_cover(message.chat.id, "❌ Ошибка создания подписки")
         return
     
     extra_text = f"\n🎁 +{extra_days} дней по промокоду!" if extra_days > 0 else ""
@@ -762,9 +824,8 @@ def successful_payment_handler(message):
         f"Вернитесь в главное меню для просмотра ссылки."
     )
     
-    bot.send_message(
+    send_message_with_cover(
         message.chat.id, text,
-        parse_mode="Markdown",
         reply_markup=back_to_main_keyboard()
     )
 

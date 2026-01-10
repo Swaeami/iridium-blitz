@@ -15,26 +15,22 @@ SERVICE_FILE = Path("/etc/systemd/system/hysteria-client-bot.service")
 
 def update_env_file(
     bot_token: str,
-    yookassa_shop_id: str = "",
-    yookassa_secret_key: str = "",
     support_username: str = "",
-    return_url: str = "https://t.me"
+    trial_days: int = 3,
+    cover_image: str = ""
 ):
     """Update or create .clientbot.env file"""
     content = f"""# Iridium Client Bot Configuration
 BOT_TOKEN={bot_token}
 
-# YooKassa (optional)
-YOOKASSA_SHOP_ID={yookassa_shop_id}
-YOOKASSA_SECRET_KEY={yookassa_secret_key}
-
 # Support
 SUPPORT_USERNAME={support_username}
-RETURN_URL={return_url}
 
 # Trial settings
-TRIAL_DAYS=3
-TRIAL_TRAFFIC_GB=999999
+TRIAL_DAYS={trial_days}
+
+# Cover image (URL or Telegram file_id, leave empty for text-only)
+COVER_IMAGE={cover_image}
 """
     CLIENTBOT_ENV.write_text(content)
     print(f"Configuration saved to {CLIENTBOT_ENV}")
@@ -60,9 +56,9 @@ WantedBy=multi-user.target
 
 def start_service(
     bot_token: str,
-    yookassa_shop_id: str = "",
-    yookassa_secret_key: str = "",
-    support_username: str = ""
+    support_username: str = "",
+    trial_days: int = 3,
+    cover_image: str = ""
 ):
     """Start the client bot service"""
     # Check if already running
@@ -73,7 +69,7 @@ def start_service(
         return
     
     # Update config and create service
-    update_env_file(bot_token, yookassa_shop_id, yookassa_secret_key, support_username)
+    update_env_file(bot_token, support_username, trial_days, cover_image)
     create_service_file()
     
     # Start service
@@ -171,7 +167,7 @@ def print_usage():
 Iridium Client Bot Manager
 
 Usage:
-  python3 runclientbot.py start <BOT_TOKEN> [YOOKASSA_SHOP_ID] [YOOKASSA_SECRET_KEY] [SUPPORT_USERNAME]
+  python3 runclientbot.py start <BOT_TOKEN> [SUPPORT_USERNAME]
   python3 runclientbot.py stop
   python3 runclientbot.py restart
   python3 runclientbot.py status
@@ -179,13 +175,18 @@ Usage:
 
 Examples:
   python3 runclientbot.py start 123456:ABC-DEF
-  python3 runclientbot.py start 123456:ABC-DEF shop_123 live_xxx support_user
+  python3 runclientbot.py start 123456:ABC-DEF support_user
   python3 runclientbot.py config TRIAL_DAYS 7
   python3 runclientbot.py config SUPPORT_USERNAME myusername
+  python3 runclientbot.py config COVER_IMAGE https://example.com/image.jpg
 
 Config Keys:
-  BOT_TOKEN, YOOKASSA_SHOP_ID, YOOKASSA_SECRET_KEY,
-  SUPPORT_USERNAME, RETURN_URL, TRIAL_DAYS, TRIAL_TRAFFIC_GB
+  BOT_TOKEN, SUPPORT_USERNAME, TRIAL_DAYS, COVER_IMAGE
+  
+COVER_IMAGE can be:
+  - URL to an image (https://example.com/image.jpg)
+  - Telegram file_id (AgACAgIAAxkBA...)
+  - Empty for text-only messages
 """)
     sys.exit(1)
 
@@ -201,11 +202,9 @@ if __name__ == "__main__":
             print_usage()
         
         bot_token = sys.argv[2]
-        yookassa_shop_id = sys.argv[3] if len(sys.argv) > 3 else ""
-        yookassa_secret_key = sys.argv[4] if len(sys.argv) > 4 else ""
-        support_username = sys.argv[5] if len(sys.argv) > 5 else ""
+        support_username = sys.argv[3] if len(sys.argv) > 3 else ""
         
-        start_service(bot_token, yookassa_shop_id, yookassa_secret_key, support_username)
+        start_service(bot_token, support_username)
     
     elif action == "stop":
         stop_service()
