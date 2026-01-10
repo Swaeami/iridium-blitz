@@ -144,14 +144,22 @@ get_system_info() {
     [ -z "$OS" ] && OS="Unknown"
     ARCH=$(uname -m)
     
+    # Try to get IP info from ipapi.co
     IP_API_DATA=$(curl -s --connect-timeout 3 https://ipapi.co/json/ -4 2>/dev/null)
-    if echo "$IP_API_DATA" | jq -e . >/dev/null 2>&1; then
-        ISP=$(echo "$IP_API_DATA" | jq -r '.org // "N/A"' 2>/dev/null)
-        IP=$(echo "$IP_API_DATA" | jq -r '.ip // "N/A"' 2>/dev/null)
-    else
-        ISP="N/A"
-        IP=$(curl -s --connect-timeout 3 -4 ip.sb 2>/dev/null || echo "N/A")
+    if [ -n "$IP_API_DATA" ] && echo "$IP_API_DATA" | jq -e . >/dev/null 2>&1; then
+        ISP=$(echo "$IP_API_DATA" | jq -r '.org // empty' 2>/dev/null)
+        IP=$(echo "$IP_API_DATA" | jq -r '.ip // empty' 2>/dev/null)
     fi
+    
+    # Fallback for IP if still empty
+    if [ -z "$IP" ]; then
+        IP=$(curl -s --connect-timeout 3 -4 ip.sb 2>/dev/null)
+    fi
+    if [ -z "$IP" ]; then
+        IP=$(curl -s --connect-timeout 3 -4 ifconfig.me 2>/dev/null)
+    fi
+    [ -z "$IP" ] && IP="N/A"
+    [ -z "$ISP" ] && ISP="N/A"
     
     CPU=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk '{print $2 + $4 "%"}')
     [ -z "$CPU" ] && CPU="N/A"
