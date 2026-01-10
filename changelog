@@ -1,7 +1,13 @@
-Iridium 1.0.41 - Subscription URL Integration
+Iridium 1.0.42 - Client Bot UI Redesign
 
-✨ Changes:
-- Subscription link now uses https:// format (Normal-SUB)
-- Added "Open subscription" button that opens link in app
-- Removed status field from profile display
-- Cleaner profile view with subscription URL
+✨ UI Improvements:
+- Beautiful page headers with decorative frames
+- Removed traffic info from profile (unlimited anyway)
+- Moved login info to Support page (useful for troubleshooting)
+- Added "Refresh info" button to update subscription status
+- Color-coded subscription status (🟢 Active / 🟡 Expiring / 🔴 Expired)
+- Cleaner layout with dividers and emoji indicators
+
+🔧 Logic:
+- Expired subscriptions keep user data, just show "expired" status
+- Renewing adds days and restores access

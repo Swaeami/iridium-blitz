@@ -237,76 +237,125 @@ def format_days(days: int) -> str:
 def get_main_menu_text(customer: dict) -> tuple:
     """
     Get main menu text based on subscription status.
-    Returns (text, has_subscription, sub_url)
+    Returns (text, has_subscription, sub_url, vpn_username)
     """
     vpn_username = customer.get("vpn_username")
     
     if not vpn_username:
         # No subscription - show welcome text
         text = (
-            "🌐 *Iridium VPN*\n\n"
-            "Быстрый и безопасный VPN на базе Hysteria2\n\n"
-            "Выберите действие:"
+            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
+            "┃    🌐 *IRIDIUM VPN*    ┃\n"
+            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "⚡ Быстрый и безопасный VPN\n"
+            "🔒 На базе протокола Hysteria2\n"
+            "🌍 Без ограничений по трафику\n\n"
+            "─────────────────────\n"
+            "Выберите действие ниже 👇"
         )
-        return text, False, None
+        return text, False, None, None
     
     # Has subscription - show profile with link
     info = get_user_subscription_info(vpn_username)
     if not info:
         text = (
-            "🌐 *Iridium VPN*\n\n"
-            "❌ Ошибка получения информации о подписке.\n"
+            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
+            "┃    🌐 *IRIDIUM VPN*    ┃\n"
+            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "❌ Ошибка получения информации.\n"
             "Обратитесь в поддержку."
         )
-        return text, False, None
+        return text, False, None, None
     
     # Get subscription URL
     sub_url = get_subscription_url(vpn_username)
-    link_text = f"\n\n📋 *Ссылка подписки:*\n`{sub_url}`" if sub_url else "\n\n❌ Ошибка получения ссылки"
+    
+    # Check if subscription expired
+    days_left = info['expiration_days']
+    if days_left <= 0:
+        status_emoji = "🔴"
+        status_text = "Подписка истекла"
+        days_text = "Продлите для восстановления доступа"
+    elif days_left <= 3:
+        status_emoji = "🟡"
+        status_text = "Скоро истекает"
+        days_text = f"Осталось: *{format_days(days_left)}*"
+    else:
+        status_emoji = "🟢"
+        status_text = "Активна"
+        days_text = f"Осталось: *{format_days(days_left)}*"
+    
+    link_text = f"\n📋 *Ссылка подписки:*\n`{sub_url}`" if sub_url else "\n❌ Ссылка недоступна"
     
     text = (
-        f"🌐 *Iridium VPN*\n\n"
-        f"👤 *Ваш профиль*\n"
-        f"━━━━━━━━━━━━━━━━━\n"
-        f"🔑 Логин: `{info['username']}`\n"
-        f"📊 Использовано: {info['traffic_used_gb']} GB\n"
-        f"⏰ Осталось: {format_days(info['expiration_days'])}"
+        f"┏━━━━━━━━━━━━━━━━━━━━┓\n"
+        f"┃    🌐 *IRIDIUM VPN*    ┃\n"
+        f"┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        f"{status_emoji} Статус: *{status_text}*\n"
+        f"⏰ {days_text}\n"
+        f"─────────────────────"
         f"{link_text}"
     )
     
-    return text, True, sub_url
+    return text, True, sub_url, vpn_username
 
 
 def get_tariffs_text(customer):
     """Get tariffs selection text"""
     tariffs = shop_db.get_active_tariffs()
     if not tariffs:
-        return "😔 К сожалению, нет доступных тарифов.", None
+        return "😔 Нет доступных тарифов.", None
     
     # Check if extending or buying new
     has_sub = customer.get("vpn_username") is not None
-    header = "🔄 *Продление подписки:*" if has_sub else "🛒 *Выберите тариф:*"
     
-    text = f"{header}\n\n"
+    if has_sub:
+        text = (
+            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
+            "┃   🔄 *ПРОДЛЕНИЕ*      ┃\n"
+            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "Дни добавятся к текущей подписке\n"
+            "─────────────────────\n"
+        )
+    else:
+        text = (
+            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
+            "┃    🛒 *ТАРИФЫ*         ┃\n"
+            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "Выберите подходящий тариф\n"
+            "─────────────────────\n"
+        )
     
     for t in tariffs:
         days = t.get("days", 30)
         period = format_days(days)
         stars = get_tariff_stars(t)
-        text += f"• *{t['name']}* — {period} — {stars}⭐\n"
+        text += f"▸ *{t['name']}* — {period} — {stars}⭐\n"
     
     if not customer.get("trial_used"):
         trial_days = int(CONFIG.get("TRIAL_DAYS", 3))
-        text += f"\n🎁 Также доступен пробный период на {trial_days} дня!"
+        text += f"\n─────────────────────\n🎁 Пробный период: {trial_days} дня бесплатно!"
     
     return text, tariffs
 
 
-def get_support_text():
+def get_support_text(vpn_username: str = None):
+    """Get support page text with user login info"""
+    login_info = ""
+    if vpn_username:
+        login_info = (
+            f"\n─────────────────────\n"
+            f"🔑 *Ваш логин:* `{vpn_username}`\n"
+            f"_Укажите при обращении в поддержку_"
+        )
+    
     return (
-        "💬 *Поддержка*\n\n"
-        "Если у вас возникли вопросы или проблемы, "
-        "свяжитесь с нашей поддержкой."
+        "┏━━━━━━━━━━━━━━━━━━━━┓\n"
+        "┃    💬 *ПОДДЕРЖКА*     ┃\n"
+        "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        "Возникли вопросы или проблемы?\n"
+        "Мы всегда готовы помочь!"
+        f"{login_info}"
     )
 
 
@@ -316,7 +365,7 @@ def get_support_text():
 def start_handler(message):
     """Handle /start command - send main menu"""
     customer = get_or_create_customer(message)
-    text, has_subscription, sub_url = get_main_menu_text(customer)
+    text, has_subscription, sub_url, vpn_username = get_main_menu_text(customer)
     
     bot.send_message(
         message.chat.id,
@@ -426,14 +475,17 @@ def menu_callback(call):
     action = call.data.split(":")[1]
     customer = get_or_create_customer_by_id(call.from_user.id, call.from_user.username)
     
-    if action == "main":
-        text, has_subscription, sub_url = get_main_menu_text(customer)
+    if action == "main" or action == "refresh":
+        text, has_subscription, sub_url, vpn_username = get_main_menu_text(customer)
         bot.edit_message_text(
             text,
             call.message.chat.id, call.message.message_id,
             parse_mode="Markdown",
             reply_markup=main_menu_keyboard(has_subscription=has_subscription, sub_url=sub_url)
         )
+        if action == "refresh":
+            bot.answer_callback_query(call.id, "✅ Информация обновлена")
+            return
     
     elif action == "buy":
         text, tariffs = get_tariffs_text(customer)
@@ -451,16 +503,23 @@ def menu_callback(call):
     
     elif action == "promo":
         waiting_for_promo[call.from_user.id] = call.message.message_id
+        text = (
+            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
+            "┃    🎁 *ПРОМОКОД*      ┃\n"
+            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "Отправьте промокод сообщением 👇"
+        )
         bot.edit_message_text(
-            "🎁 *Введите промокод:*\n\nОтправьте код сообщением:",
+            text,
             call.message.chat.id, call.message.message_id,
             parse_mode="Markdown",
             reply_markup=promo_keyboard()
         )
     
     elif action == "support":
+        vpn_username = customer.get("vpn_username")
         bot.edit_message_text(
-            get_support_text(),
+            get_support_text(vpn_username),
             call.message.chat.id, call.message.message_id,
             parse_mode="Markdown",
             reply_markup=support_keyboard(CONFIG.get("SUPPORT_USERNAME"))
@@ -481,11 +540,14 @@ def trial_callback(call):
     trial_days = int(CONFIG.get("TRIAL_DAYS", 3))
     
     text = (
-        f"🎁 *Пробный период*\n\n"
-        f"⏰ Срок: {trial_days} дня\n"
-        f"📊 Трафик: Безлимит\n"
-        f"💰 Цена: Бесплатно\n\n"
-        f"Активировать?"
+        "┏━━━━━━━━━━━━━━━━━━━━┓\n"
+        "┃   🎁 *ПРОБНЫЙ ПЕРИОД* ┃\n"
+        "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        f"⏰ Срок: *{trial_days} дня*\n"
+        "📊 Трафик: *Безлимит*\n"
+        "💰 Цена: *Бесплатно*\n"
+        "─────────────────────\n"
+        "Активировать пробный период?"
     )
     
     bot.edit_message_text(
@@ -567,13 +629,15 @@ def tariff_select_callback(call):
     period = format_days(tariff.get("days", 30))
     
     text = (
-        f"🛒 *Оформление подписки*\n\n"
-        f"📋 Тариф: {tariff['name']}\n"
-        f"📅 Срок: {period}\n"
-        f"📊 Трафик: Безлимит\n"
+        "┏━━━━━━━━━━━━━━━━━━━━┓\n"
+        "┃    🛒 *ОПЛАТА*         ┃\n"
+        "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
+        f"📋 Тариф: *{tariff['name']}*\n"
+        f"📅 Срок: *{period}*\n"
         f"{promo_text}"
-        f"💰 К оплате: {final_price}⭐\n\n"
-        f"Подтвердить оплату?"
+        "─────────────────────\n"
+        f"💰 К оплате: *{final_price}⭐*\n\n"
+        "Подтвердить оплату?"
     )
     
     bot.edit_message_text(
@@ -642,18 +706,22 @@ def support_action_callback(call):
     
     if action == "faq":
         text = (
-            "📖 *FAQ / Инструкция*\n\n"
+            "┏━━━━━━━━━━━━━━━━━━━━┓\n"
+            "┃   📖 *ИНСТРУКЦИЯ*     ┃\n"
+            "┗━━━━━━━━━━━━━━━━━━━━┛\n\n"
             "*Как подключиться?*\n"
-            "1. Скачайте приложение Hiddify или Streisand\n"
-            "2. В главном меню скопируйте ссылку\n"
-            "3. Добавьте профиль в приложение\n"
-            "4. Нажмите «Подключиться»\n\n"
-            "*Поддерживаемые платформы:*\n"
+            "1️⃣ Скачайте приложение\n"
+            "2️⃣ Скопируйте ссылку из главного меню\n"
+            "3️⃣ Добавьте профиль в приложение\n"
+            "4️⃣ Нажмите «Подключиться»\n"
+            "─────────────────────\n"
+            "*📱 Приложения:*\n"
             "• iOS: Streisand, Shadowrocket\n"
             "• Android: Hiddify, NekoBox\n"
-            "• Windows/Mac: Hiddify\n\n"
-            "*Не работает VPN?*\n"
-            "Попробуйте переподключиться или обратитесь в поддержку."
+            "• Windows/Mac: Hiddify\n"
+            "─────────────────────\n"
+            "*❓ Не работает VPN?*\n"
+            "Переподключитесь или напишите в поддержку"
         )
         
         bot.edit_message_text(

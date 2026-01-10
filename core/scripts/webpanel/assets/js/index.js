@@ -85,7 +85,7 @@ function updateServiceBox(serviceName, status) {
     if (serviceName === 'telegrambot') {
         const restartBtn = document.getElementById('restart-telegrambot-btn');
         if (restartBtn) restartBtn.style.display = status ? 'block' : 'none';
-    }
+        }
     if (serviceName === 'iplimit') {
         const restartBtn = document.getElementById('restart-iplimit-btn');
         if (restartBtn) restartBtn.style.display = status ? 'block' : 'none';
@@ -121,28 +121,28 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!url) return;
         
         btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
+        e.preventDefault();
+        
             btn.innerHTML = 'Restarting... <i class="fas fa-sync-alt fa-spin ms-1"></i>';
             btn.style.pointerEvents = 'none';
 
             fetch(url, { method: 'POST' })
-                .then(response => {
-                    if (!response.ok) return response.json().then(err => { throw new Error(err.detail || 'Unknown error'); });
-                    return response.json();
-                })
-                .then(data => {
+            .then(response => {
+                if (!response.ok) return response.json().then(err => { throw new Error(err.detail || 'Unknown error'); });
+                return response.json();
+            })
+            .then(data => {
                     showToast('success', data.detail);
-                    setTimeout(updateServiceStatuses, 1000);
-                })
-                .catch(error => {
+                setTimeout(updateServiceStatuses, 1000);
+            })
+            .catch(error => {
                     showToast('error', `Failed to restart: ${error.message}`);
-                })
-                .finally(() => {
+            })
+            .finally(() => {
                     btn.innerHTML = 'Restart Service <i class="fas fa-sync-alt ms-1"></i>';
                     btn.style.pointerEvents = 'auto';
-                });
-        });
+            });
+    });
     }
     
     // Setup restart buttons for all services

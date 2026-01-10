@@ -12,12 +12,15 @@ def main_menu_keyboard(has_subscription: bool = False, sub_url: str = None) -> t
     markup = types.InlineKeyboardMarkup(row_width=1)
     
     if has_subscription:
-        # User has active subscription - show subscription button and extend
+        # User has active subscription
         if sub_url:
             markup.add(types.InlineKeyboardButton("📲 Открыть подписку", url=sub_url))
         markup.add(
             types.InlineKeyboardButton("🔄 Продлить подписку", callback_data="menu:buy"),
-            types.InlineKeyboardButton("🎁 Ввести промокод", callback_data="menu:promo"),
+            types.InlineKeyboardButton("🔃 Обновить информацию", callback_data="menu:refresh"),
+        )
+        markup.row(
+            types.InlineKeyboardButton("🎁 Промокод", callback_data="menu:promo"),
             types.InlineKeyboardButton("💬 Поддержка", callback_data="menu:support")
         )
     else:
