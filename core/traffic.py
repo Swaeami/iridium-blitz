@@ -89,8 +89,18 @@ class TrafficManager:
 
     def process_and_update_traffic(self) -> Dict[str, Any]:
         try:
+            # Get traffic stats (with clear) - this returns current online users too
             live_traffic = self.client.get_traffic_stats(clear=True)
-            live_status = self.client.get_online_clients()
+            # Build online status from traffic data (users with traffic are online)
+            live_status = {}
+            for username, stats in live_traffic.items():
+                from hysteria2_api import ClientStatus
+                live_status[username] = ClientStatus(
+                    is_online=True,
+                    connections=1,
+                    tx_bytes=stats.get('tx', 0),
+                    rx_bytes=stats.get('rx', 0)
+                )
             db_users = {u['_id']: u for u in self.db.get_all_users()}
         except Exception as e:
             logging.error(f"Error communicating with Hysteria2 API or DB: {e}")

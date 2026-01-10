@@ -1,5 +1,5 @@
-Iridium 1.0.52 - Traffic Stats Fix
+Iridium 1.0.53 - Online Status Fix
 
 🔧 Fixed:
-- Fixed traffic.py to handle API response as dict (tx/rx keys)
-- Online status now updates correctly in web panel
+- Fixed online status detection (was calling API twice, second call got empty data)
+- Now builds online status from traffic data in single API call
