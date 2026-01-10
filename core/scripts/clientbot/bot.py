@@ -187,7 +187,7 @@ def create_or_extend_subscription(customer: dict, days: int, max_ips: int = None
             user_data = {
                 "username": vpn_username,
                 "password": password,
-                "max_download_bytes": 999999 * 1073741824,
+                "max_download_bytes": 0,  # 0 = unlimited
                 "expiration_days": days,
                 "blocked": False,
                 "status": "Active",
@@ -280,7 +280,7 @@ def get_subscription_url(vpn_username: str) -> Optional[str]:
 def format_days(days: int) -> str:
     """Format days to human readable string"""
     if days >= 36500:
-        return "навсегда ♾️"
+        return "♾️"
     elif days >= 365:
         years = days // 365
         return f"{years} год" if years == 1 else f"{years} года"

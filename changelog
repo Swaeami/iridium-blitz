@@ -1,5 +1,5 @@
-Iridium 1.0.48 - Traffic Stats Fix
+Iridium 1.0.49 - Aesthetic Improvements
 
-🔧 Fixed:
-- Added missing `get_traffic_stats` method to Hysteria2Client
-- Fixed error when deleting users via admin bot
+✨ Improved:
+- Lifetime subscription shows just ♾️ instead of "навсегда ♾️"
+- New users get unlimited traffic (0) instead of 999999 GB
