@@ -1,11 +1,5 @@
-Iridium 1.0.44 - Cover Image Support
+Iridium 1.0.45 - Photo file_id Helper
 
-✨ New feature:
-- Added cover image support for bot messages
-- Set via: python3 runclientbot.py config COVER_IMAGE <url_or_file_id>
-- Supports URL or Telegram file_id
-- Leave empty for text-only messages
-
-🔧 Changes:
-- Removed deprecated YooKassa settings from config
-- Cleaner config file structure
+✨ Added:
+- Send any photo to bot to get its file_id
+- Bot replies with ready-to-use config command

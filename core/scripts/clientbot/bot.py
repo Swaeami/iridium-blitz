@@ -415,6 +415,22 @@ def start_handler(message):
     )
 
 
+@bot.message_handler(content_types=['photo'])
+def photo_handler(message):
+    """Handle photo messages - return file_id for cover image setup"""
+    # Get the largest photo (last in the list)
+    photo = message.photo[-1]
+    file_id = photo.file_id
+    
+    bot.reply_to(
+        message,
+        f"📷 *File ID для обложки:*\n\n`{file_id}`\n\n"
+        f"Установите командой:\n"
+        f"`python3 runclientbot.py config COVER_IMAGE {file_id}`",
+        parse_mode="Markdown"
+    )
+
+
 @bot.message_handler(func=lambda m: m.from_user.id in waiting_for_promo)
 def promo_text_handler(message):
     """Handle promo code text input"""
