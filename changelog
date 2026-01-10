@@ -1,5 +1,4 @@
-Iridium 1.0.54 - Users Page Refresh Button
+Iridium 1.0.55 - Fix Sync Status URL
 
-✨ Added:
-- Refresh button on Users page to sync online status
-- Clicking refresh syncs status from Hysteria2 API and reloads page
+🔧 Fixed:
+- Fixed sync-status API URL to use proper url_for() with auth prefix

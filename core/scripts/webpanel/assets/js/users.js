@@ -12,6 +12,7 @@ $(function () {
     const USERS_BASE_URL = contentSection.dataset.usersBaseUrl;
     const GET_USER_URL_TEMPLATE = contentSection.dataset.getUserUrlTemplate;
     const SEARCH_USERS_URL = contentSection.dataset.searchUrl;
+    const SYNC_STATUS_URL = contentSection.dataset.syncStatusUrl;
 
     const usernameRegex = /^[a-zA-Z0-9_]+$/;
     const passwordRegex = /^[a-zA-Z0-9]+$/;
@@ -552,7 +553,7 @@ $(function () {
         $btn.addClass('spinning').prop('disabled', true);
         
         $.ajax({
-            url: '/api/v1/users/sync-status',
+            url: SYNC_STATUS_URL,
             method: 'POST',
             success: function(response) {
                 toast('success', 'Status synced! Reloading...');
