@@ -234,20 +234,23 @@ class ShopDatabase:
     def create_promo(
         self,
         code: str = None,
-        promo_type: str = "discount",  # discount, free_period
-        value: float = 0,  # % for discount, days for free_period
+        promo_type: str = "discount",  # discount, free_period, lifetime
+        value: float = 0,  # % for discount, days for free_period (ignored for lifetime)
         max_uses: int = 1,
         tariff_ids: List[str] = None,  # Applicable tariffs (None = all)
         for_telegram_username: str = None,  # Specific username only (None = everyone)
         expires_at: datetime = None,
-        description: str = ""
+        description: str = "",
+        max_ips: int = None  # IP/device limit for subscription
     ) -> Dict:
         """
         Create a promo code
         promo_type:
             - "discount": value = discount percentage (0-100)
             - "free_period": value = free days to add
+            - "lifetime": unlimited subscription (value ignored)
         for_telegram_username: if set, only this username can use the promo
+        max_ips: if set, limits devices/IPs for the subscription
         """
         if not code:
             code = self.generate_promo_code()
@@ -267,6 +270,7 @@ class ShopDatabase:
             "for_telegram_username": for_telegram_username,  # If set, only this username can use
             "expires_at": expires_at,
             "description": description,
+            "max_ips": max_ips,  # Device/IP limit
             "is_active": True,
             "created_at": datetime.utcnow()
         }

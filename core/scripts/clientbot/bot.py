@@ -94,10 +94,12 @@ def get_or_create_customer_by_id(telegram_id: int, username: str = None) -> dict
     return customer
 
 
-def create_or_extend_subscription(customer: dict, days: int) -> Optional[str]:
+def create_or_extend_subscription(customer: dict, days: int, max_ips: int = None) -> Optional[str]:
     """
     Create new subscription or extend existing one
     Returns VPN username or None on error
+    days: subscription duration (36500 = lifetime/100 years)
+    max_ips: device/IP limit (None = unlimited)
     """
     vpn_username = customer.get("vpn_username") or generate_vpn_username(customer["telegram_id"])
     password = generate_vpn_password()
@@ -109,7 +111,10 @@ def create_or_extend_subscription(customer: dict, days: int) -> Optional[str]:
         if existing:
             # Extend existing subscription
             current_days = existing.get("expiration_days", 0)
-            vpn_db.update_user(vpn_username, {"expiration_days": current_days + days})
+            updates = {"expiration_days": current_days + days}
+            if max_ips is not None:
+                updates["max_ips"] = max_ips
+            vpn_db.update_user(vpn_username, updates)
         else:
             # Create new user with unlimited traffic
             user_data = {
@@ -121,6 +126,8 @@ def create_or_extend_subscription(customer: dict, days: int) -> Optional[str]:
                 "status": "Active",
                 "account_creation_date": datetime.now().strftime("%Y-%m-%d")
             }
+            if max_ips is not None:
+                user_data["max_ips"] = max_ips
             vpn_db.add_user(user_data)
         
         # Update customer with VPN username
@@ -303,12 +310,41 @@ def process_promo_code(message):
         )
         return
     
+    # Handle lifetime promo - apply immediately (100 years)
+    if promo["type"] == "lifetime":
+        max_ips = promo.get("max_ips")
+        
+        # Create lifetime subscription (36500 days = 100 years)
+        vpn_username = create_or_extend_subscription(customer, 36500, max_ips)
+        
+        if vpn_username:
+            # Mark promo as used
+            shop_db.use_promo(code, telegram_id)
+            
+            ips_text = f"📱 Лимит устройств: {max_ips}\n" if max_ips else ""
+            text = (
+                f"✅ *Промокод активирован!*\n\n"
+                f"🎁 Подписка навсегда! ♾️\n"
+                f"{ips_text}\n"
+            )
+            
+            if not customer.get("vpn_username"):
+                text += f"🔑 Ваш логин: `{vpn_username}`\n\n"
+            
+            text += "Перейдите в «👤 Мой профиль» для получения ссылки."
+            
+            bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+        else:
+            bot.send_message(message.chat.id, "❌ Ошибка активации промокода", reply_markup=main_menu_keyboard())
+        return
+    
     # Handle free_period promo - apply immediately
     if promo["type"] == "free_period":
         days = int(promo["value"])
+        max_ips = promo.get("max_ips")
         
         # Create or extend subscription
-        vpn_username = create_or_extend_subscription(customer, days)
+        vpn_username = create_or_extend_subscription(customer, days, max_ips)
         
         if vpn_username:
             # Mark promo as used
@@ -317,10 +353,12 @@ def process_promo_code(message):
             # Get updated info
             info = get_user_subscription_info(vpn_username)
             
+            ips_text = f"📱 Лимит устройств: {max_ips}\n" if max_ips else ""
             text = (
                 f"✅ *Промокод активирован!*\n\n"
                 f"🎁 +{days} дней подписки\n"
-                f"⏰ Всего осталось: {info['expiration_days']} дней\n\n"
+                f"⏰ Всего осталось: {info['expiration_days']} дней\n"
+                f"{ips_text}\n"
             )
             
             if not customer.get("vpn_username"):

@@ -1149,7 +1149,7 @@ def move_tariff_down(tariff_id: str) -> bool:
 
 def add_promo(code: str = None, promo_type: str = 'discount', value: float = 0, 
               max_uses: int = 100, expire_days: int = None, for_telegram_username: str = None,
-              description: str = '') -> dict:
+              description: str = '', max_ips: int = None) -> dict:
     '''Creates a new promo code.'''
     import sys
     from datetime import datetime, timedelta
@@ -1163,7 +1163,7 @@ def add_promo(code: str = None, promo_type: str = 'discount', value: float = 0,
     if expire_days and expire_days > 0:
         expires_at = datetime.utcnow() + timedelta(days=expire_days)
     
-    result = shop_db.create_promo(code, promo_type, value, max_uses, None, for_telegram_username, expires_at, description)
+    result = shop_db.create_promo(code, promo_type, value, max_uses, None, for_telegram_username, expires_at, description, max_ips)
     result['_id'] = str(result['_id'])
     if result.get('expires_at'):
         result['expires_at'] = result['expires_at'].isoformat()

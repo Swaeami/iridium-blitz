@@ -1002,21 +1002,35 @@ def promo():
 
 @promo.command('add')
 @click.option('--code', '-c', required=False, help='Promo code (auto-generated if not provided)')
-@click.option('--type', '-t', 'promo_type', required=True, type=click.Choice(['discount', 'free_period']), help='Promo type: discount (%) or free_period (days)')
-@click.option('--value', '-v', required=True, type=float, help='Value (% for discount, days for free_period)')
+@click.option('--type', '-t', 'promo_type', required=True, type=click.Choice(['discount', 'free_period', 'lifetime']), help='Promo type: discount (%), free_period (days), or lifetime (forever)')
+@click.option('--value', '-v', type=float, default=0, help='Value (% for discount, days for free_period, ignored for lifetime)')
 @click.option('--max-uses', '-m', type=int, default=100, help='Maximum uses (default: 100)')
 @click.option('--expire-days', '-e', type=int, help='Expire after days (0 = never)')
 @click.option('--for-user', '-u', type=str, help='Telegram username (e.g. @username or username)')
+@click.option('--max-ips', '-i', type=int, help='Max devices/IPs for subscription (optional)')
 @click.option('--description', '-d', help='Description (optional)')
-def add_promo(code: str, promo_type: str, value: float, max_uses: int, expire_days: int, for_user: str, description: str):
+def add_promo(code: str, promo_type: str, value: float, max_uses: int, expire_days: int, for_user: str, max_ips: int, description: str):
     """Create a new promo code."""
     try:
         username = for_user.lstrip('@') if for_user else None
         
-        result = cli_api.add_promo(code, promo_type, value, max_uses, expire_days, username, description)
-        type_text = f"{int(value)}%" if promo_type == 'discount' else f"{int(value)} дней"
+        # Validate value for non-lifetime types
+        if promo_type != 'lifetime' and value <= 0:
+            click.echo('❌ Для этого типа нужно указать значение (--value)', err=True)
+            return
+        
+        result = cli_api.add_promo(code, promo_type, value, max_uses, expire_days, username, description, max_ips)
+        
+        if promo_type == 'lifetime':
+            type_text = "навсегда ♾️"
+        elif promo_type == 'discount':
+            type_text = f"{int(value)}%"
+        else:
+            type_text = f"{int(value)} дней"
+        
         user_text = f" (для @{username})" if username else ""
-        click.echo(f'✅ Промокод "{result.get("code")}" создан: {type_text}{user_text}')
+        ips_text = f" [{max_ips} IP]" if max_ips else ""
+        click.echo(f'✅ Промокод "{result.get("code")}" создан: {type_text}{user_text}{ips_text}')
     except Exception as e:
         click.echo(f'{e}', err=True)
 
@@ -1031,10 +1045,17 @@ def list_promos():
         if promos:
             click.echo('\n🎁 Промокоды:\n')
             for p in promos:
-                type_labels = {'discount': '💸 Скидка', 'free_period': '📅 Дни'}
-                type_label = type_labels.get(p.get('type'), p.get('type'))
+                ptype = p.get('type')
+                if ptype == 'lifetime':
+                    type_label = '♾️ Навсегда'
+                elif ptype == 'discount':
+                    type_label = f"💸 Скидка {int(p.get('value', 0))}%"
+                else:
+                    type_label = f"📅 {int(p.get('value', 0))} дней"
+                
                 user_text = f" [@{p.get('for_telegram_username')}]" if p.get('for_telegram_username') else ""
-                click.echo(f"  {p.get('code')} — {type_label} {int(p.get('value', 0))} — {p.get('uses_count')}/{p.get('max_uses')}{user_text}")
+                ips_text = f" [{p.get('max_ips')} IP]" if p.get('max_ips') else ""
+                click.echo(f"  {p.get('code')} — {type_label} — {p.get('uses_count')}/{p.get('max_uses')}{user_text}{ips_text}")
             click.echo()
         else:
             click.echo('Нет промокодов.')

@@ -1213,15 +1213,32 @@ manage_promos_menu() {
                 echo "Promo Type:"
                 echo "  1) Discount (%)"
                 echo "  2) Free Period (days)"
-                read -e -p "Choose type [1/2]: " ptype
+                echo "  3) Lifetime (forever) ♾️"
+                read -e -p "Choose type [1/2/3]: " ptype
+                
+                value=0
                 case $ptype in
                     1) 
                         promo_type="discount"
                         read -e -p "Discount percentage (1-100): " value
+                        if [ -z "$value" ] || ! [[ "$value" =~ ^[0-9]+$ ]]; then
+                            echo -e "${red}Error:${NC} Value must be a number"
+                            read -p "Press Enter..."
+                            continue
+                        fi
                         ;;
                     2) 
                         promo_type="free_period"
                         read -e -p "Free days: " value
+                        if [ -z "$value" ] || ! [[ "$value" =~ ^[0-9]+$ ]]; then
+                            echo -e "${red}Error:${NC} Value must be a number"
+                            read -p "Press Enter..."
+                            continue
+                        fi
+                        ;;
+                    3)
+                        promo_type="lifetime"
+                        value=0
                         ;;
                     *) 
                         echo -e "${red}Invalid type${NC}"
@@ -1230,21 +1247,16 @@ manage_promos_menu() {
                         ;;
                 esac
                 
-                # Validate value is not empty and is a number
-                if [ -z "$value" ] || ! [[ "$value" =~ ^[0-9]+$ ]]; then
-                    echo -e "${red}Error:${NC} Value must be a number"
-                    read -p "Press Enter..."
-                    continue
-                fi
-                
                 read -e -p "Max Uses (default: 100): " max_uses
                 max_uses=${max_uses:-100}
                 read -e -p "For specific user (@username, empty = all): " for_user
+                read -e -p "Max IPs/devices (empty = unlimited): " max_ips
                 read -e -p "Expire in days (0 = never): " expire
                 
                 cmd="python3 $CLI_PATH promo add -t $promo_type -v $value -m $max_uses"
                 [ -n "$code" ] && cmd="$cmd -c '$code'"
                 [ -n "$for_user" ] && cmd="$cmd -u '$for_user'"
+                [ -n "$max_ips" ] && cmd="$cmd -i $max_ips"
                 [ -n "$expire" ] && [ "$expire" != "0" ] && cmd="$cmd -e $expire"
                 eval $cmd
                 echo ""
