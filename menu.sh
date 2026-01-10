@@ -1231,7 +1231,13 @@ manage_promos_menu() {
                 esac
                 read -e -p "Max Uses (default: 100): " max_uses
                 max_uses=${max_uses:-100}
-                read -e -p "For specific Telegram ID (empty = all users): " for_user
+                read -e -p "For specific user (numeric TG ID, e.g. 123456789, empty = all): " for_user
+                # Validate that for_user is numeric if provided
+                if [ -n "$for_user" ] && ! [[ "$for_user" =~ ^[0-9]+$ ]]; then
+                    echo -e "${red}Error:${NC} Telegram ID must be numeric (e.g. 123456789)"
+                    read -p "Press Enter..."
+                    continue
+                fi
                 read -e -p "Expire in days (0 = never): " expire
                 
                 cmd="python3 $CLI_PATH promo add -t $promo_type -v $value -m $max_uses"
