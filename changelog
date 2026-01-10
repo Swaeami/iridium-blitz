@@ -1,11 +1,11 @@
-Iridium 1.0.33 - Promo Codes by Username
+Iridium 1.0.34 - Lifetime Promos & IP Limits
 
 🎁 Promo Codes:
-- Create promo for @username (user doesn't need to write bot first)
-- Validation by Telegram username (case-insensitive)
-- CLI shows [@username] in promo list
+- NEW: Lifetime type (♾️ forever subscription)
+- NEW: Max IPs/devices limit per promo
+- Create promo for @username before they join
+- Improved validation for all promo types
 
 🐛 Fixes:
+- Fixed empty value validation in promo creation
 - Fixed jq errors in CLI menu navigation
-- Fixed empty IP/ISP display
-- Input validation for promo creation
