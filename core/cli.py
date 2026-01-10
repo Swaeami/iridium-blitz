@@ -1024,14 +1024,15 @@ def list_promos():
     """List all promo codes."""
     try:
         promos = cli_api.list_promos()
+        # Filter only active promos
+        promos = [p for p in promos if p.get('is_active', True)]
         if promos:
             click.echo('\n🎁 Промокоды:\n')
             for p in promos:
-                status = '✅' if p.get('is_active') else '❌'
                 type_labels = {'discount': '💸 Скидка', 'free_period': '📅 Дни'}
                 type_label = type_labels.get(p.get('type'), p.get('type'))
                 user_text = f" [для {p.get('for_telegram_id')}]" if p.get('for_telegram_id') else ""
-                click.echo(f"  {status} {p.get('code')} — {type_label} {int(p.get('value', 0))} — {p.get('uses_count')}/{p.get('max_uses')}{user_text}")
+                click.echo(f"  {p.get('code')} — {type_label} {int(p.get('value', 0))} — {p.get('uses_count')}/{p.get('max_uses')}{user_text}")
             click.echo()
         else:
             click.echo('Нет промокодов.')
@@ -1040,12 +1041,12 @@ def list_promos():
 
 
 @promo.command('delete')
-@click.option('--code', '-c', required=True, help='Promo code to deactivate')
+@click.option('--code', '-c', required=True, help='Promo code to delete')
 def delete_promo(code: str):
-    """Delete (deactivate) a promo code."""
+    """Delete a promo code permanently."""
     try:
         cli_api.delete_promo(code)
-        click.echo('✅ Промокод деактивирован.')
+        click.echo('✅ Промокод удалён.')
     except Exception as e:
         click.echo(f'{e}', err=True)
 

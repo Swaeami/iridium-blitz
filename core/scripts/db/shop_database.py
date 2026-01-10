@@ -320,13 +320,10 @@ class ShopDatabase:
         query = {"is_active": True} if active_only else {}
         return list(self.promos.find(query).sort("created_at", -1))
     
-    def deactivate_promo(self, code: str) -> bool:
-        """Deactivate promo code"""
-        result = self.promos.update_one(
-            {"code": code.upper()},
-            {"$set": {"is_active": False}}
-        )
-        return result.modified_count > 0
+    def delete_promo(self, code: str) -> bool:
+        """Delete promo code permanently"""
+        result = self.promos.delete_one({"code": code.upper()})
+        return result.deleted_count > 0
     
     # ==================== PAYMENTS ====================
     

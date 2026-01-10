@@ -1192,7 +1192,7 @@ def list_promos() -> list:
 
 
 def delete_promo(code: str):
-    '''Deactivates a promo code.'''
+    '''Deletes a promo code permanently.'''
     import sys
     sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
     from db.shop_database import shop_db
@@ -1200,7 +1200,7 @@ def delete_promo(code: str):
     if not shop_db:
         raise CommandExecutionError("Database not available")
     
-    if not shop_db.deactivate_promo(code):
+    if not shop_db.delete_promo(code):
         raise CommandExecutionError("Promo code not found")
 
 
