@@ -1,8 +1,11 @@
-Iridium 1.0.32 - CLI Menu Fixes
+Iridium 1.0.33 - Promo Codes by Username
+
+🎁 Promo Codes:
+- Create promo for @username (user doesn't need to write bot first)
+- Validation by Telegram username (case-insensitive)
+- CLI shows [@username] in promo list
 
 🐛 Fixes:
-- Fixed jq errors appearing when navigating CLI menus
-- Fixed empty IP/ISP display in main menu
-- Added JSON validation before parsing API responses
-- Multiple fallback sources for IP detection (ipapi.co → ip.sb → ifconfig.me)
-- Added connection timeouts to prevent menu hangs
+- Fixed jq errors in CLI menu navigation
+- Fixed empty IP/ISP display
+- Input validation for promo creation
