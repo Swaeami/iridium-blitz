@@ -1006,14 +1006,26 @@ def promo():
 @click.option('--value', '-v', required=True, type=float, help='Value (% for discount, days for free_period)')
 @click.option('--max-uses', '-m', type=int, default=100, help='Maximum uses (default: 100)')
 @click.option('--expire-days', '-e', type=int, help='Expire after days (0 = never)')
-@click.option('--for-user', '-u', type=int, help='Telegram ID for user-specific promo')
+@click.option('--for-user', '-u', type=str, help='Telegram username (e.g. @username or username)')
 @click.option('--description', '-d', help='Description (optional)')
-def add_promo(code: str, promo_type: str, value: float, max_uses: int, expire_days: int, for_user: int, description: str):
+def add_promo(code: str, promo_type: str, value: float, max_uses: int, expire_days: int, for_user: str, description: str):
     """Create a new promo code."""
     try:
-        result = cli_api.add_promo(code, promo_type, value, max_uses, expire_days, for_user, description)
+        telegram_id = None
+        username_display = None
+        
+        if for_user:
+            # Look up user by Telegram username
+            telegram_id = cli_api.get_telegram_id_by_username(for_user)
+            if telegram_id is None:
+                click.echo(f'❌ Пользователь @{for_user.lstrip("@")} не найден в базе клиентов', err=True)
+                click.echo('💡 Пользователь должен сначала написать боту, чтобы появиться в базе', err=True)
+                return
+            username_display = for_user.lstrip('@')
+        
+        result = cli_api.add_promo(code, promo_type, value, max_uses, expire_days, telegram_id, description)
         type_text = f"{int(value)}%" if promo_type == 'discount' else f"{int(value)} дней"
-        user_text = f" (для пользователя {for_user})" if for_user else ""
+        user_text = f" (для @{username_display})" if username_display else ""
         click.echo(f'✅ Промокод "{result.get("code")}" создан: {type_text}{user_text}')
     except Exception as e:
         click.echo(f'{e}', err=True)

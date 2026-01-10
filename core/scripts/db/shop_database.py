@@ -48,6 +48,14 @@ class ShopDatabase:
         """Get customer by VPN username"""
         return self.customers.find_one({"vpn_username": vpn_username.lower()})
     
+    def get_customer_by_telegram_username(self, username: str) -> Optional[Dict]:
+        """Get customer by Telegram username (case-insensitive)"""
+        # Remove @ if present
+        username = username.lstrip('@').lower()
+        return self.customers.find_one({
+            "telegram_username": {"$regex": f"^{username}$", "$options": "i"}
+        })
+    
     def create_customer(self, telegram_id: int, telegram_username: str = None) -> Dict:
         """Create new customer"""
         customer = {

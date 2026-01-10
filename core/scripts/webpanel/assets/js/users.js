@@ -263,7 +263,7 @@ $(function () {
         const formData = new FormData(this);
         const jsonData = Object.fromEntries(formData.entries());
         jsonData.unlimited = jsonData.unlimited === 'on';
-        
+
         // Handle max_ips - convert to int or null
         if (jsonData.max_ips !== undefined && jsonData.max_ips !== '') {
             jsonData.max_ips = parseInt(jsonData.max_ips);
@@ -351,7 +351,7 @@ $(function () {
         const jsonData = Object.fromEntries(formData.entries());
         jsonData.blocked = jsonData.blocked === 'on';
         jsonData.unlimited_ip = jsonData.unlimited_ip === 'on';
-        
+
         // Handle max_ips - convert to int or null (0 means use global)
         if (jsonData.max_ips !== undefined && jsonData.max_ips !== '') {
             jsonData.max_ips = parseInt(jsonData.max_ips);

@@ -1088,7 +1088,7 @@ ip_limit_handler() {
 
 manage_tariffs_menu() {
     while true; do
-        clear
+    clear
         echo -e "${IRIDIUM}${BOLD}  📋 Manage Tariffs${NC}\n"
         
         # List tariffs
@@ -1231,13 +1231,7 @@ manage_promos_menu() {
                 esac
                 read -e -p "Max Uses (default: 100): " max_uses
                 max_uses=${max_uses:-100}
-                read -e -p "For specific user (numeric TG ID, e.g. 123456789, empty = all): " for_user
-                # Validate that for_user is numeric if provided
-                if [ -n "$for_user" ] && ! [[ "$for_user" =~ ^[0-9]+$ ]]; then
-                    echo -e "${red}Error:${NC} Telegram ID must be numeric (e.g. 123456789)"
-                    read -p "Press Enter..."
-                    continue
-                fi
+                read -e -p "For specific user (@username, empty = all): " for_user
                 read -e -p "Expire in days (0 = never): " expire
                 
                 cmd="python3 $CLI_PATH promo add -t $promo_type -v $value -m $max_uses"
@@ -1355,12 +1349,12 @@ display_main_menu() {
     echo -e "  ${gray}CPU${NC} ${yellow}$CPU${NC}  ${gray}│${NC}  ${gray}RAM${NC} ${yellow}$RAM${NC}"
     
     print_section "Version Info"
-    check_core_version
-    check_version
-    
+        check_core_version
+        check_version
+
     print_section "Services"
-    check_services
-    
+        check_services
+
     print_section "Main Menu"
     menu_item "1" "Hysteria2 Menu" "$green"
     menu_item "2" "Advanced Settings" "$cyan"

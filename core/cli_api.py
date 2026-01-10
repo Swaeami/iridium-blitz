@@ -1147,6 +1147,21 @@ def move_tariff_down(tariff_id: str) -> bool:
     return shop_db.move_tariff_down(tariff_id)
 
 
+def get_telegram_id_by_username(username: str) -> int:
+    '''Look up Telegram ID by username from customer database.'''
+    import sys
+    sys.path.insert(0, os.path.join(SCRIPT_DIR, '..'))
+    from db.shop_database import shop_db
+    
+    if not shop_db:
+        return None
+    
+    customer = shop_db.get_customer_by_telegram_username(username)
+    if customer:
+        return customer.get('telegram_id')
+    return None
+
+
 def add_promo(code: str = None, promo_type: str = 'discount', value: float = 0, 
               max_uses: int = 100, expire_days: int = None, for_telegram_id: int = None,
               description: str = '') -> dict:
